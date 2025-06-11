@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -222,10 +222,10 @@
       celda.classList.add('selected');
       mostrarTareas();
     }
-function guardarEnLocalStorage() {
-  localStorage.setItem('tareas', JSON.stringify(tareas));
-}
 
+    function guardarEnLocalStorage() {
+      localStorage.setItem('tareas', JSON.stringify(tareas));
+    }
 
     function guardarTarea() {
       if (!diaSeleccionado) {
@@ -239,7 +239,7 @@ function guardarEnLocalStorage() {
       let key = `${anioActual}-${mesActual + 1}-${diaSeleccionado}`;
       if (!tareas[key]) tareas[key] = [];
       tareas[key].push(texto);
-guardarEnLocalStorage();
+      guardarEnLocalStorage();
 
       document.getElementById('tareaInput').value = "";
       document.getElementById('mensajeTarea').innerText = "Tarea guardada";
@@ -268,7 +268,7 @@ guardarEnLocalStorage();
 
     function eliminarTarea(fecha, index) {
       tareas[fecha].splice(index, 1);
-guardarEnLocalStorage();
+      guardarEnLocalStorage();
 
       mostrarTareas();
       generateCalendar(anioActual, mesActual);
