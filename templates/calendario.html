@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Calendario de Tareas</title>
 <style>
-  /* Tamaños grandes para móvil y escritorio */
-
   body {
     font-family: Arial, sans-serif;
     padding: 20px;
@@ -49,11 +47,10 @@
     font-weight: bold;
   }
 
-  /* Día actual fijo: fondo azul fuerte con texto blanco */
+  /* Día actual: fondo azul fuerte con texto blanco */
   td.hoy {
     background-color: #1976d2;
     color: white;
-    cursor: default;
   }
 
   /* Día seleccionado: gris clarito */
@@ -63,7 +60,7 @@
   }
 
   /* Días con tareas: fondo azul claro */
-  td.con-tareas:not(.hoy):not(.selected) {
+  td.con-tareas {
     background-color: #bbdefb;
     font-weight: bolder;
   }
@@ -84,7 +81,6 @@
     background-color: #b71c1c;
   }
 
-  /* Lista de tareas */
   #listaTareas {
     margin-top: 20px;
     font-size: 1.3rem;
@@ -120,7 +116,6 @@
 
   let diasConTareas = [];
 
-  // Formato fecha yyyy-mm-dd
   function fechaString(dia, mes, anio) {
     mes = mes + 1;
     if (mes < 10) mes = '0' + mes;
@@ -128,17 +123,14 @@
     return `${anio}-${mes}-${dia}`;
   }
 
-  // Días de la semana en español
   const diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
-  // Mostrar fecha seleccionada en texto
   function mostrarFechaSeleccionada() {
     const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     const fecha = new Date(anio, mes, diaSeleccionado);
     fechaSeleccionadaDiv.textContent = fecha.toLocaleDateString('es-ES', opciones);
   }
 
-  // Obtener tareas para el mes y cargar días con tareas
   async function cargarDiasConTareas() {
     const mesStr = `${anio}-${(mes + 1).toString().padStart(2, '0')}`;
     const res = await fetch(`/api/tareas-mes/${mesStr}`);
@@ -149,7 +141,6 @@
     }
   }
 
-  // Cargar tareas para un día
   async function cargarTareas(fecha) {
     const res = await fetch(`/api/tareas/${fecha}`);
     if (res.ok) {
@@ -160,7 +151,6 @@
     }
   }
 
-  // Mostrar tareas en la lista
   function mostrarTareas(tareas) {
     listaTareas.innerHTML = '';
     if (tareas.length === 0) {
@@ -179,7 +169,6 @@
     });
   }
 
-  // Borrar tarea
   async function borrarTarea(id) {
     const res = await fetch(`/api/tareas/${id}`, { method: 'DELETE' });
     if (res.ok) {
@@ -190,7 +179,6 @@
     }
   }
 
-  // Guardar tarea
   async function guardarTarea() {
     const texto = tareaInput.value.trim();
     if (!texto) return alert('Escribe una tarea');
@@ -211,11 +199,9 @@
 
   guardarBtn.onclick = guardarTarea;
 
-  // Dibujar calendario
   function dibujarCalendario() {
     calendario.innerHTML = '';
 
-    // Header con días de la semana
     let thead = document.createElement('thead');
     let tr = document.createElement('tr');
     for (let d = 0; d < 7; d++) {
@@ -228,7 +214,7 @@
 
     let primerDia = new Date(anio, mes, 1);
     let primerDiaSemana = primerDia.getDay();
-    if (primerDiaSemana === 0) primerDiaSemana = 7; // Domingo = 7 para ajuste lunes primero
+    if (primerDiaSemana === 0) primerDiaSemana = 7;
 
     let diasMes = new Date(anio, mes + 1, 0).getDate();
 
@@ -239,7 +225,6 @@
       for (let col = 1; col <= 7; col++) {
         let td = document.createElement('td');
 
-        // Rellenar solo a partir del primer día del mes
         if (fila === 0 && col < primerDiaSemana) {
           td.textContent = '';
           td.style.cursor = 'default';
@@ -249,32 +234,23 @@
         } else {
           td.textContent = diaContador;
 
-          // Fecha en formato yyyy-mm-dd para comparar
           const fechaCompara = fechaString(diaContador, mes, anio);
-
-          // Día actual fijo
           const fechaHoy = fechaString(hoy.getDate(), hoy.getMonth(), hoy.getFullYear());
+
           if (fechaCompara === fechaHoy) {
             td.classList.add('hoy');
           }
 
-          // Días con tareas
           if (diasConTareas.includes(fechaCompara)) {
             td.classList.add('con-tareas');
           }
 
-          // Día seleccionado (excepto si es hoy)
-          if (diaContador === diaSeleccionado && fechaCompara !== fechaHoy) {
+          if (diaContador === diaSeleccionado) {
             td.classList.add('selected');
           }
 
           td.onclick = () => {
-            if (td.classList.contains('hoy')) {
-              // No cambiar selección si es hoy
-              diaSeleccionado = hoy.getDate();
-            } else {
-              diaSeleccionado = diaContador;
-            }
+            diaSeleccionado = diaContador;
             mostrarFechaSeleccionada();
             cargarTareas(fechaString(diaSeleccionado, mes, anio));
             dibujarCalendario();
@@ -289,12 +265,12 @@
     calendario.appendChild(tbody);
   }
 
-  // Inicialización
   mostrarFechaSeleccionada();
   cargarDiasConTareas().then(() => {
     dibujarCalendario();
     cargarTareas(fechaString(diaSeleccionado, mes, anio));
   });
 </script>
+
 </body>
 </html>
