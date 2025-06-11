@@ -1,10 +1,9 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Calendario de Tareas</title>
-<style>
+  <meta charset="UTF-8" />
+  <title>Calendario</title>
+  <style>
     body {
       background-color: white;
       font-family: Arial, sans-serif;
@@ -146,188 +145,185 @@
       cursor: pointer;
     }
   </style>
-
 </head>
 <body>
-<h1>Calendario de Tareas</h1>
-<div id="fechaSeleccionada" style="font-size:1.6rem; margin-bottom: 10px;"></div>
 
-<table id="calendario"></table>
+  <button class="btn-volver" onclick="location.href='/'" title="Volver">&#8635;</button>
 
-<input type="text" id="tareaInput" placeholder="Escribe una tarea y pulsa Guardar" autocomplete="off" />
-<button id="guardarBtn">Guardar Tarea</button>
+  <div class="selector-container">
+    <select id="mes" onchange="cambiarMes()"></select>
+    <select id="anio" onchange="cambiarMes()"></select>
+    <button onclick="volverMesActual()">Mes actual</button>
+  </div>
 
-<div id="listaTareas"></div>
+  <div id="calendar"></div>
 
-<script>
-  const calendario = document.getElementById('calendario');
-  const fechaSeleccionadaDiv = document.getElementById('fechaSeleccionada');
-  const tareaInput = document.getElementById('tareaInput');
-  const guardarBtn = document.getElementById('guardarBtn');
-  const listaTareas = document.getElementById('listaTareas');
+  <div class="tarea-form">
+    <input type="text" id="tareaInput" placeholder="Escribe tu tarea para el día seleccionado">
+    <button class="btn-guardar" onclick="guardarTarea()">Guardar</button>
+    <div id="mensajeTarea" class="tarea-confirmacion"></div>
+    <div id="listaTareas"></div>
+  </div>
 
-  let hoy = new Date();
-  let mes = hoy.getMonth();
-  let anio = hoy.getFullYear();
-  let diaSeleccionado = hoy.getDate();
+  <script>
+    let diaSeleccionado = null;
+    let anioActual = new Date().getFullYear();
+    let mesActual = new Date().getMonth();
+    let tareas = {};
 
-  let diasConTareas = [];
-
-  function fechaString(dia, mes, anio) {
-    mes = mes + 1;
-    if (mes < 10) mes = '0' + mes;
-    if (dia < 10) dia = '0' + dia;
-    return `${anio}-${mes}-${dia}`;
-  }
-
-  const diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-
-  function mostrarFechaSeleccionada() {
-    const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    const fecha = new Date(anio, mes, diaSeleccionado);
-    fechaSeleccionadaDiv.textContent = fecha.toLocaleDateString('es-ES', opciones);
-  }
-
-  async function cargarDiasConTareas() {
-    const mesStr = `${anio}-${(mes + 1).toString().padStart(2, '0')}`;
-    const res = await fetch(`/api/tareas-mes/${mesStr}`);
-    if (res.ok) {
-      diasConTareas = await res.json();
-    } else {
-      diasConTareas = [];
+    // Función para crear clave fecha con formato YYYY-MM-DD con ceros delante
+    function fechaKey(year, month, day) {
+      const mm = (month + 1).toString().padStart(2, '0');
+      const dd = day.toString().padStart(2, '0');
+      return `${year}-${mm}-${dd}`;
     }
-  }
 
-  async function cargarTareas(fecha) {
-    const res = await fetch(`/api/tareas/${fecha}`);
-    if (res.ok) {
-      const tareas = await res.json();
-      mostrarTareas(tareas);
-    } else {
-      listaTareas.innerHTML = '<p>Error cargando tareas</p>';
-    }
-  }
+    function generateCalendar(year, month) {
+      const calendarDiv = document.getElementById('calendar');
+      calendarDiv.innerHTML = '';
 
-  function mostrarTareas(tareas) {
-    listaTareas.innerHTML = '';
-    if (tareas.length === 0) {
-      listaTareas.textContent = 'No hay tareas para este día.';
-      return;
-    }
-    tareas.forEach(tarea => {
-      const div = document.createElement('div');
-      div.className = 'tarea-item';
-      div.textContent = tarea.texto;
-      const btnBorrar = document.createElement('button');
-      btnBorrar.textContent = 'Borrar';
-      btnBorrar.onclick = () => borrarTarea(tarea.id);
-      div.appendChild(btnBorrar);
-      listaTareas.appendChild(div);
-    });
-  }
-
-  async function borrarTarea(id) {
-    const res = await fetch(`/api/tareas/${id}`, { method: 'DELETE' });
-    if (res.ok) {
-      cargarTareas(fechaString(diaSeleccionado, mes, anio));
-      cargarDiasConTareas().then(dibujarCalendario);
-    } else {
-      alert('Error borrando tarea');
-    }
-  }
-
-  async function guardarTarea() {
-    const texto = tareaInput.value.trim();
-    if (!texto) return alert('Escribe una tarea');
-    const fecha = fechaString(diaSeleccionado, mes, anio);
-    const res = await fetch('/api/tareas', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fecha, texto })
-    });
-    if (res.ok) {
-      tareaInput.value = '';
-      cargarTareas(fecha);
-      cargarDiasConTareas().then(dibujarCalendario);
-    } else {
-      alert('Error guardando tarea');
-    }
-  }
-
-  guardarBtn.onclick = guardarTarea;
-
-  function dibujarCalendario() {
-    calendario.innerHTML = '';
-
-    let thead = document.createElement('thead');
-    let tr = document.createElement('tr');
-    for (let d = 0; d < 7; d++) {
-      let th = document.createElement('th');
-      th.textContent = diasSemana[d];
-      tr.appendChild(th);
-    }
-    thead.appendChild(tr);
-    calendario.appendChild(thead);
-
-    let primerDia = new Date(anio, mes, 1);
-    let primerDiaSemana = primerDia.getDay();
-    if (primerDiaSemana === 0) primerDiaSemana = 7;
-
-    let diasMes = new Date(anio, mes + 1, 0).getDate();
-
-    let tbody = document.createElement('tbody');
-    let diaContador = 1;
-    for (let fila = 0; fila < 6; fila++) {
-      let tr = document.createElement('tr');
-      for (let col = 1; col <= 7; col++) {
-        let td = document.createElement('td');
-
-        if (fila === 0 && col < primerDiaSemana) {
-          td.textContent = '';
-          td.style.cursor = 'default';
-        } else if (diaContador > diasMes) {
-          td.textContent = '';
-          td.style.cursor = 'default';
-        } else {
-          td.textContent = diaContador;
-
-          const fechaCompara = fechaString(diaContador, mes, anio);
-          const fechaHoy = fechaString(hoy.getDate(), hoy.getMonth(), hoy.getFullYear());
-
-          if (fechaCompara === fechaHoy) {
-            td.classList.add('hoy');
-          }
-
-          if (diasConTareas.includes(fechaCompara)) {
-            td.classList.add('con-tareas');
-          }
-
-          if (diaContador === diaSeleccionado) {
-            td.classList.add('selected');
-          }
-
-          td.onclick = () => {
-            diaSeleccionado = diaContador;
-            mostrarFechaSeleccionada();
-            cargarTareas(fechaString(diaSeleccionado, mes, anio));
-            dibujarCalendario();
-          };
-
-          diaContador++;
-        }
-        tr.appendChild(td);
+      const daysOfWeek = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+      let table = '<table><tr>';
+      for (let day of daysOfWeek) {
+        table += `<th>${day}</th>`;
       }
-      tbody.appendChild(tr);
-    }
-    calendario.appendChild(tbody);
-  }
+      table += '</tr>';
 
-  mostrarFechaSeleccionada();
-  cargarDiasConTareas().then(() => {
-    dibujarCalendario();
-    cargarTareas(fechaString(diaSeleccionado, mes, anio));
-  });
-</script>
+      let firstDay = new Date(year, month, 1).getDay();
+      let daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      let dayCount = 1;
+      for (let week = 0; week < 6; week++) {
+        table += '<tr>';
+        for (let day = 0; day < 7; day++) {
+          if (week === 0 && day < firstDay) {
+            table += '<td></td>';
+          } else if (dayCount > daysInMonth) {
+            table += '<td></td>';
+          } else {
+            let today = new Date();
+            let isToday = dayCount === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+
+            let key = fechaKey(year, month, dayCount);
+            let tieneTareas = tareas[key] && tareas[key].length > 0;
+
+            let estilo = '';
+            if (isToday) estilo += 'background-color:#4CAF50; color:white; font-weight:bold;';
+            if (tieneTareas) estilo += 'border: 4px solid #FF5722;';
+
+            table += `<td onclick="seleccionarDia(${dayCount}, this)" style="${estilo}">${dayCount}</td>`;
+            dayCount++;
+          }
+        }
+        table += '</tr>';
+        if (dayCount > daysInMonth) break;
+      }
+      table += '</table>';
+      calendarDiv.innerHTML = table;
+    }
+
+    function seleccionarDia(dia, celda) {
+      diaSeleccionado = dia;
+      document.querySelectorAll('td').forEach(td => td.classList.remove('selected'));
+      celda.classList.add('selected');
+      mostrarTareas();
+    }
+
+    function guardarTarea() {
+      if (!diaSeleccionado) {
+        alert("Primero selecciona un día.");
+        return;
+      }
+
+      let texto = document.getElementById('tareaInput').value.trim();
+      if (texto === "") return;
+
+      let key = fechaKey(anioActual, mesActual, diaSeleccionado);
+      if (!tareas[key]) tareas[key] = [];
+      tareas[key].push(texto);
+
+      document.getElementById('tareaInput').value = "";
+      document.getElementById('mensajeTarea').innerText = "Tarea guardada";
+      mostrarTareas();
+      generateCalendar(anioActual, mesActual);
+
+      setTimeout(() => {
+        document.getElementById('mensajeTarea').innerText = "";
+      }, 2000);
+    }
+
+    function mostrarTareas() {
+      let key = fechaKey(anioActual, mesActual, diaSeleccionado);
+      let contenedor = document.getElementById('listaTareas');
+      contenedor.innerHTML = "";
+
+      if (tareas[key]) {
+        tareas[key].forEach((t, i) => {
+          let div = document.createElement('div');
+          div.className = "tarea-item";
+          div.innerHTML = `${t} <button onclick="eliminarTarea('${key}', ${i})">X</button>`;
+          contenedor.appendChild(div);
+        });
+      }
+    }
+
+    function eliminarTarea(fecha, index) {
+      tareas[fecha].splice(index, 1);
+      mostrarTareas();
+      generateCalendar(anioActual, mesActual);
+    }
+
+    function cargarSelectorFecha() {
+      let mesSelect = document.getElementById("mes");
+      let anioSelect = document.getElementById("anio");
+
+      const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+      for (let i = 0; i < 12; i++) {
+        let opt = document.createElement("option");
+        opt.value = i;
+        opt.text = meses[i];
+        if (i === mesActual) opt.selected = true;
+        mesSelect.add(opt);
+      }
+
+      for (let i = anioActual - 5; i <= anioActual + 5; i++) {
+        let opt = document.createElement("option");
+        opt.value = i;
+        opt.text = i;
+        if (i === anioActual) opt.selected = true;
+        anioSelect.add(opt);
+      }
+    }
+
+    function cambiarMes() {
+      let mes = parseInt(document.getElementById("mes").value);
+      let anio = parseInt(document.getElementById("anio").value);
+      mesActual = mes;
+      anioActual = anio;
+      diaSeleccionado = null;
+      generateCalendar(anioActual, mesActual);
+      document.getElementById("listaTareas").innerHTML = "";
+    }
+
+    function volverMesActual() {
+      let hoy = new Date();
+      mesActual = hoy.getMonth();
+      anioActual = hoy.getFullYear();
+      diaSeleccionado = null;
+
+      document.getElementById("mes").value = mesActual;
+      document.getElementById("anio").value = anioActual;
+      generateCalendar(anioActual, mesActual);
+      document.getElementById("listaTareas").innerHTML = "";
+    }
+
+    window.onload = function () {
+      cargarSelectorFecha();
+      generateCalendar(anioActual, mesActual);
+    };
+  </script>
 
 </body>
 </html>
