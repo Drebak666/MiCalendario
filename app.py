@@ -1,7 +1,6 @@
 import os
 import datetime
 import locale
-import re
 from flask import Flask, render_template, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 
@@ -23,7 +22,7 @@ db = SQLAlchemy(app)
 # Modelo de tarea
 class Tarea(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    fecha = db.Column(db.String(10), nullable=False)  # Formato YYYY-MM-DD
+    fecha = db.Column(db.String(10), nullable=False)
     texto = db.Column(db.Text, nullable=False)
     creada = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
@@ -35,11 +34,7 @@ class Tarea(db.Model):
             'creada': self.creada.isoformat()
         }
 
-# Validar formato fecha YYYY-MM-DD
-def validar_fecha(fecha):
-    return re.match(r'^\d{4}-\d{2}-\d{2}$', fecha) is not None
-
-# Crear base de datos si no existe
+# Función para crear la base de datos si no existe
 def crear_bd():
     with app.app_context():
         db.create_all()
@@ -64,8 +59,6 @@ def ping():
 
 @app.route('/api/tareas/<fecha>', methods=['GET'])
 def obtener_tareas(fecha):
-    if not validar_fecha(fecha):
-        return jsonify({'error': 'Formato de fecha inválido'}), 400
     tareas = Tarea.query.filter_by(fecha=fecha).order_by(Tarea.creada).all()
     return jsonify([t.to_dict() for t in tareas])
 
@@ -74,8 +67,8 @@ def crear_tarea():
     data = request.get_json() or {}
     fecha = data.get('fecha')
     texto = (data.get('texto') or '').strip()
-    if not fecha or not texto or not validar_fecha(fecha):
-        return jsonify({'error': 'Fecha y texto requeridos y fecha con formato YYYY-MM-DD'}), 400
+    if not fecha or not texto:
+        return jsonify({'error': 'Fecha y texto requeridos'}), 400
     nueva = Tarea(fecha=fecha, texto=texto)
     db.session.add(nueva)
     db.session.commit()
@@ -92,11 +85,8 @@ def borrar_tarea(id):
 
 @app.route('/api/tareas-mes/<mes_str>', methods=['GET'])
 def tareas_por_mes(mes_str):
-    # mes_str esperado: "YYYY-MM"
     try:
         year, mon = mes_str.split('-')
-        if len(year) != 4 or len(mon) != 2:
-            raise ValueError
     except:
         return jsonify({'error': 'Formato inválido'}), 400
     like = f"{year}-{mon}-%"
@@ -105,8 +95,6 @@ def tareas_por_mes(mes_str):
     return jsonify(fechas)
 
 if __name__ == '__main__':
-    crear_bd()
+    crear_bd()  # Crear la base de datos antes de arrancar la app
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
-
-
+    app.run(host='0.0.0.0', port=port, debug=False)
