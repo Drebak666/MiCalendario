@@ -1,387 +1,51 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <title>Calendario con tareas</title>
-  <style>
-    body {
-      background-color: white;
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+    <meta charset="UTF-8" />
+    <title>Mi Agenda</title>
+    <style>
+        body {
+            background-color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px 0 0 0; /* espacio arriba */
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* centrado horizontal */
+            /* quitamos justify-content: center para que no esté centrado verticalmente */
+            height: 100vh;
+        }
 
-    .btn-volver {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      font-size: 60px;
-      font-weight: bold;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 80px;
-      height: 80px;
-      cursor: pointer;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background-color 0.3s ease;
-      user-select: none;
-    }
+        h1 {
+            font-size: 60px; /* más grande */
+            margin: 0 0 30px 0;
+            color: #333;
+            text-align: center;
+        }
 
-    .btn-volver:hover {
-      background-color: #45a049;
-    }
+        .boton {
+            padding: 20px 50px;
+            font-size: 50px; /* más grande */
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: background-color 0.3s ease;
+        }
 
-    #calendar {
-      margin-top: 20px;
-      width: 100%;
-      max-width: 900px;
-    }
-
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      font-size: 24px;
-      table-layout: fixed;
-    }
-
-    th, td {
-      border: 1px solid #ccc;
-      padding: 10px;
-      height: 60px;
-      text-align: center;
-      word-wrap: break-word;
-      cursor: pointer;
-    }
-
-    td:hover {
-      background-color: #eee;
-    }
-
-    .selected {
-      background-color: #2196F3 !important;
-      color: white;
-      font-weight: bold;
-    }
-
-    .tarea-form {
-      margin-top: 30px;
-      text-align: center;
-      width: 100%;
-      max-width: 900px;
-    }
-
-    #tareaInput {
-      width: 100%;
-      padding: 10px;
-      font-size: 20px;
-      margin-bottom: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-
-    .btn-guardar {
-      padding: 10px 20px;
-      font-size: 20px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    .btn-guardar:hover {
-      background-color: #45a049;
-    }
-
-    .tarea-confirmacion {
-      color: green;
-      margin-top: 10px;
-      font-size: 16px;
-    }
-
-    .tarea-item {
-      background-color: #f0f0f0;
-      margin-top: 5px;
-      padding: 8px;
-      border-radius: 5px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 18px;
-    }
-
-    .tarea-item button {
-      background-color: red;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      padding: 4px 10px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    .selector-container {
-      font-size: 18px;
-      margin-top: 20px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .selector-container select,
-    .selector-container button {
-      font-size: 18px;
-      padding: 6px 12px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      cursor: pointer;
-    }
-
-    .tarea-item .texto {
-      flex-grow: 1;
-      text-align: left;
-      padding-left: 10px;
-    }
-
-    .con-tareas {
-      border: 3px solid #FF5722 !important;
-      font-weight: bold;
-    }
-  </style>
+        .boton:hover {
+            background-color: #45a049;
+        }
+    </style>
 </head>
 <body>
-
-  <button class="btn-volver" onclick="location.href='/'" title="Volver">&#8635;</button>
-
-  <div class="selector-container">
-    <select id="mes" onchange="cambiarMes()"></select>
-    <select id="anio" onchange="cambiarMes()"></select>
-    <button onclick="volverMesActual()">Mes actual</button>
-  </div>
-
-  <div id="calendar"></div>
-
-  <div class="tarea-form">
-    <input type="text" id="tareaInput" placeholder="Escribe tu tarea para el día seleccionado">
-    <button class="btn-guardar" onclick="guardarTarea()">Guardar tarea</button>
-    <div id="mensaje" class="tarea-confirmacion"></div>
-  </div>
-
-  <div id="listaTareas" style="max-width: 900px; margin-top: 20px;"></div>
-
-<script>
-  const meses = [
-    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-  ];
-
-  let hoy = new Date();
-  let mesActual = hoy.getMonth();
-  let anioActual = hoy.getFullYear();
-  let mesSeleccionado = mesActual;
-  let anioSeleccionado = anioActual;
-  let diaSeleccionado = hoy.getDate();
-
-  const calendarDiv = document.getElementById('calendar');
-  const listaTareasDiv = document.getElementById('listaTareas');
-  const mensajeDiv = document.getElementById('mensaje');
-  const tareaInput = document.getElementById('tareaInput');
-  const selectMes = document.getElementById('mes');
-  const selectAnio = document.getElementById('anio');
-
-  function llenarSelects() {
-    meses.forEach((m, i) => {
-      let option = document.createElement('option');
-      option.value = i;
-      option.textContent = m;
-      if (i === mesSeleccionado) option.selected = true;
-      selectMes.appendChild(option);
-    });
-
-    const rango = 10;
-    for (let y = anioActual - rango; y <= anioActual + rango; y++) {
-      let option = document.createElement('option');
-      option.value = y;
-      option.textContent = y;
-      if (y === anioSeleccionado) option.selected = true;
-      selectAnio.appendChild(option);
-    }
-  }
-
-  function volverMesActual() {
-    mesSeleccionado = mesActual;
-    anioSeleccionado = anioActual;
-    selectMes.value = mesSeleccionado;
-    selectAnio.value = anioSeleccionado;
-    diaSeleccionado = null;
-    dibujarCalendario(mesSeleccionado, anioSeleccionado);
-    listaTareasDiv.innerHTML = '';
-    tareaInput.value = '';
-    mensajeDiv.textContent = '';
-  }
-
-  function cambiarMes() {
-    mesSeleccionado = parseInt(selectMes.value);
-    anioSeleccionado = parseInt(selectAnio.value);
-    diaSeleccionado = null;
-    dibujarCalendario(mesSeleccionado, anioSeleccionado);
-    listaTareasDiv.innerHTML = '';
-    tareaInput.value = '';
-    mensajeDiv.textContent = '';
-  }
-
-  async function fetchDiasConTareas(mes, anio) {
-    let mesStr = `${anio}-${(mes + 1).toString().padStart(2, '0')}`;
-    const res = await fetch(`/api/tareas-mes/${mesStr}`);
-    if (!res.ok) return [];
-    return await res.json();
-  }
-
-  function fechaString(dia, mes, anio) {
-    return `${anio}-${(mes+1).toString().padStart(2,'0')}-${dia.toString().padStart(2,'0')}`;
-  }
-
-  async function dibujarCalendario(mes, anio) {
-    const diasConTareas = await fetchDiasConTareas(mes, anio);
-
-    let primerDia = new Date(anio, mes, 1).getDay();
-    if (primerDia === 0) primerDia = 7;
-    const diasMes = new Date(anio, mes + 1, 0).getDate();
-
-    let html = '<table><thead><tr>';
-    const diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-    diasSemana.forEach(d => html += `<th>${d}</th>`);
-    html += '</tr></thead><tbody><tr>';
-
-    let diaContador = 1;
-    for (let i = 1; i < primerDia; i++) {
-      html += '<td></td>';
-    }
-
-    for (let i = primerDia; i <= 7; i++) {
-      let classes = '';
-      const fechaCompara = fechaString(diaContador, mes, anio);
-      if (diasConTareas.includes(fechaCompara)) classes = 'con-tareas';
-      if (diaContador === diaSeleccionado) classes += ' selected';
-
-      html += `<td class="${classes.trim()}" onclick="seleccionarDia(${diaContador})">${diaContador}</td>`;
-      diaContador++;
-    }
-    html += '</tr>';
-
-    while (diaContador <= diasMes) {
-      html += '<tr>';
-      for (let i = 1; i <= 7 && diaContador <= diasMes; i++) {
-        let classes = '';
-        const fechaCompara = fechaString(diaContador, mes, anio);
-        if (diasConTareas.includes(fechaCompara)) classes = 'con-tareas';
-        if (diaContador === diaSeleccionado) classes += ' selected';
-
-        html += `<td class="${classes.trim()}" onclick="seleccionarDia(${diaContador})">${diaContador}</td>`;
-        diaContador++;
-      }
-      html += '</tr>';
-    }
-    html += '</tbody></table>';
-
-    calendarDiv.innerHTML = html;
-  }
-
-  let diaGuardadoParaTareas = null;
-
-  async function seleccionarDia(dia) {
-    diaSeleccionado = dia;
-    diaGuardadoParaTareas = dia;
-    dibujarCalendario(mesSeleccionado, anioSeleccionado);
-    tareaInput.value = '';
-    mensajeDiv.textContent = '';
-
-    const fecha = fechaString(dia, mesSeleccionado, anioSeleccionado);
-    const res = await fetch(`/api/tareas/${fecha}`);
-    if (!res.ok) {
-      listaTareasDiv.innerHTML = '<p>Error al cargar tareas.</p>';
-      return;
-    }
-    const tareas = await res.json();
-    mostrarTareas(tareas);
-  }
-
-  function mostrarTareas(tareas) {
-    if (tareas.length === 0) {
-      listaTareasDiv.innerHTML = '<p>No hay tareas para este día.</p>';
-      return;
-    }
-    listaTareasDiv.innerHTML = '';
-    tareas.forEach(tarea => {
-      const div = document.createElement('div');
-      div.classList.add('tarea-item');
-      div.innerHTML = `
-        <span class="texto">${tarea.texto}</span>
-        <button onclick="borrarTarea(${tarea.id})">X</button>
-      `;
-      listaTareasDiv.appendChild(div);
-    });
-  }
-
-  async function guardarTarea() {
-    if (!diaGuardadoParaTareas) {
-      alert('Selecciona un día primero.');
-      return;
-    }
-    const texto = tareaInput.value.trim();
-    if (!texto) {
-      alert('Escribe una tarea.');
-      return;
-    }
-
-    const fecha = fechaString(diaGuardadoParaTareas, mesSeleccionado, anioSeleccionado);
-    const res = await fetch('/api/tareas', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fecha, texto })
-    });
-    if (!res.ok) {
-      alert('Error al guardar tarea.');
-      return;
-    }
-    tareaInput.value = '';
-    mensajeDiv.textContent = 'Tarea guardada.';
-    setTimeout(() => { mensajeDiv.textContent = ''; }, 2000);
-
-    // Recargar tareas para ese día
-    seleccionarDia(diaGuardadoParaTareas);
-  }
-
-  async function borrarTarea(id) {
-    if (!confirm('¿Eliminar esta tarea?')) return;
-
-    const res = await fetch(`/api/tareas/${id}`, {
-      method: 'DELETE'
-    });
-    if (!res.ok) {
-      alert('Error al borrar tarea.');
-      return;
-    }
-    // Recargar tareas para ese día
-    seleccionarDia(diaGuardadoParaTareas);
-  }
-
-  // Inicializar selects y calendario
-  llenarSelects();
-  dibujarCalendario(mesSeleccionado, anioSeleccionado);
-</script>
-
+    <h1>{{ fecha_actual }}</h1>
+    <button class="boton" onclick="location.href='/calendario'">Calendario</button>
 </body>
 </html>
+
+
 
 
