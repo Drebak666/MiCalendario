@@ -1,33 +1,46 @@
-import os, datetime, locale
+import os
+import datetime
+import locale
 from flask import Flask, render_template, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 
 # Config DB: usa DATABASE_URL en Railway o SQLite local
-DATABASE_URL = os.environ.get('DATABASE_URL')
+DATABASE_URL = os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL')
 if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
 if DATABASE_URL:
     app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 else:
     basedir = os.path.abspath(os.path.dirname(__file__))
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'tareas.db')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 class Tarea(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    fecha = db.Column(db.String(10), nullable=False)  # 'YYYY-MM-DD'
+    fecha = db.Column(db.String(10), nullable=False)  # formato 'YYYY-MM-DD'
     texto = db.Column(db.Text, nullable=False)
     creada = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
     def to_dict(self):
-        return {'id': self.id, 'fecha': self.fecha, 'texto': self.texto, 'creada': self.creada.isoformat()}
+        return {
+            'id': self.id,
+            'fecha': self.fecha,
+            'texto': self.texto,
+            'creada': self.creada.isoformat()
+        }
+
+def init_db():
+    with app.app_context():
+        db.create_all()
 
 @app.before_first_request
 def crear_bd():
-    db.create_all()
+    init_db()
 
 @app.route('/')
 def inicio():
@@ -73,7 +86,6 @@ def borrar_tarea(id):
     db.session.commit()
     return jsonify({'result': 'ok'}), 200
 
-# Opcional: fechas con tareas en mes
 @app.route('/api/tareas-mes/<mes_str>', methods=['GET'])
 def tareas_por_mes(mes_str):
     try:
@@ -87,4 +99,4 @@ def tareas_por_mes(mes_str):
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)  # debug=False en producción
+    app.run(host='0.0.0.0', port=port, debug=True)
