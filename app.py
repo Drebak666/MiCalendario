@@ -6,12 +6,11 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 
-# Config DB: usa DATABASE_URL en Railway o SQLite local
+# Configuración de la base de datos
 DATABASE_URL = os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL')
-if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-
 if DATABASE_URL:
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
     app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 else:
     basedir = os.path.abspath(os.path.dirname(__file__))
@@ -20,9 +19,10 @@ else:
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
+# Modelo de tarea
 class Tarea(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    fecha = db.Column(db.String(10), nullable=False)  # formato 'YYYY-MM-DD'
+    fecha = db.Column(db.String(10), nullable=False)
     texto = db.Column(db.Text, nullable=False)
     creada = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
@@ -34,13 +34,10 @@ class Tarea(db.Model):
             'creada': self.creada.isoformat()
         }
 
-def init_db():
+# Función para crear la base de datos si no existe
+def crear_bd():
     with app.app_context():
         db.create_all()
-
-@app.before_first_request
-def crear_bd():
-    init_db()
 
 @app.route('/')
 def inicio():
@@ -98,6 +95,7 @@ def tareas_por_mes(mes_str):
     return jsonify(fechas)
 
 if __name__ == '__main__':
+    crear_bd()  # Crear la base de datos antes de arrancar la app
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
 
