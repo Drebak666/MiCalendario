@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>Mi Agenda</title>
+    <style>
+        body {
+            background-color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px 0 0 0; /* espacio arriba */
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* centrado horizontal */
+            /* quitamos justify-content: center para que no esté centrado verticalmente */
+            height: 100vh;
+        }
+
+        h1 {
+            font-size: 60px; /* más grande */
+            margin: 0 0 30px 0;
+            color: #333;
+            text-align: center;
+        }
+
+        .boton {
+            padding: 20px 50px;
+            font-size: 50px; /* más grande */
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: background-color 0.3s ease;
+        }
+
+        .boton:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ fecha_actual }}</h1>
+    <button class="boton" onclick="location.href='/calendario'">Calendario</button>
+</body>
+</html>
+
