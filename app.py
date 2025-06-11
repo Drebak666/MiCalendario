@@ -6,7 +6,6 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 
-# Configuración de la base de datos
 DATABASE_URL = os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL')
 if DATABASE_URL:
     if DATABASE_URL.startswith("postgres://"):
@@ -19,7 +18,6 @@ else:
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# Modelo de tarea
 class Tarea(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     fecha = db.Column(db.String(10), nullable=False)
@@ -34,7 +32,6 @@ class Tarea(db.Model):
             'creada': self.creada.isoformat()
         }
 
-# Función para crear la base de datos si no existe
 def crear_bd():
     with app.app_context():
         db.create_all()
@@ -95,6 +92,6 @@ def tareas_por_mes(mes_str):
     return jsonify(fechas)
 
 if __name__ == '__main__':
-    crear_bd()  # Crear la base de datos antes de arrancar la app
+    crear_bd()
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
