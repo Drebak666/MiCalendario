@@ -5,91 +5,148 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Calendario de Tareas</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    padding: 20px;
-    max-width: 900px;
-    margin: auto;
-  }
+    body {
+      background-color: white;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
 
-  h1 {
-    font-size: 2.5rem;
-    margin-bottom: 20px;
-  }
+    .btn-volver {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      font-size: 120px;
+      font-weight: bold;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 120px;
+      height: 120px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
 
-  button {
-    font-size: 1.3rem;
-    padding: 8px 16px;
-    cursor: pointer;
-  }
+    .btn-volver:hover {
+      background-color: #45a049;
+    }
 
-  #tareaInput {
-    width: 100%;
-    font-size: 1.4rem;
-    padding: 10px;
-    margin-bottom: 15px;
-  }
+    #calendar {
+      margin-top: 20px;
+    }
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 1.3rem;
-  }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 40px;
+      table-layout: fixed;
+    }
 
-  th, td {
-    width: 14.28%;
-    height: 55px;
-    text-align: center;
-    border: 1px solid #ccc;
-    vertical-align: middle;
-    cursor: pointer;
-    user-select: none;
-    font-weight: bold;
-  }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      height: 60px;
+      text-align: center;
+      word-wrap: break-word;
+    }
 
-  /* Día actual: fondo azul fuerte con texto blanco */
-  td.hoy {
-    background-color: #1976d2;
-    color: white;
-  }
+    td:hover {
+      background-color: #eee;
+      cursor: pointer;
+    }
 
-  /* Día seleccionado: gris clarito */
-  td.selected {
-    background-color: #d3d3d3;
-    color: #333;
-  }
+    .selected {
+      background-color: #2196F3;
+      color: white;
+      font-weight: bold;
+    }
 
-  /* Días con tareas: fondo azul claro */
-  td.con-tareas {
-    background-color: #bbdefb;
-    font-weight: bolder;
-  }
+    .tarea-form {
+      margin-top: 30px;
+      text-align: center;
+      width: 100%;
+      max-width: 800px;
+    }
 
-  /* Botón borrar tareas */
-  .tarea-item button {
-    font-size: 1.2rem;
-    background-color: #e53935;
-    border: none;
-    color: white;
-    padding: 3px 8px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-left: 8px;
-  }
+    #tareaInput {
+      width: 100%;
+      padding: 14px;
+      font-size: 42px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
 
-  .tarea-item button:hover {
-    background-color: #b71c1c;
-  }
+    .btn-guardar {
+      padding: 14px 24px;
+      font-size: 50px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
 
-  #listaTareas {
-    margin-top: 20px;
-    font-size: 1.3rem;
-  }
+    .btn-guardar:hover {
+      background-color: #45a049;
+    }
 
-  .tarea-item {
-    margin-bottom: 10px;
-  }
-</style>
+    .tarea-confirmacion {
+      color: green;
+      margin-top: 10px;
+      font-size: 20px;
+    }
+
+    .tarea-item {
+      background-color: #f0f0f0;
+      margin-top: 5px;
+      padding: 8px;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 50px;
+    }
+
+    .tarea-item button {
+      background-color: red;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 6px 12px;
+      font-size: 50px;
+      cursor: pointer;
+    }
+
+    .selector-container {
+      font-size: 28px;
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .selector-container select,
+    .selector-container button {
+      font-size: 50px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
+  </style>
+
 </head>
 <body>
 <h1>Calendario de Tareas</h1>
