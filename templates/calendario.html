@@ -230,48 +230,63 @@
     }
 
     function guardarTarea() {
-      if (!diaSeleccionado) {
-        alert("Primero selecciona un día.");
-        return;
-      }
+  if (!diaSeleccionado) {
+    alert("Primero selecciona un día.");
+    return;
+  }
 
-      let texto = document.getElementById('tareaInput').value.trim();
-      if (texto === "") return;
+  let texto = document.getElementById('tareaInput').value.trim();
+  if (texto === "") return;
 
-      let key = fechaKey(anioActual, mesActual, diaSeleccionado);
-      if (!tareas[key]) tareas[key] = [];
-      tareas[key].push(texto);
+  let fecha = `${anioActual}-${mesActual + 1}-${diaSeleccionado}`;
+  fetch('/api/tareas', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fecha: fecha, texto: texto })
+  })
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById('tareaInput').value = "";
+    document.getElementById('mensajeTarea').innerText = "Tarea guardada";
+    mostrarTareas(); // vuelve a cargar de la base de datos
+    generateCalendar(anioActual, mesActual);
+    setTimeout(() => {
+      document.getElementById('mensajeTarea').innerText = "";
+    }, 2000);
+  });
+}
 
-      document.getElementById('tareaInput').value = "";
-      document.getElementById('mensajeTarea').innerText = "Tarea guardada";
-      mostrarTareas();
-      generateCalendar(anioActual, mesActual);
 
-      setTimeout(() => {
-        document.getElementById('mensajeTarea').innerText = "";
-      }, 2000);
-    }
+  function mostrarTareas() {
+  if (!diaSeleccionado) return;
+  let fecha = `${anioActual}-${mesActual + 1}-${diaSeleccionado}`;
+  let contenedor = document.getElementById('listaTareas');
+  contenedor.innerHTML = "";
 
-    function mostrarTareas() {
-      let key = fechaKey(anioActual, mesActual, diaSeleccionado);
-      let contenedor = document.getElementById('listaTareas');
-      contenedor.innerHTML = "";
+  fetch(`/api/tareas/${fecha}`)
+    .then(res => res.json())
+    .then(tareas => {
+      tareas.forEach(t => {
+        let div = document.createElement('div');
+        div.className = "tarea-item";
+        div.innerHTML = `${t.texto} <button onclick="eliminarTarea(${t.id})">X</button>`;
+        contenedor.appendChild(div);
+      });
+    });
+}
 
-      if (tareas[key]) {
-        tareas[key].forEach((t, i) => {
-          let div = document.createElement('div');
-          div.className = "tarea-item";
-          div.innerHTML = `${t} <button onclick="eliminarTarea('${key}', ${i})">X</button>`;
-          contenedor.appendChild(div);
-        });
-      }
-    }
 
-    function eliminarTarea(fecha, index) {
-      tareas[fecha].splice(index, 1);
-      mostrarTareas();
-      generateCalendar(anioActual, mesActual);
-    }
+  function eliminarTarea(id) {
+  fetch(`/api/tareas/${id}`, {
+    method: 'DELETE'
+  })
+  .then(res => res.json())
+  .then(data => {
+    mostrarTareas();
+    generateCalendar(anioActual, mesActual);
+  });
+}
+
 
     function cargarSelectorFecha() {
       let mesSelect = document.getElementById("mes");
