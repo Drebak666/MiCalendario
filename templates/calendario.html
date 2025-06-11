@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Calendario</title>
+  <title>Calendario con tareas</title>
   <style>
     body {
       background-color: white;
@@ -18,14 +18,14 @@
       position: fixed;
       bottom: 20px;
       right: 20px;
-      font-size: 120px;
+      font-size: 60px;
       font-weight: bold;
       background-color: #4CAF50;
       color: white;
       border: none;
       border-radius: 50%;
-      width: 120px;
-      height: 120px;
+      width: 80px;
+      height: 80px;
       cursor: pointer;
       box-shadow: 0 4px 6px rgba(0,0,0,0.2);
       display: flex;
@@ -41,12 +41,14 @@
 
     #calendar {
       margin-top: 20px;
+      width: 100%;
+      max-width: 900px;
     }
 
     table {
       border-collapse: collapse;
       width: 100%;
-      font-size: 40px;
+      font-size: 24px;
       table-layout: fixed;
     }
 
@@ -56,15 +58,15 @@
       height: 60px;
       text-align: center;
       word-wrap: break-word;
+      cursor: pointer;
     }
 
     td:hover {
       background-color: #eee;
-      cursor: pointer;
     }
 
     .selected {
-      background-color: #2196F3;
+      background-color: #2196F3 !important;
       color: white;
       font-weight: bold;
     }
@@ -73,21 +75,21 @@
       margin-top: 30px;
       text-align: center;
       width: 100%;
-      max-width: 800px;
+      max-width: 900px;
     }
 
     #tareaInput {
       width: 100%;
-      padding: 14px;
-      font-size: 42px;
+      padding: 10px;
+      font-size: 20px;
       margin-bottom: 10px;
       border: 1px solid #ccc;
       border-radius: 6px;
     }
 
     .btn-guardar {
-      padding: 14px 24px;
-      font-size: 50px;
+      padding: 10px 20px;
+      font-size: 20px;
       background-color: #4CAF50;
       color: white;
       border: none;
@@ -102,7 +104,7 @@
     .tarea-confirmacion {
       color: green;
       margin-top: 10px;
-      font-size: 20px;
+      font-size: 16px;
     }
 
     .tarea-item {
@@ -113,7 +115,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 50px;
+      font-size: 18px;
     }
 
     .tarea-item button {
@@ -121,13 +123,13 @@
       color: white;
       border: none;
       border-radius: 5px;
-      padding: 6px 12px;
-      font-size: 50px;
+      padding: 4px 10px;
+      font-size: 16px;
       cursor: pointer;
     }
 
     .selector-container {
-      font-size: 28px;
+      font-size: 18px;
       margin-top: 20px;
       display: flex;
       gap: 10px;
@@ -138,11 +140,23 @@
 
     .selector-container select,
     .selector-container button {
-      font-size: 50px;
-      padding: 10px 20px;
+      font-size: 18px;
+      padding: 6px 12px;
       border-radius: 8px;
       border: 1px solid #ccc;
       cursor: pointer;
+    }
+
+    .tarea-item .texto {
+      flex-grow: 1;
+      text-align: left;
+      padding-left: 10px;
+    }
+
+    /* Día con tareas */
+    .con-tareas {
+      border: 3px solid #FF5722 !important;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -160,171 +174,233 @@
 
   <div class="tarea-form">
     <input type="text" id="tareaInput" placeholder="Escribe tu tarea para el día seleccionado">
-    <button class="btn-guardar" onclick="guardarTarea()">Guardar</button>
-    <div id="mensajeTarea" class="tarea-confirmacion"></div>
-    <div id="listaTareas"></div>
+    <button class="btn-guardar" onclick="guardarTarea()">Guardar tarea</button>
+    <div id="mensaje" class="tarea-confirmacion"></div>
   </div>
 
-  <script>
-    let diaSeleccionado = null;
-    let anioActual = new Date().getFullYear();
-    let mesActual = new Date().getMonth();
-    let tareas = JSON.parse(localStorage.getItem('tareas')) || {};
+  <div id="listaTareas" style="max-width: 900px; margin-top: 20px;"></div>
 
+<script>
+  const meses = [
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+  ];
 
-    function generateCalendar(year, month) {
-      const calendarDiv = document.getElementById('calendar');
-      calendarDiv.innerHTML = '';
+  let hoy = new Date();
+  let mesActual = hoy.getMonth();
+  let anioActual = hoy.getFullYear();
+  let mesSeleccionado = mesActual;
+  let anioSeleccionado = anioActual;
+  let diaSeleccionado = hoy.getDate();
 
-      const daysOfWeek = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-      let table = '<table><tr>';
-      for (let day of daysOfWeek) {
-        table += `<th>${day}</th>`;
-      }
-      table += '</tr>';
+  const calendarDiv = document.getElementById('calendar');
+  const listaTareasDiv = document.getElementById('listaTareas');
+  const mensajeDiv = document.getElementById('mensaje');
+  const tareaInput = document.getElementById('tareaInput');
+  const selectMes = document.getElementById('mes');
+  const selectAnio = document.getElementById('anio');
 
-      let firstDay = new Date(year, month, 1).getDay();
-      let daysInMonth = new Date(year, month + 1, 0).getDate();
+  function llenarSelects() {
+    // Meses
+    meses.forEach((m, i) => {
+      let option = document.createElement('option');
+      option.value = i;
+      option.textContent = m;
+      if (i === mesSeleccionado) option.selected = true;
+      selectMes.appendChild(option);
+    });
 
-      let dayCount = 1;
-      for (let week = 0; week < 6; week++) {
-        table += '<tr>';
-        for (let day = 0; day < 7; day++) {
-          if (week === 0 && day < firstDay) {
-            table += '<td></td>';
-          } else if (dayCount > daysInMonth) {
-            table += '<td></td>';
-          } else {
-            let today = new Date();
-            let isToday = dayCount === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+    // Años - rango 10 años alrededor del actual
+    const rango = 10;
+    for (let y = anioActual - rango; y <= anioActual + rango; y++) {
+      let option = document.createElement('option');
+      option.value = y;
+      option.textContent = y;
+      if (y === anioSeleccionado) option.selected = true;
+      selectAnio.appendChild(option);
+    }
+  }
 
-            let key = `${year}-${month + 1}-${dayCount}`;
-            let tieneTareas = tareas[key] && tareas[key].length > 0;
+  function volverMesActual() {
+    mesSeleccionado = mesActual;
+    anioSeleccionado = anioActual;
+    selectMes.value = mesSeleccionado;
+    selectAnio.value = anioSeleccionado;
+    diaSeleccionado = null; // reset
+    dibujarCalendario(mesSeleccionado, anioSeleccionado);
+    listaTareasDiv.innerHTML = '';
+    tareaInput.value = '';
+    mensajeDiv.textContent = '';
+  }
 
-            let estilo = '';
-            if (isToday) estilo += 'background-color:#4CAF50; color:white; font-weight:bold;';
-            if (tieneTareas) estilo += 'border: 4px solid #FF5722;';
+  function cambiarMes() {
+    mesSeleccionado = parseInt(selectMes.value);
+    anioSeleccionado = parseInt(selectAnio.value);
+    diaSeleccionado = null; // reset selección día
+    dibujarCalendario(mesSeleccionado, anioSeleccionado);
+    listaTareasDiv.innerHTML = '';
+    tareaInput.value = '';
+    mensajeDiv.textContent = '';
+  }
 
-            table += `<td onclick="seleccionarDia(${dayCount}, this)" style="${estilo}">${dayCount}</td>`;
-            dayCount++;
-          }
+  async function fetchDiasConTareas(mes, anio) {
+    let mesStr = `${anio}-${(mes + 1).toString().padStart(2, '0')}`;
+    const res = await fetch(`/api/tareas-mes/${mesStr}`);
+    if (!res.ok) return [];
+    return await res.json();
+  }
+
+  function fechaString(dia, mes, anio) {
+    return `${anio}-${(mes+1).toString().padStart(2,'0')}-${dia.toString().padStart(2,'0')}`;
+  }
+
+  async function dibujarCalendario(mes, anio) {
+    const diasConTareas = await fetchDiasConTareas(mes, anio);
+
+    // Primer día mes y total días
+    let primerDia = new Date(anio, mes, 1).getDay(); // 0 domingo ... 6 sábado
+    if (primerDia === 0) primerDia = 7; // Para que lunes sea 1 ... domingo 7
+    const diasMes = new Date(anio, mes + 1, 0).getDate();
+
+    let html = '<table><thead><tr>';
+    const diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+    diasSemana.forEach(d => html += `<th>${d}</th>`);
+    html += '</tr></thead><tbody><tr>';
+
+    let diaContador = 1;
+    // Espacios vacíos antes del primer día
+    for (let i = 1; i < primerDia; i++) {
+      html += '<td></td>';
+    }
+
+    // Días del mes
+    for (let i = primerDia; i <= 7; i++) {
+      let classes = '';
+      const fechaCompara = fechaString(diaContador, mes, anio);
+      if (diasConTareas.includes(fechaCompara)) classes = 'con-tareas';
+      if (diaContador === diaSeleccionado) classes += ' selected';
+
+      html += `<td class="${classes.trim()}" onclick="seleccionarDia(${diaContador})">${diaContador}</td>`;
+      diaContador++;
+    }
+    html += '</tr>';
+
+    // Filas completas siguientes
+    while (diaContador <= diasMes) {
+      html += '<tr>';
+      for (let i = 1; i <= 7; i++) {
+        if (diaContador > diasMes) {
+          html += '<td></td>';
+        } else {
+          let classes = '';
+          const fechaCompara = fechaString(diaContador, mes, anio);
+          if (diasConTareas.includes(fechaCompara)) classes = 'con-tareas';
+          if (diaContador === diaSeleccionado) classes += ' selected';
+
+          html += `<td class="${classes.trim()}" onclick="seleccionarDia(${diaContador})">${diaContador}</td>`;
+          diaContador++;
         }
-        table += '</tr>';
-        if (dayCount > daysInMonth) break;
       }
-      table += '</table>';
-      calendarDiv.innerHTML = table;
+      html += '</tr>';
     }
 
-    function seleccionarDia(dia, celda) {
-      diaSeleccionado = dia;
-      document.querySelectorAll('td').forEach(td => td.classList.remove('selected'));
-      celda.classList.add('selected');
-      mostrarTareas();
+    html += '</tbody></table>';
+    calendarDiv.innerHTML = html;
+  }
+
+  async function seleccionarDia(dia) {
+    diaSeleccionado = dia;
+    dibujarCalendario(mesSeleccionado, anioSeleccionado);
+    tareaInput.value = '';
+    mensajeDiv.textContent = '';
+    await mostrarTareas();
+  }
+
+  async function mostrarTareas() {
+    if (!diaSeleccionado) {
+      listaTareasDiv.innerHTML = '<p>Selecciona un día para ver las tareas</p>';
+      return;
+    }
+    const fecha = fechaString(diaSeleccionado, mesSeleccionado, anioSeleccionado);
+    const res = await fetch(`/api/tareas/${fecha}`);
+    if (!res.ok) {
+      listaTareasDiv.innerHTML = '<p>Error cargando tareas</p>';
+      return;
+    }
+    const tareas = await res.json();
+
+    if (tareas.length === 0) {
+      listaTareasDiv.innerHTML = '<p>No hay tareas para este día.</p>';
+      return;
     }
 
-    function guardarEnLocalStorage() {
-      localStorage.setItem('tareas', JSON.stringify(tareas));
-    }
+    // Lista tareas con botón borrar
+    let html = '';
+    tareas.forEach(tarea => {
+      html += `
+      <div class="tarea-item" id="tarea-${tarea.id}">
+        <div class="texto">${tarea.texto}</div>
+        <button onclick="borrarTarea(${tarea.id})" title="Borrar tarea">X</button>
+      </div>`;
+    });
+    listaTareasDiv.innerHTML = html;
+  }
 
-    function guardarTarea() {
-      if (!diaSeleccionado) {
-        alert("Primero selecciona un día.");
+  async function guardarTarea() {
+    if (!diaSeleccionado) {
+      mensajeDiv.textContent = 'Selecciona un día antes de guardar una tarea.';
+      return;
+    }
+    let texto = tareaInput.value.trim();
+    if (!texto) {
+      mensajeDiv.textContent = 'Escribe el texto de la tarea.';
+      return;
+    }
+    const fecha = fechaString(diaSeleccionado, mesSeleccionado, anioSeleccionado);
+
+    try {
+      const res = await fetch('/api/tareas', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({fecha, texto})
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        mensajeDiv.textContent = err.error || 'Error creando tarea';
         return;
       }
-
-      let texto = document.getElementById('tareaInput').value.trim();
-      if (texto === "") return;
-
-      let key = `${anioActual}-${mesActual + 1}-${diaSeleccionado}`;
-      if (!tareas[key]) tareas[key] = [];
-      tareas[key].push(texto);
-      guardarEnLocalStorage();
-
-      document.getElementById('tareaInput').value = "";
-      document.getElementById('mensajeTarea').innerText = "Tarea guardada";
-      mostrarTareas();
-      generateCalendar(anioActual, mesActual);
-
-      setTimeout(() => {
-        document.getElementById('mensajeTarea').innerText = "";
-      }, 2000);
+      tareaInput.value = '';
+      mensajeDiv.textContent = 'Tarea guardada con éxito.';
+      await dibujarCalendario(mesSeleccionado, anioSeleccionado);
+      await mostrarTareas();
+    } catch {
+      mensajeDiv.textContent = 'Error en la comunicación con el servidor.';
     }
+  }
 
-    function mostrarTareas() {
-      let key = `${anioActual}-${mesActual + 1}-${diaSeleccionado}`;
-      let contenedor = document.getElementById('listaTareas');
-      contenedor.innerHTML = "";
-
-      if (tareas[key]) {
-        tareas[key].forEach((t, i) => {
-          let div = document.createElement('div');
-          div.className = "tarea-item";
-          div.innerHTML = `${t} <button onclick="eliminarTarea('${key}', ${i})">X</button>`;
-          contenedor.appendChild(div);
-        });
+  async function borrarTarea(id) {
+    if (!confirm('¿Seguro que quieres borrar esta tarea?')) return;
+    try {
+      const res = await fetch(`/api/tareas/${id}`, {method: 'DELETE'});
+      if (!res.ok) {
+        alert('Error borrando tarea');
+        return;
       }
+      document.getElementById(`tarea-${id}`).remove();
+      mensajeDiv.textContent = 'Tarea borrada.';
+      await dibujarCalendario(mesSeleccionado, anioSeleccionado);
+      await mostrarTareas();
+    } catch {
+      alert('Error en la comunicación con el servidor.');
     }
+  }
 
-    function eliminarTarea(fecha, index) {
-      tareas[fecha].splice(index, 1);
-      guardarEnLocalStorage();
-
-      mostrarTareas();
-      generateCalendar(anioActual, mesActual);
-    }
-
-    function cargarSelectorFecha() {
-      let mesSelect = document.getElementById("mes");
-      let anioSelect = document.getElementById("anio");
-
-      const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-
-      for (let i = 0; i < 12; i++) {
-        let opt = document.createElement("option");
-        opt.value = i;
-        opt.text = meses[i];
-        if (i === mesActual) opt.selected = true;
-        mesSelect.add(opt);
-      }
-
-      for (let i = anioActual - 5; i <= anioActual + 5; i++) {
-        let opt = document.createElement("option");
-        opt.value = i;
-        opt.text = i;
-        if (i === anioActual) opt.selected = true;
-        anioSelect.add(opt);
-      }
-    }
-
-    function cambiarMes() {
-      let mes = parseInt(document.getElementById("mes").value);
-      let anio = parseInt(document.getElementById("anio").value);
-      mesActual = mes;
-      anioActual = anio;
-      diaSeleccionado = null;
-      generateCalendar(anioActual, mesActual);
-      document.getElementById("listaTareas").innerHTML = "";
-    }
-
-    function volverMesActual() {
-      let hoy = new Date();
-      mesActual = hoy.getMonth();
-      anioActual = hoy.getFullYear();
-      diaSeleccionado = null;
-
-      document.getElementById("mes").value = mesActual;
-      document.getElementById("anio").value = anioActual;
-      generateCalendar(anioActual, mesActual);
-      document.getElementById("listaTareas").innerHTML = "";
-    }
-
-    window.onload = function () {
-      cargarSelectorFecha();
-      generateCalendar(anioActual, mesActual);
-    };
-  </script>
+  // Al cargar la página
+  window.onload = function () {
+    llenarSelects();
+    dibujarCalendario(mesSeleccionado, anioSeleccionado);
+    listaTareasDiv.innerHTML = '<p>Selecciona un día para ver las tareas</p>';
+  };
+</script>
 </body>
 </html>
-
