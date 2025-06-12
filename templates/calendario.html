@@ -171,13 +171,6 @@
     let mesActual = new Date().getMonth();
     let tareas = {};
 
-    // Función para crear clave fecha con formato YYYY-MM-DD con ceros delante
-    function fechaKey(year, month, day) {
-      const mm = (month + 1).toString().padStart(2, '0');
-      const dd = day.toString().padStart(2, '0');
-      return `${year}-${mm}-${dd}`;
-    }
-
     function generateCalendar(year, month) {
       const calendarDiv = document.getElementById('calendar');
       calendarDiv.innerHTML = '';
@@ -204,7 +197,7 @@
             let today = new Date();
             let isToday = dayCount === today.getDate() && month === today.getMonth() && year === today.getFullYear();
 
-            let key = fechaKey(year, month, dayCount);
+            let key = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayCount).padStart(2, '0')}`;
             let tieneTareas = tareas[key] && tareas[key].length > 0;
 
             let estilo = '';
@@ -222,71 +215,117 @@
       calendarDiv.innerHTML = table;
     }
 
-    function seleccionarDia(dia, celda) {
+    async function cargarTareas() {
+      try {
+        const mesFormateado = `${anioActual}-${String(mesActual + 1).padStart(2, '0')}`;
+        const response = await fetch(`/api/tareas-mes/${mesFormateado}`);
+        const fechasConTareas = await response.json();
+        
+        for (const fecha of fechasConTareas) {
+          const tareasResponse = await fetch(`/api/tareas/${fecha}`);
+          const tareasData = await tareasResponse.json();
+          if (tareasData.length > 0) {
+            const key = fecha;
+            if (!window.tareas) window.tareas = {};
+            window.tareas[key] = tareasData.map(t => t.texto);
+          }
+        }
+      } catch (error) {
+        console.error("Error cargando tareas:", error);
+      }
+    }
+
+    async function seleccionarDia(dia, celda) {
       diaSeleccionado = dia;
       document.querySelectorAll('td').forEach(td => td.classList.remove('selected'));
       celda.classList.add('selected');
-      mostrarTareas();
+      await mostrarTareas();
     }
 
-    function guardarTarea() {
-  if (!diaSeleccionado) {
-    alert("Primero selecciona un día.");
-    return;
-  }
+    async function guardarTarea() {
+      if (!diaSeleccionado) {
+        alert("Primero selecciona un día.");
+        return;
+      }
 
-  let texto = document.getElementById('tareaInput').value.trim();
-  if (texto === "") return;
+      let texto = document.getElementById('tareaInput').value.trim();
+      if (texto === "") return;
 
-  let fecha = `${anioActual}-${mesActual + 1}-${diaSeleccionado}`;
-  fetch('/api/tareas', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ fecha: fecha, texto: texto })
-  })
-  .then(res => res.json())
-  .then(data => {
-    document.getElementById('tareaInput').value = "";
-    document.getElementById('mensajeTarea').innerText = "Tarea guardada";
-    mostrarTareas(); // vuelve a cargar de la base de datos
-    generateCalendar(anioActual, mesActual);
-    setTimeout(() => {
-      document.getElementById('mensajeTarea').innerText = "";
-    }, 2000);
-  });
-}
+      const fecha = `${anioActual}-${String(mesActual + 1).padStart(2, '0')}-${String(diaSeleccionado).padStart(2, '0')}`;
+      
+      try {
+        const response = await fetch('/api/tareas', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            fecha: fecha,
+            texto: texto
+          })
+        });
+        
+        if (response.ok) {
+          document.getElementById('tareaInput').value = "";
+          document.getElementById('mensajeTarea').innerText = "Tarea guardada";
+          await cargarTareas();
+          await mostrarTareas();
+          generateCalendar(anioActual, mesActual);
 
+          setTimeout(() => {
+            document.getElementById('mensajeTarea').innerText = "";
+          }, 2000);
+        } else {
+          throw new Error("Error al guardar");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        alert("Error al guardar la tarea");
+      }
+    }
 
-  function mostrarTareas() {
-  if (!diaSeleccionado) return;
-  let fecha = `${anioActual}-${mesActual + 1}-${diaSeleccionado}`;
-  let contenedor = document.getElementById('listaTareas');
-  contenedor.innerHTML = "";
+    async function mostrarTareas() {
+      if (!diaSeleccionado) return;
+      
+      const fecha = `${anioActual}-${String(mesActual + 1).padStart(2, '0')}-${String(diaSeleccionado).padStart(2, '0')}`;
+      let contenedor = document.getElementById('listaTareas');
+      contenedor.innerHTML = "";
 
-  fetch(`/api/tareas/${fecha}`)
-    .then(res => res.json())
-    .then(tareas => {
-      tareas.forEach(t => {
-        let div = document.createElement('div');
-        div.className = "tarea-item";
-        div.innerHTML = `${t.texto} <button onclick="eliminarTarea(${t.id})">X</button>`;
-        contenedor.appendChild(div);
-      });
-    });
-}
+      try {
+        const response = await fetch(`/api/tareas/${fecha}`);
+        const tareas = await response.json();
+        
+        if (tareas.length > 0) {
+          tareas.forEach(tarea => {
+            let div = document.createElement('div');
+            div.className = "tarea-item";
+            div.innerHTML = `${tarea.texto} <button onclick="eliminarTarea(${tarea.id})">X</button>`;
+            contenedor.appendChild(div);
+          });
+        }
+      } catch (error) {
+        console.error("Error mostrando tareas:", error);
+      }
+    }
 
-
-  function eliminarTarea(id) {
-  fetch(`/api/tareas/${id}`, {
-    method: 'DELETE'
-  })
-  .then(res => res.json())
-  .then(data => {
-    mostrarTareas();
-    generateCalendar(anioActual, mesActual);
-  });
-}
-
+    async function eliminarTarea(tareaId) {
+      try {
+        const response = await fetch(`/api/tareas/${tareaId}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          await cargarTareas();
+          await mostrarTareas();
+          generateCalendar(anioActual, mesActual);
+        } else {
+          throw new Error("Error al eliminar");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        alert("Error al eliminar la tarea");
+      }
+    }
 
     function cargarSelectorFecha() {
       let mesSelect = document.getElementById("mes");
@@ -295,6 +334,7 @@
       const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
                      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
+      mesSelect.innerHTML = '';
       for (let i = 0; i < 12; i++) {
         let opt = document.createElement("option");
         opt.value = i;
@@ -303,6 +343,7 @@
         mesSelect.add(opt);
       }
 
+      anioSelect.innerHTML = '';
       for (let i = anioActual - 5; i <= anioActual + 5; i++) {
         let opt = document.createElement("option");
         opt.value = i;
@@ -312,17 +353,18 @@
       }
     }
 
-    function cambiarMes() {
+    async function cambiarMes() {
       let mes = parseInt(document.getElementById("mes").value);
       let anio = parseInt(document.getElementById("anio").value);
       mesActual = mes;
       anioActual = anio;
       diaSeleccionado = null;
+      await cargarTareas();
       generateCalendar(anioActual, mesActual);
       document.getElementById("listaTareas").innerHTML = "";
     }
 
-    function volverMesActual() {
+    async function volverMesActual() {
       let hoy = new Date();
       mesActual = hoy.getMonth();
       anioActual = hoy.getFullYear();
@@ -330,15 +372,16 @@
 
       document.getElementById("mes").value = mesActual;
       document.getElementById("anio").value = anioActual;
+      await cargarTareas();
       generateCalendar(anioActual, mesActual);
       document.getElementById("listaTareas").innerHTML = "";
     }
 
-    window.onload = function () {
+    window.onload = async function () {
       cargarSelectorFecha();
+      await cargarTareas();
       generateCalendar(anioActual, mesActual);
     };
   </script>
-
 </body>
 </html>
