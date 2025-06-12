@@ -1,57 +1,47 @@
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
-# ELIMINA ESTA LÍNEA: import sqlite3
 from datetime import datetime
 import os
 
-# AÑADE ESTAS LÍNEAS:
+# AÑADE ESTAS LÍNEAS AQUÍ ARRIBA:
 from flask_sqlalchemy import SQLAlchemy
 
 
-app = Flask(__name__)
-CORS(app)
+app = Flask(__name__) # 'app' debe definirse ANTES de usarla para SQLAlchemy o CORS
+CORS(app) # CORS debe inicializarse con 'app'
 
-# ELIMINA ESTAS 2 LÍNEAS (porque ya no usaremos el archivo local db_path para la base de datos):
-# db_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'tareas.db')
-# print(f"La base de datos se creará/usará en: {db_path}")
 
-# AÑADE ESTAS 3 LÍNEAS para configurar la conexión a Supabase (usará DATABASE_URL de Render)
+# Configuración de la conexión a Supabase (usará DATABASE_URL de Render)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///tareas.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app) # Inicializamos SQLAlchemy
+db = SQLAlchemy(app) # Inicializamos SQLAlchemy DESPUÉS de definir 'app' y Flask-SQLAlchemy
 
-# AÑADE ESTA CLASE para definir tu tabla 'tarea' para SQLAlchemy
+
+# Define tu tabla 'tarea' para SQLAlchemy.
+# ¡IMPORTANTE! He añadido la columna 'completada' que discutimos.
+# Asegúrate de haber borrado la tabla 'tarea' en Supabase si ya existía para que se cree con esta nueva columna.
 class Tarea(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     fecha = db.Column(db.Text, nullable=False)
     texto = db.Column(db.Text, nullable=False)
+    completada = db.Column(db.Boolean, default=False, nullable=False) # ¡NUEVA COLUMNA!
 
     def __repr__(self):
-        return f'<Tarea {self.id}: {self.fecha} - {self.texto}>'
+        return f'<Tarea {self.id}: {self.fecha} - {self.texto} (Completada: {self.completada})>'
+
 
 def init_db():
     try:
-        # CAMBIA ESTO:
-        # with sqlite3.connect(db_path) as conn:
-        #     conn.execute('''
-        #         CREATE TABLE IF NOT EXISTS tarea (
-        #             id INTEGER PRIMARY KEY AUTOINCREMENT,
-        #             fecha TEXT NOT NULL,
-        #             texto TEXT NOT NULL
-        #         )
-        #     ''')
-        # A ESTO (para que SQLAlchemy cree las tablas en Supabase):
         with app.app_context():
             db.create_all()
         print("Base de datos inicializada correctamente.")
-    except Exception as e: # Cambiado a Exception para capturar errores de SQLAlchemy
+    except Exception as e:
         print(f"Error al inicializar la base de datos: {e}")
 
 @app.route('/')
 def index():
-    # from datetime import datetime # Ya está importado arriba, puedes quitarlo si quieres
-    fecha_actual = datetime.now().strftime("%d/%m/%Y")
-    return render_template('index.html', fecha_actual=fecha_actual)
+    # Eliminamos fecha_actual de aquí; se obtiene en JavaScript en index.html
+    return render_template('index.html')
 
 @app.route('/calendario')
 def calendario():
@@ -76,20 +66,16 @@ def crear_tarea():
         return jsonify({"error": "Formato de fecha inválido. Use YYYY-MM-DD"}), 400
 
     try:
-        # CAMBIA ESTO (operación con sqlite3):
-        # with sqlite3.connect(db_path) as conn:
-        #     cur = conn.execute('INSERT INTO tarea (fecha, texto) VALUES (?, ?)', (fecha, texto))
-        #     conn.commit()
-        #     tarea_id = cur.lastrowid
-        # A ESTO (operación con SQLAlchemy):
+        # Se añade la tarea con 'completada=False' por defecto gracias al modelo
         nueva_tarea = Tarea(fecha=fecha, texto=texto)
         db.session.add(nueva_tarea)
         db.session.commit()
-        tarea_id = nueva_tarea.id # SQLAlchemy ya asigna el ID
+        tarea_id = nueva_tarea.id
         print(f"Tarea '{texto}' guardada con ID: {tarea_id} para la fecha: {fecha}")
-        return jsonify({"id": tarea_id, "fecha": fecha, "texto": texto}), 201
-    except Exception as e: # Cambiado a Exception para capturar errores de SQLAlchemy
-        db.session.rollback() # MUY IMPORTANTE: Deshace cambios si hay error
+        # Asegúrate de devolver el estado 'completada' en la respuesta POST también
+        return jsonify({"id": tarea_id, "fecha": fecha, "texto": texto, "completada": nueva_tarea.completada}), 201
+    except Exception as e:
+        db.session.rollback()
         print(f"Error al insertar la tarea en la base de datos: {e}")
         return jsonify({"error": f"Error al guardar la tarea: {e}"}), 500
 
@@ -100,24 +86,31 @@ def tareas_por_fecha(fecha):
     except ValueError:
         return jsonify({"error": "Formato de fecha inválido. Use YYYY-MM-DD"}), 400
 
-    # CAMBIA ESTO (operación con sqlite3):
-    # with sqlite3.connect(db_path) as conn:
-    #     cur = conn.execute('SELECT id, texto FROM tarea WHERE fecha = ?', (fecha,))
-    #     filas = cur.fetchall()
-    # tareas = [{"id": f[0], "texto": f[1]} for f in filas]
-    # A ESTO (operación con SQLAlchemy):
+    # Cambiamos para obtener también el estado 'completada'
     tareas_db = Tarea.query.filter_by(fecha=fecha).all()
-    tareas = [{"id": t.id, "texto": t.texto} for t in tareas_db]
+    tareas = [{"id": t.id, "texto": t.texto, "completada": t.completada} for t in tareas_db]
     return jsonify(tareas)
+
+# ¡NUEVA RUTA API para marcar tareas como completadas/pendientes!
+@app.route('/api/tareas/<int:tarea_id>/toggle_completada', methods=['PATCH'])
+def toggle_completada(tarea_id):
+    try:
+        tarea = Tarea.query.get(tarea_id)
+        if not tarea:
+            return jsonify({"error": "Tarea no encontrada"}), 404
+
+        tarea.completada = not tarea.completada # Invierte el estado actual
+        db.session.commit()
+        print(f"Tarea con ID {tarea_id} ahora completada: {tarea.completada}")
+        return jsonify({"id": tarea.id, "completada": tarea.completada}), 200
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error al cambiar estado de la tarea: {e}")
+        return jsonify({"error": f"Error al cambiar estado de la tarea: {e}"}), 500
 
 @app.route('/api/tareas/<int:tarea_id>', methods=['DELETE'])
 def borrar_tarea(tarea_id):
     try:
-        # CAMBIA ESTO (operación con sqlite3):
-        # with sqlite3.connect(db_path) as conn:
-        #     conn.execute('DELETE FROM tarea WHERE id = ?', (tarea_id,))
-        #     conn.commit()
-        # A ESTO (operación con SQLAlchemy):
         tarea_a_borrar = Tarea.query.get(tarea_id)
         if tarea_a_borrar:
             db.session.delete(tarea_a_borrar)
@@ -126,11 +119,10 @@ def borrar_tarea(tarea_id):
             return jsonify({"status": "ok"})
         else:
             return jsonify({"error": "Tarea no encontrada"}), 404
-    except Exception as e: # Cambiado a Exception para capturar errores de SQLAlchemy
-        db.session.rollback() # Deshace cambios si hay error
+    except Exception as e:
+        db.session.rollback()
         print(f"Error al borrar la tarea: {e}")
         return jsonify({"error": f"Error al borrar la tarea: {e}"}), 500
-
 
 @app.route('/api/tareas-mes/<mes>', methods=['GET'])
 def tareas_por_mes(mes):
@@ -139,17 +131,10 @@ def tareas_por_mes(mes):
     except ValueError:
         return jsonify({"error": "Formato de mes inválido. Use YYYY-MM"}), 400
 
-    # CAMBIA ESTO (operación con sqlite3):
-    # with sqlite3.connect(db_path) as conn:
-    #     cur = conn.execute('SELECT DISTINCT fecha FROM tarea WHERE fecha LIKE ?', (mes + '%',))
-    #     filas = cur.fetchall()
-    # fechas = [f[0] for f in filas]
-    # A ESTO (operación con SQLAlchemy):
     fechas_distintas = db.session.query(Tarea.fecha).filter(Tarea.fecha.like(mes + '%')).distinct().all()
     fechas = [f[0] for f in fechas_distintas]
     return jsonify(fechas)
 
 if __name__ == '__main__':
-    # Esto sigue siendo igual, pero ahora init_db() usará SQLAlchemy
     init_db()
     app.run(debug=True, host='0.0.0.0', port=5000)
