@@ -10,16 +10,15 @@ html {
 /* Estilos generales del body para ambas páginas */
 body {
     background-color: white;
-    font-family: Arial, sans-serif;
+    font-family: Arial, sans-serif; /* Fuente base */
     margin: 0;
-    /* Ajuste de padding para unificar: 20px arriba, 0 a los lados, 0 abajo si no se necesita */
     padding: 20px 0 0 0;
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: 100vh; /* Asegura que el body ocupe al menos toda la altura de la vista */
-    color: #333; /* Color de texto base para todo el body */
-    font-size: 42px; /* Tamaño base para la mayoría de textos, como lo pediste */
+    min-height: 100vh;
+    color: #333;
+    font-size: 42px; /* ESTO ES TU TAMAÑO BASE MINIMO */
 }
 
 /* Estilos de títulos (usados en index.html y potencialmente en calendario.html) */
@@ -63,7 +62,7 @@ h2 {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    font-size: 80px; /* Ajustado para que quepa bien el símbolo */
+    font-size: 80px;
     font-weight: bold;
     background-color: #4CAF50;
     color: white;
@@ -78,7 +77,7 @@ h2 {
     justify-content: center;
     transition: background-color 0.3s ease;
     user-select: none;
-    z-index: 1000; /* Asegura que esté por encima de otros elementos */
+    z-index: 1000;
 }
 
 .btn-volver:hover {
@@ -93,14 +92,14 @@ h2 {
 table {
     border-collapse: collapse;
     width: 100%;
-    font-size: 40px; /* Tamaño de fuente para el contenido de las celdas */
+    font-size: 42px; /* ASEGURADO: 42px para el texto de la tabla */
     table-layout: fixed;
 }
 
 th, td {
     border: 1px solid #ccc;
     padding: 10px;
-    height: 60px; /* Altura de las celdas */
+    height: 60px;
     text-align: center;
     word-wrap: break-word;
 }
@@ -126,16 +125,16 @@ td:hover {
 
 #tareaInput {
     width: 100%;
-    padding: 14px;
-    font-size: 42px; /* Coincide con el tamaño base */
+    padding: 18px; /* Aumentado el padding para hacerlo más "pulsable" */
+    font-size: 42px; /* ASEGURADO: 42px para el input */
     margin-bottom: 10px;
     border: 1px solid #ccc;
     border-radius: 6px;
 }
 
 .btn-guardar {
-    padding: 14px 24px;
-    font-size: 42px; /* Coincide con el tamaño base */
+    padding: 18px 28px; /* Aumentado el padding para hacerlo más "pulsable" */
+    font-size: 48px; /* Ligeramente más grande para que se vea bien */
     background-color: #4CAF50;
     color: white;
     border: none;
@@ -150,21 +149,21 @@ td:hover {
 .tarea-confirmacion {
     color: green;
     margin-top: 10px;
-    font-size: 32px; /* Mensajes informativos un poco más pequeños */
+    font-size: 42px; /* ASEGURADO: "Tarea guardada" a 42px */
 }
 
 /* Ítems de tarea individuales en el calendario */
 .tarea-item {
     background-color: #f0f0f0;
     margin-top: 5px;
-    padding: 10px; /* Ajustado */
+    padding: 15px; /* Aumentado */
     border-radius: 5px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 42px; /* Coincide con el tamaño base */
-    flex-wrap: wrap; /* Permite que los elementos se envuelvan */
-    gap: 10px; /* Espacio entre el texto y el botón */
+    font-size: 42px; /* ASEGURADO: 42px para el texto de la tarea */
+    flex-wrap: wrap;
+    gap: 15px; /* Espacio entre el texto y el botón */
 }
 
 .tarea-item button {
@@ -172,17 +171,17 @@ td:hover {
     color: white;
     border: none;
     border-radius: 5px;
-    padding: 12px 20px; /* Aumentado */
-    font-size: 32px; /* Un poco más pequeño que el texto de la tarea */
+    padding: 15px 25px; /* Aumentado */
+    font-size: 38px; /* Un poco más pequeño que el texto de la tarea, pero grande */
     cursor: pointer;
 }
 
 /* Selector de mes/año en el calendario */
 .selector-container {
-    font-size: 28px; /* Tamaño para el texto de mes/año */
+    font-size: 42px; /* ASEGURADO: 42px para el texto del selector */
     margin-top: 20px;
     display: flex;
-    gap: 10px;
+    gap: 15px; /* Aumentado el espacio */
     align-items: center;
     flex-wrap: wrap;
     justify-content: center;
@@ -190,8 +189,8 @@ td:hover {
 
 .selector-container select,
 .selector-container button {
-    font-size: 42px; /* Coincide con el tamaño base */
-    padding: 10px 20px;
+    font-size: 42px; /* ASEGURADO: 42px para el select y botón */
+    padding: 15px 25px; /* Aumentado el padding */
     border-radius: 8px;
     border: 1px solid #ccc;
     cursor: pointer;
@@ -200,7 +199,7 @@ td:hover {
 /* --- Estilos para la página de Inicio (index.html) --- */
 
 #tareasContainer {
-    width: 90%; /* Aumenta el ancho para móvil */
+    width: 90%;
     max-width: 600px;
     background-color: #f9f9f9;
     padding: 20px;
@@ -222,16 +221,16 @@ li {
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     display: flex;
-    flex-direction: column; /* Apila elementos para móvil */
-    align-items: flex-start; /* Alinea texto a la izquierda */
-    font-size: 42px; /* Tamaño para el texto de la tarea */
+    flex-direction: column;
+    align-items: flex-start;
+    font-size: 42px; /* ASEGURADO: 42px para el texto de la tarea en la lista */
     color: #444;
-    gap: 15px; /* Espacio entre el texto y los botones */
+    gap: 15px;
 }
 
 li span {
-    word-wrap: break-word; /* Permite que el texto largo se rompa */
-    width: 100%; /* Ocupa todo el ancho disponible */
+    word-wrap: break-word;
+    width: 100%;
 }
 
 li.completada {
@@ -242,20 +241,20 @@ li.completada {
 
 .tarea-acciones {
     display: flex;
-    flex-wrap: wrap; /* Permite que los botones salten de línea si no caben */
+    flex-wrap: wrap;
     gap: 10px;
-    width: 100%; /* Ocupa todo el ancho */
-    justify-content: flex-end; /* Alinea los botones a la derecha */
+    width: 100%;
+    justify-content: flex-end;
 }
 
 .btn-completar, .btn-eliminar {
-    padding: 15px 25px; /* Aumenta el padding para hacer los botones más grandes */
-    font-size: 32px; /* Tamaño de fuente para los botones de acción */
+    padding: 15px 25px;
+    font-size: 38px; /* ASEGURADO: 38px para los botones de completar/eliminar */
     border: none;
-    border-radius: 8px; /* Ligeramente más grandes */
+    border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.2s ease;
-    min-width: 150px; /* Asegura un tamaño mínimo para los botones */
+    min-width: 150px;
 }
 
 .btn-completar {
@@ -285,30 +284,30 @@ li.completada {
 
 #nuevaTareaForm {
     display: flex;
-    flex-direction: column; /* Apila input y botón en móvil */
-    gap: 15px; /* Más espacio entre elementos */
+    flex-direction: column;
+    gap: 15px;
     margin-bottom: 20px;
 }
 
 #nuevaTareaInput {
     flex-grow: 1;
-    padding: 15px; /* Aumenta el padding del input */
-    font-size: 42px; /* Tamaño de fuente para el input */
+    padding: 18px; /* Aumentado padding */
+    font-size: 42px; /* ASEGURADO: 42px para el input de nueva tarea */
     border: 1px solid #ccc;
     border-radius: 8px;
-    width: 100%; /* Ocupa todo el ancho */
+    width: 100%;
 }
 
 #btnGuardarTarea {
-    padding: 15px 25px; /* Aumenta el padding del botón */
-    font-size: 42px; /* Tamaño de fuente para el botón */
+    padding: 18px 28px; /* Aumentado padding */
+    font-size: 48px; /* Ligeramente más grande */
     background-color: #28a745;
     color: white;
     border: none;
     border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    width: 100%; /* Ocupa todo el ancho */
+    width: 100%;
 }
 
 #btnGuardarTarea:hover {
@@ -318,29 +317,94 @@ li.completada {
 .mensaje-info {
     text-align: center;
     color: #666;
-    font-size: 32px; /* Tamaño para mensajes informativos */
+    font-size: 42px; /* ASEGURADO: "No hay tareas para ese día" a 42px */
     margin-top: 20px;
 }
 
-/* Media Queries para ajustar a pantallas más pequeñas (se aplican a ambas páginas) */
+/* Media Queries para asegurar tamaños mínimos en pantallas más pequeñas */
 @media (max-width: 768px) {
     body {
+        padding: 15px 0 0 0;
+        font-size: 40px; /* Ligeramente reducido, pero aún grande */
+    }
+    h1 {
+        font-size: 55px;
+    }
+    h2 {
+        font-size: 45px;
+    }
+    .boton {
+        padding: 18px 40px;
+        font-size: 45px;
+    }
+
+    /* Calendario */
+    table {
+        font-size: 40px; /* Mínimo 40px */
+    }
+    th, td {
+        padding: 10px;
+        height: 55px;
+    }
+    .btn-volver {
+        font-size: 70px;
+        width: 110px;
+        height: 110px;
+    }
+    #tareaInput, .btn-guardar, .selector-container select, .selector-container button {
+        font-size: 40px; /* Mínimo 40px */
+        padding: 16px;
+    }
+    .tarea-item {
+        font-size: 40px; /* Mínimo 40px */
+        padding: 12px;
+    }
+    .tarea-item button {
+        font-size: 36px;
+        padding: 12px 20px;
+    }
+    .tarea-confirmacion {
+        font-size: 40px; /* Mínimo 40px */
+    }
+
+    /* Inicio (lista de tareas) */
+    li {
+        font-size: 40px; /* Mínimo 40px */
+        padding: 12px;
+    }
+    .btn-completar, .btn-eliminar {
+        padding: 14px 22px;
+        font-size: 34px;
+        min-width: 140px;
+    }
+    #nuevaTareaInput, #btnGuardarTarea {
+        font-size: 40px; /* Mínimo 40px */
+        padding: 16px;
+    }
+    .mensaje-info {
+        font-size: 40px; /* Mínimo 40px */
+    }
+}
+
+@media (max-width: 480px) {
+    body {
         padding: 10px 0 0 0;
+        font-size: 38px; /* Ligeramente reducido, pero aún muy legible */
     }
     h1 {
         font-size: 50px;
-        margin-bottom: 20px;
     }
     h2 {
         font-size: 40px;
     }
     .boton {
-        padding: 15px 30px;
         font-size: 40px;
+        padding: 15px 30px;
     }
-    /* Estilos para calendario (tablas y botones) */
+
+    /* Calendario */
     table {
-        font-size: 36px;
+        font-size: 38px; /* Mínimo 38px */
     }
     th, td {
         padding: 8px;
@@ -352,88 +416,36 @@ li.completada {
         height: 100px;
     }
     #tareaInput, .btn-guardar, .selector-container select, .selector-container button {
-        font-size: 38px;
-        padding: 12px;
+        font-size: 38px; /* Mínimo 38px */
+        padding: 14px;
     }
-    .tarea-item, .tarea-item button {
-        font-size: 32px;
-        padding: 10px 15px;
-    }
-    .tarea-confirmacion {
-        font-size: 28px;
-    }
-
-    /* Estilos para index (tareasContainer y elementos de lista) */
-    #tareasContainer {
-        padding: 15px;
-    }
-    li {
-        padding: 12px;
-        font-size: 38px;
-    }
-    .btn-completar, .btn-eliminar {
-        padding: 12px 20px;
-        font-size: 28px;
-    }
-    #nuevaTareaInput, #btnGuardarTarea {
-        padding: 12px;
-        font-size: 38px;
-    }
-    .mensaje-info {
-        font-size: 28px;
-    }
-}
-
-@media (max-width: 480px) {
-    h1 {
-        font-size: 40px;
-    }
-    h2 {
-        font-size: 32px;
-    }
-    .boton {
-        font-size: 32px;
-        padding: 10px 20px;
-    }
-    /* Estilos para calendario (tablas y botones) */
-    table {
-        font-size: 32px;
-    }
-    th, td {
-        padding: 6px;
-        height: 40px;
-    }
-    .btn-volver {
-        font-size: 50px;
-        width: 80px;
-        height: 80px;
-    }
-    #tareaInput, .btn-guardar, .selector-container select, .selector-container button {
-        font-size: 32px;
+    .tarea-item {
+        font-size: 38px; /* Mínimo 38px */
         padding: 10px;
     }
-    .tarea-item, .tarea-item button {
-        font-size: 28px;
-        padding: 8px 12px;
-        min-width: unset; /* Permite que el ancho se ajuste al contenido */
+    .tarea-item button {
+        font-size: 32px;
+        padding: 10px 18px;
     }
     .tarea-confirmacion {
-        font-size: 24px;
+        font-size: 38px; /* Mínimo 38px */
     }
 
-    /* Estilos para index (tareasContainer y elementos de lista) */
+    /* Inicio (lista de tareas) */
     li {
-        font-size: 32px;
+        font-size: 38px; /* Mínimo 38px */
+        padding: 10px;
     }
     .btn-completar, .btn-eliminar {
-        font-size: 24px;
-        padding: 10px 15px;
-        min-width: unset; /* Permite que el ancho se ajuste al contenido */
+        font-size: 30px;
+        padding: 12px 18px;
+        min-width: unset;
     }
     #nuevaTareaInput, #btnGuardarTarea {
-        font-size: 32px;
+        font-size: 38px; /* Mínimo 38px */
+        padding: 14px;
     }
     .mensaje-info {
-        font-size: 24px;
+        font-size: 38px; /* Mínimo 38px */
     }
 }
