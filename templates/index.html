@@ -4,7 +4,169 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <meta charset="UTF-8" />
     <title>Mi Agenda</title>
+<<<<<<< HEAD
    
+=======
+    <style>
+        body {
+            background-color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px 0 0 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Usamos min-height para que crezca si el contenido es mucho */
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 60px;
+            margin: 0 0 30px 0;
+            color: #333;
+            text-align: center;
+        }
+
+        .boton {
+            padding: 20px 50px;
+            font-size: 50px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: background-color 0.3s ease;
+            margin-bottom: 30px; /* Espacio debajo del botón Calendario */
+        }
+
+        .boton:hover {
+            background-color: #45a049;
+        }
+
+        /* --- Nuevos estilos para la lista de tareas --- */
+        #tareasContainer {
+            width: 80%;
+            max-width: 600px;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+
+        #tareasContainer h2 {
+            font-size: 28px;
+            color: #555;
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        li {
+            background-color: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 20px;
+            color: #444;
+        }
+
+        li.completada {
+            text-decoration: line-through;
+            color: #999;
+            background-color: #e0ffe0; /* Fondo más suave para completadas */
+        }
+
+        .tarea-acciones {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-completar, .btn-eliminar {
+            padding: 8px 12px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-completar {
+            background-color: #007bff; /* Azul para el botón de completar */
+            color: white;
+        }
+
+        .btn-completar.completada {
+            background-color: #dc3545; /* Rojo para descompletar */
+        }
+
+        .btn-completar:hover {
+            background-color: #0056b3;
+        }
+        .btn-completar.completada:hover {
+            background-color: #c82333;
+        }
+
+
+        .btn-eliminar {
+            background-color: #f44336; /* Rojo para eliminar */
+            color: white;
+        }
+
+        .btn-eliminar:hover {
+            background-color: #da190b;
+        }
+
+        #nuevaTareaForm {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #nuevaTareaInput {
+            flex-grow: 1;
+            padding: 12px;
+            font-size: 18px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        #btnGuardarTarea {
+            padding: 12px 20px;
+            font-size: 18px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #btnGuardarTarea:hover {
+            background-color: #218838;
+        }
+
+        .mensaje-info {
+            text-align: center;
+            color: #666;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+
+    </style>
+>>>>>>> 69ff5c517d33afb819bd9f2be1c4d971c5a2a6a8
 </head>
 <body>
     <h1 id="fechaActualDisplay"></h1>
