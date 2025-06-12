@@ -1,48 +1,227 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <meta charset="UTF-8" />
     <title>Mi Agenda</title>
-    <style>
-        body {
-            background-color: white;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px 0 0 0; /* espacio arriba */
-            display: flex;
-            flex-direction: column;
-            align-items: center; /* centrado horizontal */
-            /* quitamos justify-content: center para que no esté centrado verticalmente */
-            height: 100vh;
-        }
-
-        h1 {
-            font-size: 60px; /* más grande */
-            margin: 0 0 30px 0;
-            color: #333;
-            text-align: center;
-        }
-
-        .boton {
-            padding: 20px 50px;
-            font-size: 50px; /* más grande */
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-            transition: background-color 0.3s ease;
-        }
-
-        .boton:hover {
-            background-color: #45a049;
-        }
-    </style>
+   
 </head>
 <body>
-    <h1>{{ fecha_actual }}</h1>
+    <h1 id="fechaActualDisplay"></h1>
     <button class="boton" onclick="location.href='/calendario'">Calendario</button>
+
+    <div id="tareasContainer">
+        <form id="nuevaTareaForm">
+            <input type="text" id="nuevaTareaInput" placeholder="Añadir nueva tarea..." required>
+            <button type="submit" id="btnGuardarTarea">Guardar Tarea</button>
+        </form>
+
+        <h2>Tareas Pendientes</h2>
+        <ul id="listaTareasPendientes">
+            <p class="mensaje-info" id="noTareasPendientes">No hay tareas pendientes para hoy.</p>
+        </ul>
+
+        <h2>Tareas Completadas</h2>
+        <ul id="listaTareasCompletadas">
+            <p class="mensaje-info" id="noTareasCompletadas">No hay tareas completadas para hoy.</p>
+        </ul>
+    </div>
+
+    <script>
+        const fechaActualDisplay = document.getElementById('fechaActualDisplay');
+        const nuevaTareaInput = document.getElementById('nuevaTareaInput');
+        const nuevaTareaForm = document.getElementById('nuevaTareaForm');
+        const listaTareasPendientes = document.getElementById('listaTareasPendientes');
+        const listaTareasCompletadas = document.getElementById('listaTareasCompletadas');
+        const noTareasPendientesMsg = document.getElementById('noTareasPendientes');
+        const noTareasCompletadasMsg = document.getElementById('noTareasCompletadas');
+
+        let fechaActualISO; // Para guardar la fecha en formato ISO (YYYY-MM-DD)
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const hoy = new Date();
+            // Formato de fecha para mostrar (ej: "12/06/2025")
+            const opcionesFecha = { day: '2-digit', month: '2-digit', year: 'numeric' };
+            fechaActualDisplay.textContent = hoy.toLocaleDateString('es-ES', opcionesFecha);
+
+            // Formato YYYY-MM-DD para la API
+            fechaActualISO = hoy.toISOString().slice(0, 10);
+            cargarTareasDelDia(fechaActualISO);
+        });
+
+        // --- Funciones para cargar y renderizar tareas ---
+        async function cargarTareasDelDia(fecha) {
+            try {
+                const response = await fetch(`/api/tareas/${fecha}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const tareas = await response.json();
+                renderizarTareas(tareas);
+            } catch (error) {
+                console.error('Error al cargar las tareas:', error);
+                alert('No se pudieron cargar las tareas. Inténtalo de nuevo más tarde.');
+            }
+        }
+
+        function renderizarTareas(tareas) {
+            listaTareasPendientes.innerHTML = ''; // Limpiar listas
+            listaTareasCompletadas.innerHTML = '';
+            noTareasPendientesMsg.style.display = 'block'; // Mostrar mensajes por defecto
+            noTareasCompletadasMsg.style.display = 'block';
+
+            let hayPendientes = false;
+            let hayCompletadas = false;
+
+            tareas.forEach(tarea => {
+                const li = document.createElement('li');
+                li.setAttribute('data-id', tarea.id); // Almacena el ID de la tarea
+                li.innerHTML = `
+                    <span>${tarea.texto}</span>
+                    <div class="tarea-acciones">
+                        <button class="btn-completar ${tarea.completada ? 'completada' : ''}">
+                            ${tarea.completada ? 'Descompletar' : 'Completar'}
+                        </button>
+                        <button class="btn-eliminar">Eliminar</button>
+                    </div>
+                `;
+                
+                // Añadir clase 'completada' al li si la tarea está completada
+                if (tarea.completada) {
+                    li.classList.add('completada');
+                    listaTareasCompletadas.appendChild(li);
+                    hayCompletadas = true;
+                } else {
+                    listaTareasPendientes.appendChild(li);
+                    hayPendientes = true;
+                }
+
+                // Event listeners para los botones de cada tarea
+                // Importante: Pasar los argumentos correctos al handler
+                li.querySelector('.btn-completar').addEventListener('click', () => toggleTareaCompletada(tarea.id, li));
+                li.querySelector('.btn-eliminar').addEventListener('click', () => eliminarTarea(tarea.id, li));
+            });
+
+            // Mostrar/ocultar mensajes de "no hay tareas"
+            if (hayPendientes) {
+                noTareasPendientesMsg.style.display = 'none';
+            }
+            if (hayCompletadas) {
+                noTareasCompletadasMsg.style.display = 'none';
+            }
+        }
+
+        // --- Funciones para interactuar con la API ---
+
+        // Función para guardar una nueva tarea
+        nuevaTareaForm.addEventListener('submit', async (event) => {
+            event.preventDefault(); // Evita que el formulario se envíe de la forma tradicional
+            const textoTarea = nuevaTareaInput.value.trim();
+
+            if (!textoTarea) {
+                alert('Por favor, escribe una tarea.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/tareas', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ fecha: fechaActualISO, texto: textoTarea })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const nuevaTarea = await response.json();
+                console.log('Tarea guardada:', nuevaTarea);
+                nuevaTareaInput.value = ''; // Limpiar el input
+
+                // Recargar las tareas para ver la nueva tarea en la lista correcta
+                cargarTareasDelDia(fechaActualISO);
+
+            } catch (error) {
+                console.error('Error al guardar la tarea:', error);
+                alert('No se pudo guardar la tarea. Inténtalo de nuevo.');
+            }
+        });
+
+        // Función para marcar/desmarcar tarea como completada
+        async function toggleTareaCompletada(id, liElement) { // Eliminamos 'estabaCompletada' de los argumentos
+            try {
+                const response = await fetch(`/api/tareas/${id}/toggle_completada`, {
+                    method: 'PATCH', // Usamos PATCH para actualizar parcialmente un recurso
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Estado de tarea actualizado:', data);
+
+                // Re-renderizar todas las tareas para mover la tarea de lista
+                cargarTareasDelDia(fechaActualISO);
+
+            } catch (error) {
+                console.error('Error al cambiar el estado de la tarea:', error);
+                alert('No se pudo cambiar el estado de la tarea. Inténtalo de nuevo.');
+            }
+        }
+
+        // Función para eliminar tarea
+        async function eliminarTarea(id, liElement) {
+            if (!confirm('¿Estás seguro de que quieres eliminar esta tarea?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/tareas/${id}`, {
+                    method: 'DELETE',
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                console.log('Tarea eliminada:', id);
+                // Si la eliminación fue exitosa, eliminamos el elemento del DOM
+                liElement.remove();
+                // Volver a verificar si hay tareas para mostrar/ocultar mensajes
+                checkAndToggleNoTasksMessages();
+
+            } catch (error) {
+                console.error('Error al eliminar la tarea:', error);
+                alert('No se pudo eliminar la tarea. Inténtalo de nuevo.');
+            }
+        }
+
+        // Función auxiliar para verificar si hay tareas y mostrar/ocultar mensajes
+        function checkAndToggleNoTasksMessages() {
+            // Asegurarse de que el mensaje 'No hay tareas' se oculte si hay tareas y se muestre si no
+            const pendientesVisible = listaTareasPendientes.children.length === 0 || 
+                                     (listaTareasPendientes.children.length === 1 && listaTareasPendientes.children[0].id === 'noTareasPendientes');
+            const completadasVisible = listaTareasCompletadas.children.length === 0 ||
+                                      (listaTareasCompletadas.children.length === 1 && listaTareasCompletadas.children[0].id === 'noTareasCompletadas');
+
+            noTareasPendientesMsg.style.display = pendientesVisible ? 'block' : 'none';
+            noTareasCompletadasMsg.style.display = completadasVisible ? 'block' : 'none';
+
+            // Si hay elementos de tarea (no solo el mensaje), ocultar el mensaje
+            if (listaTareasPendientes.children.length > 0 && listaTareasPendientes.children[0].id !== 'noTareasPendientes') {
+                noTareasPendientesMsg.style.display = 'none';
+            }
+            if (listaTareasCompletadas.children.length > 0 && listaTareasCompletadas.children[0].id !== 'noTareasCompletadas') {
+                noTareasCompletadasMsg.style.display = 'none';
+            }
+        }
+
+    </script>
 </body>
 </html>
-

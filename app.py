@@ -1,101 +1,140 @@
+from flask import Flask, request, jsonify, render_template
+from flask_cors import CORS
+from datetime import datetime
 import os
-import datetime
-import locale
-from flask import Flask, render_template, request, jsonify
+
+# AÑADE ESTAS LÍNEAS AQUÍ ARRIBA:
 from flask_sqlalchemy import SQLAlchemy
 
-app = Flask(__name__)
 
-# Configuración de la base de datos
-DATABASE_URL = os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL')
-if DATABASE_URL:
-    if DATABASE_URL.startswith("postgres://"):
-        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-    app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
-else:
-    basedir = os.path.abspath(os.path.dirname(__file__))
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'tareas.db')
+app = Flask(__name__) # 'app' debe definirse ANTES de usarla para SQLAlchemy o CORS
+CORS(app) # CORS debe inicializarse con 'app'
 
+
+# Configuración de la conexión a Supabase (usará DATABASE_URL de Render)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///tareas.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+db = SQLAlchemy(app) # Inicializamos SQLAlchemy DESPUÉS de definir 'app' y Flask-SQLAlchemy
 
-# Modelo de tarea
+
+# Define tu tabla 'tarea' para SQLAlchemy.
+# ¡IMPORTANTE! He añadido la columna 'completada' que discutimos.
+# Asegúrate de haber borrado la tabla 'tarea' en Supabase si ya existía para que se cree con esta nueva columna.
 class Tarea(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    fecha = db.Column(db.String(10), nullable=False)
+    fecha = db.Column(db.Text, nullable=False)
     texto = db.Column(db.Text, nullable=False)
-    creada = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    completada = db.Column(db.Boolean, default=False, nullable=False) # ¡NUEVA COLUMNA!
 
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'fecha': self.fecha,
-            'texto': self.texto,
-            'creada': self.creada.isoformat()
-        }
+    def __repr__(self):
+        return f'<Tarea {self.id}: {self.fecha} - {self.texto} (Completada: {self.completada})>'
 
-# Función para crear la base de datos si no existe
-def crear_bd():
-    with app.app_context():
-        db.create_all()
+
+def init_db():
+    try:
+        with app.app_context():
+            db.create_all()
+        print("Base de datos inicializada correctamente.")
+    except Exception as e:
+        print(f"Error al inicializar la base de datos: {e}")
 
 @app.route('/')
-def inicio():
-    try:
-        locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
-    except:
-        pass
-    hoy = datetime.datetime.now()
-    fecha_actual = hoy.strftime('%A %d de %B de %Y').capitalize()
-    return render_template('index.html', fecha_actual=fecha_actual)
+def index():
+    # Eliminamos fecha_actual de aquí; se obtiene en JavaScript en index.html
+    return render_template('index.html')
 
 @app.route('/calendario')
 def calendario():
     return render_template('calendario.html')
 
-@app.route('/ping')
-def ping():
-    return 'pong'
-
-@app.route('/api/tareas/<fecha>', methods=['GET'])
-def obtener_tareas(fecha):
-    tareas = Tarea.query.filter_by(fecha=fecha).order_by(Tarea.creada).all()
-    return jsonify([t.to_dict() for t in tareas])
-
 @app.route('/api/tareas', methods=['POST'])
 def crear_tarea():
-    data = request.get_json() or {}
+    data = request.get_json()
+    print(f"Datos recibidos para crear_tarea: {data}")
+
     fecha = data.get('fecha')
-    texto = (data.get('texto') or '').strip()
+    texto = data.get('texto')
+
     if not fecha or not texto:
-        return jsonify({'error': 'Fecha y texto requeridos'}), 400
-    nueva = Tarea(fecha=fecha, texto=texto)
-    db.session.add(nueva)
-    db.session.commit()
-    return jsonify(nueva.to_dict()), 201
+        print("Error: Faltan datos (fecha o texto)")
+        return jsonify({"error": "Faltan datos (fecha o texto)"}), 400
 
-@app.route('/api/tareas/<int:id>', methods=['DELETE'])
-def borrar_tarea(id):
-    tarea = Tarea.query.get(id)
-    if not tarea:
-        return jsonify({'error': 'No encontrada'}), 404
-    db.session.delete(tarea)
-    db.session.commit()
-    return jsonify({'result': 'ok'}), 200
-
-@app.route('/api/tareas-mes/<mes_str>', methods=['GET'])
-def tareas_por_mes(mes_str):
     try:
-        year, mon = mes_str.split('-')
-    except:
-        return jsonify({'error': 'Formato inválido'}), 400
-    like = f"{year}-{mon}-%"
-    filas = Tarea.query.filter(Tarea.fecha.like(like)).all()
-    fechas = sorted({t.fecha for t in filas})
+        datetime.strptime(fecha, '%Y-%m-%d')
+    except ValueError:
+        print(f"Error: Formato de fecha inválido para {fecha}. Se esperaba YYYY-MM-DD")
+        return jsonify({"error": "Formato de fecha inválido. Use YYYY-MM-DD"}), 400
+
+    try:
+        # Se añade la tarea con 'completada=False' por defecto gracias al modelo
+        nueva_tarea = Tarea(fecha=fecha, texto=texto)
+        db.session.add(nueva_tarea)
+        db.session.commit()
+        tarea_id = nueva_tarea.id
+        print(f"Tarea '{texto}' guardada con ID: {tarea_id} para la fecha: {fecha}")
+        # Asegúrate de devolver el estado 'completada' en la respuesta POST también
+        return jsonify({"id": tarea_id, "fecha": fecha, "texto": texto, "completada": nueva_tarea.completada}), 201
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error al insertar la tarea en la base de datos: {e}")
+        return jsonify({"error": f"Error al guardar la tarea: {e}"}), 500
+
+@app.route('/api/tareas/<fecha>', methods=['GET'])
+def tareas_por_fecha(fecha):
+    try:
+        datetime.strptime(fecha, '%Y-%m-%d')
+    except ValueError:
+        return jsonify({"error": "Formato de fecha inválido. Use YYYY-MM-DD"}), 400
+
+    # Cambiamos para obtener también el estado 'completada'
+    tareas_db = Tarea.query.filter_by(fecha=fecha).all()
+    tareas = [{"id": t.id, "texto": t.texto, "completada": t.completada} for t in tareas_db]
+    return jsonify(tareas)
+
+# ¡NUEVA RUTA API para marcar tareas como completadas/pendientes!
+@app.route('/api/tareas/<int:tarea_id>/toggle_completada', methods=['PATCH'])
+def toggle_completada(tarea_id):
+    try:
+        tarea = Tarea.query.get(tarea_id)
+        if not tarea:
+            return jsonify({"error": "Tarea no encontrada"}), 404
+
+        tarea.completada = not tarea.completada # Invierte el estado actual
+        db.session.commit()
+        print(f"Tarea con ID {tarea_id} ahora completada: {tarea.completada}")
+        return jsonify({"id": tarea.id, "completada": tarea.completada}), 200
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error al cambiar estado de la tarea: {e}")
+        return jsonify({"error": f"Error al cambiar estado de la tarea: {e}"}), 500
+
+@app.route('/api/tareas/<int:tarea_id>', methods=['DELETE'])
+def borrar_tarea(tarea_id):
+    try:
+        tarea_a_borrar = Tarea.query.get(tarea_id)
+        if tarea_a_borrar:
+            db.session.delete(tarea_a_borrar)
+            db.session.commit()
+            print(f"Tarea con ID {tarea_id} eliminada.")
+            return jsonify({"status": "ok"})
+        else:
+            return jsonify({"error": "Tarea no encontrada"}), 404
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error al borrar la tarea: {e}")
+        return jsonify({"error": f"Error al borrar la tarea: {e}"}), 500
+
+@app.route('/api/tareas-mes/<mes>', methods=['GET'])
+def tareas_por_mes(mes):
+    try:
+        datetime.strptime(mes + '-01', '%Y-%m-%d')
+    except ValueError:
+        return jsonify({"error": "Formato de mes inválido. Use YYYY-MM"}), 400
+
+    fechas_distintas = db.session.query(Tarea.fecha).filter(Tarea.fecha.like(mes + '%')).distinct().all()
+    fechas = [f[0] for f in fechas_distintas]
     return jsonify(fechas)
 
 if __name__ == '__main__':
-    crear_bd()  # Crear la base de datos antes de arrancar la app
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
-
+    init_db()
+    app.run(debug=True, host='0.0.0.0', port=5000)
