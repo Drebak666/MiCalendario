@@ -1,451 +1,647 @@
-/* Estilos generales y de reseteo para asegurar la consistencia */
-html {
-    box-sizing: border-box; /* Incluye padding y border en el tamaño del elemento */
-    font-size: 16px; /* Base para rem - 1rem = 16px por defecto */
-}
-*, *:before, *:after {
-    box-sizing: inherit;
+/* Marca para días con tareas (borde rojo) */
+.has-tasks {
+     border: 3px solid #ff0000; /* Borde rojo */
 }
 
-/* Estilos generales del body para ambas páginas */
+/* Marca para días con registros importantes */
+/* CAMBIO AQUÍ: También usa borde rojo, igual que has-tasks */
+.has-registros {
+     border: 3px solid #ff0000; /* Borde rojo */
+     /* Si antes tenías una sombra azul y quieres quitarla si el día tiene un registro importante, este es el lugar para eliminarla */
+     /* Por ejemplo, si antes era: box-shadow: 0 0 0 3px #007bff inset; */
+     /* Y ahora quieres solo el borde rojo, simplemente lo dejas así. */
+}
+
+/* Si un día tiene tareas Y registros, la prioridad de CSS hará que el borde rojo se muestre por cualquiera de las dos clases. */
+/* Esta regla .has-tasks.has-registros ya no es estrictamente necesaria para el borde rojo si ambas clases lo tienen, */
+/* pero si tenías alguna otra combinación de estilos que querías aplicar cuando un día tiene AMBOS, puedes mantenerla */
+/* o eliminarla si ya no es relevante. Por simplicidad, la podemos dejar pero no afectará el borde rojo. */
+.has-tasks.has-registros {
+    border: 3px solid #ff0000; /* Asegura el borde rojo si tiene ambos */
+    /* Si antes tenías sombra azul y la eliminaste de .has-registros, aquí también la eliminarías si no la quieres en la combinación */
+    /* Por ejemplo, si quieres que SIEMPRE sea solo el borde rojo, podrías eliminar esta regla o asegurarte que solo tenga el borde. */
+}
+/* Estilos específicos para calendario */
+        .calendar-container {
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto;
+            font-family: Arial, sans-serif;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .calendar-header .month-navigation,
+        .calendar-header .year-selection {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .calendar-header h2 {
+            margin: 0;
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        .calendar-header select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+
+        .calendar-body {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            padding: 10px 0;
+        }
+
+        .day-name {
+            font-weight: bold;
+            text-align: center;
+            padding: 5px;
+            background-color: #e0e0e0;
+        }
+
+        .day {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s; /* Añadir box-shadow a la transición */
+            min-height: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .day.empty {
+            background-color: #f9f9f9;
+            cursor: default;
+        }
+
+        /* Base para el día actual */
+        .day.today {
+            background-color: #e3f2fd; /* Azul muy claro */
+            border-color: #90caf9; /* Azul claro */
+            font-weight: bold;
+            box-shadow: inset 0 0 0 2px #90caf9; /* Borde interno para hoy */
+        }
+
+        /* Base para días con tareas */
+.day.has-tasks {
+    background-color: #e8f5e9; /* Verde muy claro */
+    border: 3px solid #ff0000; /* <<-- CAMBIO CLAVE AQUÍ: Borde rojo para tareas */
+    box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.1); /* Puedes ajustar o quitar la sombra si ya no la quieres. Mantenemos una sombra discreta si el día tiene tareas*/
+}
+
+/* Base para días con registros importantes */
+.day.has-registros {
+    /* Eliminamos el color de fondo y de borde que causaba el "amarillo" o tono rojizo/anaranjado */
+    /* Si quieres mantener el box-shadow como una señal sutil, puedes dejarlo. */
+    /* Si NO quieres ABSOLUTAMENTE NINGUNA señal, elimina también el box-shadow. */
+    box-shadow: inset 0 0 0 2px #ffab91; /* Mantendremos esta sombra como una señal sutil si no hay otro color */
+}
+        /* Combinaciones de colores y prioridades (usar !important si es necesario, pero intentemos evitarlo) */
+        /* Un día puede tener más de una clase. El orden de las reglas importa. */
+    /* Si hoy tiene tareas */
+.day.today.has-tasks {
+    background-color: #d1e7f7; /* Mezcla de azul y verde */
+    border: 3px solid #ff0000; /* <<-- Asegura el borde rojo aquí también */
+    box-shadow: inset 0 0 0 2px #64b5f6; /* Puedes mantener solo una sombra interna si quieres */
+}
+
+        /* Si hoy tiene registros */
+        .day.today.has-registros {
+            background-color: #f7d1d1; /* Mezcla de azul y rojo */
+            border-color: #ef9a9a;
+            box-shadow: inset 0 0 0 2px #ef9a9a, inset 0 0 0 4px #f44336;
+        }
+        
+       /* Si un día tiene tareas Y registros (color de la combinación) */
+.day.has-tasks.has-registros {
+    /* Para que no se pinte de amarillo, podemos hacer que herede el estilo de .has-tasks */
+    /* O definir un nuevo color que no sea amarillo. */
+    background-color: #e8f5e9; /* Reusa el verde muy claro de .has-tasks */
+    border-color: #a5d6a7;     /* Reusa el verde claro de .has-tasks */
+    box-shadow: inset 0 0 0 2px #a5d6a7; /* Reusa la sombra de .has-tasks */
+}
+
+       /* Si hoy tiene tareas Y registros */
+.day.today.has-tasks.has-registros {
+    /* Para que no se pinte de amarillo/naranja, podemos hacer que herede el estilo de .day.today.has-tasks */
+    background-color: #d1e7f7; /* Reusa el color de "hoy con tareas" */
+    border-color: #64b5f6;     /* Reusa el color de "hoy con tareas" */
+    box-shadow: inset 0 0 0 2px #64b5f6, inset 0 0 0 4px #4CAF50; /* Reusa la sombra de "hoy con tareas" */
+}
+
+        /* Estilo para el día seleccionado (DEBE SOBRESCRIBIR TODO lo anterior) */
+        .day.selected {
+            background-color: #c8e6c9 !important; /* Verde más oscuro para el día seleccionado */
+            border-color: #2e7d32 !important;
+            box-shadow: 0 0 0 3px #2e7d32 !important; /* Borde externo más pronunciado y color fuerte */
+        }
+
+        .day:hover:not(.empty) {
+            background-color: #f0f4c3;
+        }
+
+        .list-section {
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        .task-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 10px;
+        }
+
+        .task-item {
+            background-color: #f9f9f9;
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #ddd;
+        }
+
+        .task-item.completada {
+    color: #888;
+    background-color: #e0e0e0;
+}
+
+/* Aplica el tachado SÓLO al texto de la tarea cuando está completada */
+.task-item.completada .task-text {
+    text-decoration: line-through;
+}
+
+        .task-item .task-text {
+            flex-grow: 1;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .task-item .task-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .task-item .task-actions button {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s;
+        }
+
+        .task-item .task-actions .btn-completar {
+            background-color: #2196F3; /* Azul */
+            color: white;
+        }
+        .task-item .task-actions .btn-completar.completada {
+            background-color: #FFC107; /* Amarillo para 'descompletar' */
+        }
+        .task-item .task-actions .btn-completar:hover {
+            background-color: #1976D2;
+        }
+
+        .task-item .task-actions .btn-eliminar {
+            background-color: #f44336; /* Rojo */
+            color: white;
+        }
+        .task-item .task-actions .btn-eliminar:hover {
+            background-color: #d32f2f;
+        }
+
+        /* Estilo para el botón de guardar (icono) */
+        .task-item .task-actions .btn-guardar-registro-icon {
+            background: none;
+            border: none;
+            color: #4CAF50; /* Verde */
+            font-size: 1.2em;
+            cursor: pointer;
+            padding: 0 5px; /* Ajustar padding */
+            line-height: 1; /* Alinear verticalmente el icono */
+        }
+        .task-item .task-actions .btn-guardar-registro-icon:hover {
+            color: #388E3C;
+        }
+
+        .no-tasks, .loading, .error-message {
+            text-align: center;
+            font-style: italic;
+            color: #777;
+            padding: 10px;
+        }
+        .error-message {
+            color: #f44336;
+            font-weight: bold;
+        }
+
+        /* Estilos para el modal personalizado */
+        .custom-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .custom-modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            max-width: 450px;
+            width: 90%;
+            text-align: left;
+            position: relative;
+        }
+
+        .custom-modal-content h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .custom-modal-content label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .custom-modal-content input[type="text"],
+        .custom-modal-content textarea,
+        .custom-modal-content select {
+            width: calc(100% - 20px); /* Restar padding */
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+            box-sizing: border-box; /* Incluir padding en el ancho */
+        }
+
+        .custom-modal-content textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .custom-modal-content select {
+            width: 100%;
+            background-color: #f8f8f8;
+        }
+
+        .custom-modal-content .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .custom-modal-content .modal-actions .boton {
+            padding: 10px 20px;
+            font-size: 1em;
+        }
+        .custom-modal-content .modal-actions .cancel-button {
+            background-color: #6c757d;
+        }
+        .custom-modal-content .modal-actions .cancel-button:hover {
+            background-color: #5a6268;
+        }
+
+        .task-form-container {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background-color: #fcfcfc;
+        }
+        .task-form-container input[type="text"],
+        .task-form-container input[type="time"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .task-form-container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+        .task-form-container button:hover {
+            background-color: #388e3c;
+        }
+
+/* Estilos Generales */
 body {
-    background-color: white;
-    font-family: Arial, sans-serif; /* Fuente base */
-    margin: 0;
-    padding: 20px 0 0 0;
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f4f4f4;
+    color: #333;
+    width: auto;
+    min-width: 320px;
+    box-sizing: border-box;
+}
+
+h1, h2 {
+    color: #0056b3;
+}
+
+/* Estilos de Formularios y Entradas */
+form {
+    margin-bottom: 20px;
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
-    color: #333;
-    font-size: 42px; /* ESTO ES TU TAMAÑO BASE MINIMO */
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
-/* Estilos de títulos (usados en index.html y potencialmente en calendario.html) */
-h1 {
-    font-size: 60px; /* Título principal, mantiene su tamaño */
-    margin: 0 0 30px 0;
-    color: #333;
-    text-align: center;
-}
-h2 {
-    font-size: 48px; /* Un poco más pequeño que h1, pero grande */
-    color: #555;
-    margin-top: 0;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-    margin-bottom: 15px;
+input[type="text"],
+input[type="time"] {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    min-width: 150px;
 }
 
-/* Estilos para el botón principal "Calendario" (usado en index.html) */
+/* Estilos de Botones */
 .boton {
-    padding: 20px 50px;
-    font-size: 50px; /* Tamaño de fuente específico para el botón */
     background-color: #4CAF50;
     color: white;
+    padding: 10px 15px;
     border: none;
-    border-radius: 12px;
+    border-radius: 5px;
     cursor: pointer;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-    transition: background-color 0.3s ease;
-    margin-bottom: 30px;
+    font-size: 16px;
+    text-decoration: none;
+    margin-top: 0px;
 }
 
 .boton:hover {
     background-color: #45a049;
 }
 
-/* --- Estilos para la página del Calendario (calendario.html) --- */
-
-/* Botón de volver a inicio */
-.btn-volver {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    font-size: 80px;
-    font-weight: bold;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 120px;
-    height: 120px;
-    cursor: pointer;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.3s ease;
-    user-select: none;
-    z-index: 1000;
-}
-
-.btn-volver:hover {
-    background-color: #45a049;
-}
-
-/* Calendario en sí */
-#calendar {
-    margin-top: 20px;
-}
-
-table {
-    border-collapse: collapse;
-    width: 100%;
-    font-size: 42px; /* ASEGURADO: 42px para el texto de la tabla */
-    table-layout: fixed;
-}
-
-th, td {
-    border: 1px solid #ccc;
-    padding: 10px;
-    height: 60px;
-    text-align: center;
-    word-wrap: break-word;
-}
-
-td:hover {
-    background-color: #eee;
-    cursor: pointer;
-}
-
-.selected {
-    background-color: #2196F3;
-    color: white;
-    font-weight: bold;
-}
-
-/* Formulario de tareas en el calendario */
-.tarea-form {
-    margin-top: 30px;
-    text-align: center;
-    width: 100%;
-    max-width: 800px;
-}
-
-#tareaInput {
-    width: 100%;
-    padding: 18px; /* Aumentado el padding para hacerlo más "pulsable" */
-    font-size: 42px; /* ASEGURADO: 42px para el input */
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-}
-
-.btn-guardar {
-    padding: 18px 28px; /* Aumentado el padding para hacerlo más "pulsable" */
-    font-size: 48px; /* Ligeramente más grande para que se vea bien */
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-.btn-guardar:hover {
-    background-color: #45a049;
-}
-
-.tarea-confirmacion {
-    color: green;
-    margin-top: 10px;
-    font-size: 42px; /* ASEGURADO: "Tarea guardada" a 42px */
-}
-
-/* Ítems de tarea individuales en el calendario */
-.tarea-item {
-    background-color: #f0f0f0;
-    margin-top: 5px;
-    padding: 15px; /* Aumentado */
-    border-radius: 5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 42px; /* ASEGURADO: 42px para el texto de la tarea */
-    flex-wrap: wrap;
-    gap: 15px; /* Espacio entre el texto y el botón */
-}
-
-.tarea-item button {
-    background-color: red;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    padding: 15px 25px; /* Aumentado */
-    font-size: 38px; /* Un poco más pequeño que el texto de la tarea, pero grande */
-    cursor: pointer;
-}
-
-/* Selector de mes/año en el calendario */
-.selector-container {
-    font-size: 42px; /* ASEGURADO: 42px para el texto del selector */
-    margin-top: 20px;
-    display: flex;
-    gap: 15px; /* Aumentado el espacio */
-    align-items: center;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-.selector-container select,
-.selector-container button {
-    font-size: 42px; /* ASEGURADO: 42px para el select y botón */
-    padding: 15px 25px; /* Aumentado el padding */
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    cursor: pointer;
-}
-
-/* --- Estilos para la página de Inicio (index.html) --- */
-
-#tareasContainer {
-    width: 90%;
-    max-width: 600px;
-    background-color: #f9f9f9;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    margin-top: 20px;
-}
-
-ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-li {
-    background-color: white;
-    padding: 15px;
-    margin-bottom: 10px;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    font-size: 42px; /* ASEGURADO: 42px para el texto de la tarea en la lista */
-    color: #444;
-    gap: 15px;
-}
-
-li span {
-    word-wrap: break-word;
-    width: 100%;
-}
-
-li.completada {
-    text-decoration: line-through;
-    color: #999;
-    background-color: #e0ffe0;
-}
-
-.tarea-acciones {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    width: 100%;
-    justify-content: flex-end;
-}
-
-.btn-completar, .btn-eliminar {
-    padding: 15px 25px;
-    font-size: 38px; /* ASEGURADO: 38px para los botones de completar/eliminar */
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    min-width: 150px;
-}
-
 .btn-completar {
     background-color: #007bff;
     color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 5px;
+    font-size: 0.9em;
+}
+
+.btn-completar:hover {
+    background-color: #0056b3;
 }
 
 .btn-completar.completada {
     background-color: #dc3545;
 }
 
-.btn-completar:hover {
-    background-color: #0056b3;
-}
 .btn-completar.completada:hover {
     background-color: #c82333;
 }
 
 .btn-eliminar {
-    background-color: #f44336;
+    background-color: #dc3545;
     color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 5px;
+    font-size: 0.9em;
 }
 
 .btn-eliminar:hover {
-    background-color: #da190b;
+    background-color: #c82333;
 }
 
-#nuevaTareaForm {
+/* Estilos de Lista de Tareas */
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    background-color: #fff;
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 4px;
     display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-bottom: 20px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-#nuevaTareaInput {
+.tarea-acciones {
+    display: flex;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+li span {
     flex-grow: 1;
-    padding: 18px; /* Aumentado padding */
-    font-size: 42px; /* ASEGURADO: 42px para el input de nueva tarea */
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    width: 100%;
+    min-width: 150px;
+    word-break: break-word;
 }
 
-#btnGuardarTarea {
-    padding: 18px 28px; /* Aumentado padding */
-    font-size: 48px; /* Ligeramente más grande */
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    width: 100%;
-}
-
-#btnGuardarTarea:hover {
-    background-color: #218838;
+li.completada span {
+    text-decoration: line-through;
+    color: #888;
 }
 
 .mensaje-info {
-    text-align: center;
     color: #666;
-    font-size: 42px; /* ASEGURADO: "No hay tareas para ese día" a 42px */
+    font-style: italic;
+    text-align: center;
     margin-top: 20px;
 }
 
-/* Media Queries para asegurar tamaños mínimos en pantallas más pequeñas */
-@media (max-width: 768px) {
-    body {
-        padding: 15px 0 0 0;
-        font-size: 40px; /* Ligeramente reducido, pero aún grande */
-    }
-    h1 {
-        font-size: 55px;
-    }
-    h2 {
-        font-size: 45px;
-    }
-    .boton {
-        padding: 18px 40px;
-        font-size: 45px;
-    }
-
-    /* Calendario */
-    table {
-        font-size: 40px; /* Mínimo 40px */
-    }
-    th, td {
-        padding: 10px;
-        height: 55px;
-    }
-    .btn-volver {
-        font-size: 70px;
-        width: 110px;
-        height: 110px;
-    }
-    #tareaInput, .btn-guardar, .selector-container select, .selector-container button {
-        font-size: 40px; /* Mínimo 40px */
-        padding: 16px;
-    }
-    .tarea-item {
-        font-size: 40px; /* Mínimo 40px */
-        padding: 12px;
-    }
-    .tarea-item button {
-        font-size: 36px;
-        padding: 12px 20px;
-    }
-    .tarea-confirmacion {
-        font-size: 40px; /* Mínimo 40px */
-    }
-
-    /* Inicio (lista de tareas) */
-    li {
-        font-size: 40px; /* Mínimo 40px */
-        padding: 12px;
-    }
-    .btn-completar, .btn-eliminar {
-        padding: 14px 22px;
-        font-size: 34px;
-        min-width: 140px;
-    }
-    #nuevaTareaInput, #btnGuardarTarea {
-        font-size: 40px; /* Mínimo 40px */
-        padding: 16px;
-    }
-    .mensaje-info {
-        font-size: 40px; /* Mínimo 40px */
-    }
+/* Estilos para el Calendario */
+.calendar-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
-@media (max-width: 480px) {
-    body {
-        padding: 10px 0 0 0;
-        font-size: 38px; /* Ligeramente reducido, pero aún muy legible */
-    }
-    h1 {
-        font-size: 50px;
-    }
-    h2 {
-        font-size: 40px;
-    }
-    .boton {
-        font-size: 40px;
-        padding: 15px 30px;
-    }
+.month-year-container {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Espacio entre el mes/año y el selector de año */
+}
 
-    /* Calendario */
-    table {
-        font-size: 38px; /* Mínimo 38px */
-    }
-    th, td {
-        padding: 8px;
-        height: 50px;
-    }
-    .btn-volver {
-        font-size: 60px;
-        width: 100px;
-        height: 100px;
-    }
-    #tareaInput, .btn-guardar, .selector-container select, .selector-container button {
-        font-size: 38px; /* Mínimo 38px */
-        padding: 14px;
-    }
-    .tarea-item {
-        font-size: 38px; /* Mínimo 38px */
-        padding: 10px;
-    }
-    .tarea-item button {
-        font-size: 32px;
-        padding: 10px 18px;
-    }
-    .tarea-confirmacion {
-        font-size: 38px; /* Mínimo 38px */
-    }
+.month-year-display {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #0056b3;
+    text-align: center;
+    white-space: nowrap; /* Evita que el texto del mes/año se rompa */
+}
 
-    /* Inicio (lista de tareas) */
-    li {
-        font-size: 38px; /* Mínimo 38px */
-        padding: 10px;
-    }
-    .btn-completar, .btn-eliminar {
-        font-size: 30px;
-        padding: 12px 18px;
-        min-width: unset;
-    }
-    #nuevaTareaInput, #btnGuardarTarea {
-        font-size: 38px; /* Mínimo 38px */
-        padding: 14px;
-    }
-    .mensaje-info {
-        font-size: 38px; /* Mínimo 38px */
-    }
+.nav-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+}
+
+.nav-btn:hover {
+    background-color: #0056b3;
+}
+
+/* Estilos para el selector de año */
+.year-selector {
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1em;
+    cursor: pointer;
+}
+
+table {
+    width: 100%;
+    max-width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    table-layout: fixed;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+    width: calc(100% / 7);
+    box-sizing: border-box;
+    font-size: 0.9em;
+}
+
+th {
+    background-color: #28a745;
+    color: white;
+    padding: 10px;
+    text-align: center;
+}
+
+td.today {
+    background-color: #a0c4ff;
+    font-weight: bold;
+}
+
+td.selected {
+    background-color: #7bafed;
+    font-weight: bold;
+    border: 2px solid #0056b3;
+}
+
+td.other-month {
+    color: #ccc;
+    background-color: #f0f0f0;
+}
+
+.has-tasks {
+     border: 3px solid #ff0000;
+}
+
+td.today.has-tasks {
+    border: 3px solid #ff0000;
+}
+
+/* Nuevo estilo para el contenedor de botones de acción del calendario */
+.calendar-actions {
+    display: flex;
+    justify-content: center; /* Centrar el botón "Hoy" */
+    margin-top: 15px; /* Margen superior para separarlo de la tabla */
+    margin-bottom: 20px; /* Margen inferior para separarlo de la sección de tareas */
+}
+
+
+/* Estilos para la sección de tareas del día seleccionado en el calendario */
+#tareasDiaSeleccionado {
+    margin-top: 20px;
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#listaTareasDiaSeleccionado li {
+    background-color: #e9ecef;
+}
+
+#listaTareasDiaSeleccionado li.completada span {
+    color: #6c757d;
+}
+
+/* Para la pantalla de inicio */
+.fecha-actual-inicio {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #0056b3;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+/* Estilo para la hora de la tarea */
+.tarea-hora {
+    font-weight: bold;
+    color: #555;
+    margin-right: 5px;
+    flex-shrink: 0;
 }
