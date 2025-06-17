@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registros Importantes</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" xintegrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+    <div class="list-section">
+        <h2>Registros Importantes</h2>
+        <ul id="registrosList">
+            <li class="mensaje-info">Cargando registros...</li>
+        </ul>
+    </div>
+
+    <div class="navigation">
+        <a href="/" class="boton"><i class="fas fa-home"></i> Volver al Inicio</a>
+        <a href="/calendario" class="boton"><i class="fas fa-calendar-alt"></i> Calendario</a>
+        <a href="/alimentacion" class="boton"><i class="fas fa-utensils"></i> Alimentación</a>
+        <a href="/documentos" class="boton"><i class="fas fa-folder-open"></i> Documentos</a>
+        <a href="/gimnasio" class="boton"><i class="fas fa-dumbbell"></i> Gimnasio</a>
+        <a href="/lista" class="boton"><i class="fas fa-shopping-cart"></i> Lista de Compra</a>
+    </div>
+
+    <!-- Modal para mostrar la imagen -->
+    <div id="imageModal" class="custom-modal-overlay" style="display:none;">
+        <div class="custom-modal-content image-modal-content">
+            <img id="modalImage" src="" alt="Imagen de registro" class="full-size-image">
+            <button id="closeImageModalButton" class="boton cancel-button"><i class="fas fa-times"></i> Cerrar</button>
+        </div>
+    </div>
+
+    <script>
+        const registrosList = document.getElementById('registrosList');
+        const imageModal = document.getElementById('imageModal');
+        const modalImage = document.getElementById('modalImage');
+        const closeImageModalButton = document.getElementById('closeImageModalButton');
+
+        // Función para crear un modal genérico (copiada de index.html)
+        function createModal(content) {
+            const modalOverlay = document.createElement('div');
+            modalOverlay.classList.add('custom-modal-overlay');
+
+            const modalContent = document.createElement('div');
+            modalContent.classList.add('custom-modal-content');
+            modalContent.appendChild(content);
+
+            modalOverlay.appendChild(modalContent);
+
+            modalOverlay.addEventListener('click', (e) => {
+                if (e.target === modalOverlay) {
+                    modalOverlay.remove();
+                }
+            });
+            return modalOverlay;
+        }
+
+        // Función para mostrar un modal de confirmación (copiada de index.html)
+        function showCustomConfirm(message) {
+            return new Promise((resolve) => {
+                const confirmContent = document.createElement('div');
+                confirmContent.innerHTML = `
+                    <h3>Confirmación</h3>
+                    <p>${message}</p>
+                    <div class="modal-actions">
+                        <button id="confirmYes" class="boton">Sí</button>
+                        <button id="confirmNo" class="boton cancel-button">No</button>
+                    </div>
+                `;
+                const confirmModal = createModal(confirmContent);
+                document.body.appendChild(confirmModal);
+
+                document.getElementById('confirmYes').addEventListener('click', () => {
+                    confirmModal.remove();
+                    resolve(true);
+                });
+                document.getElementById('confirmNo').addEventListener('click', () => {
+                    confirmModal.remove();
+                    resolve(false);
+                });
+            });
+        }
+
+        async function fetchRegistros() {
+            registrosList.innerHTML = '<li class="mensaje-info">Cargando registros...</li>';
+            try {
+                const response = await fetch('/api/registros_importantes');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error desconocido al obtener registros importantes');
+                }
+                const registros = await response.json();
+                renderRegistros(registros);
+            } catch (error) {
+                console.error('Error al cargar registros importantes:', error);
+                registrosList.innerHTML = `<li class="mensaje-info">No se pudieron cargar los registros importantes. Error: ${error.message}</li>`;
+            }
+        }
+
+        function renderRegistros(registros) {
+            registrosList.innerHTML = '';
+            if (registros.length === 0) {
+                registrosList.innerHTML = '<li class="mensaje-info">No hay registros importantes guardados.</li>';
+                return;
+            }
+
+            registros.forEach(registro => {
+                const li = document.createElement('li');
+                li.classList.add('registro-item'); // Clase CSS para el estilo del registro
+
+                li.innerHTML = `
+                    <div class="registro-header">
+                        <span class="registro-titulo">${registro.titulo}</span>
+                        <span class="registro-fecha">${registro.fecha}</span>
+                    </div>
+                    <p class="registro-descripcion">${registro.descripcion || 'Sin descripción.'}</p>
+                    <div class="registro-footer">
+                        <span class="registro-tipo">Tipo: ${registro.tipo || 'General'}</span>
+                        <div class="registro-actions">
+                            ${registro.imagen_base64 ? `<button class="boton view-image-button" data-image="${registro.imagen_base64}" title="Ver Imagen"><i class="fas fa-image"></i></button>` : ''}
+                            <button class="boton btn-eliminar" data-id="${registro.id}" title="Eliminar Registro"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    </div>
+                `;
+                registrosList.appendChild(li);
+            });
+
+            // Añadir event listeners después de que los elementos estén en el DOM
+            document.querySelectorAll('.btn-eliminar').forEach(button => {
+                button.addEventListener('click', deleteRegistro);
+            });
+
+            document.querySelectorAll('.view-image-button').forEach(button => {
+                button.addEventListener('click', openImageModal);
+            });
+        }
+
+        async function deleteRegistro(event) {
+            const registroId = event.currentTarget.dataset.id; // Usar currentTarget
+            const confirmAction = await showCustomConfirm('¿Estás seguro de que quieres eliminar este registro importante?');
+            if (confirmAction) {
+                try {
+                    const response = await fetch(`/api/registros_importantes/${registroId}`, {
+                        method: 'DELETE'
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Error al eliminar el registro.');
+                    }
+                    alert('Registro eliminado con éxito.');
+                    fetchRegistros(); // Recargar la lista de registros
+                } catch (error) {
+                    console.error('Error al eliminar registro:', error);
+                    alert(`No se pudo eliminar el registro: ${error.message}`);
+                }
+            }
+        }
+
+        function openImageModal(event) {
+            const imageData = event.currentTarget.dataset.image;
+            if (imageData) {
+                modalImage.src = imageData;
+                imageModal.style.display = 'flex'; // Mostrar el modal
+            } else {
+                alert('No hay imagen para mostrar.');
+            }
+        }
+
+        closeImageModalButton.addEventListener('click', () => {
+            imageModal.style.display = 'none'; // Ocultar el modal
+            modalImage.src = ''; // Limpiar la imagen
+        });
+
+        // Cerrar el modal al hacer clic fuera del contenido de la imagen
+        imageModal.addEventListener('click', (e) => {
+            if (e.target === imageModal) {
+                imageModal.style.display = 'none';
+                modalImage.src = '';
+            }
+        });
+
+
+        document.addEventListener('DOMContentLoaded', fetchRegistros);
+    </script>
+</body>
+</html>

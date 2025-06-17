@@ -1,647 +1,1475 @@
-/* Marca para días con tareas (borde rojo) */
-.has-tasks {
-     border: 3px solid #ff0000; /* Borde rojo */
-}
-
-/* Marca para días con registros importantes */
-/* CAMBIO AQUÍ: También usa borde rojo, igual que has-tasks */
-.has-registros {
-     border: 3px solid #ff0000; /* Borde rojo */
-     /* Si antes tenías una sombra azul y quieres quitarla si el día tiene un registro importante, este es el lugar para eliminarla */
-     /* Por ejemplo, si antes era: box-shadow: 0 0 0 3px #007bff inset; */
-     /* Y ahora quieres solo el borde rojo, simplemente lo dejas así. */
-}
-
-/* Si un día tiene tareas Y registros, la prioridad de CSS hará que el borde rojo se muestre por cualquiera de las dos clases. */
-/* Esta regla .has-tasks.has-registros ya no es estrictamente necesaria para el borde rojo si ambas clases lo tienen, */
-/* pero si tenías alguna otra combinación de estilos que querías aplicar cuando un día tiene AMBOS, puedes mantenerla */
-/* o eliminarla si ya no es relevante. Por simplicidad, la podemos dejar pero no afectará el borde rojo. */
-.has-tasks.has-registros {
-    border: 3px solid #ff0000; /* Asegura el borde rojo si tiene ambos */
-    /* Si antes tenías sombra azul y la eliminaste de .has-registros, aquí también la eliminarías si no la quieres en la combinación */
-    /* Por ejemplo, si quieres que SIEMPRE sea solo el borde rojo, podrías eliminar esta regla o asegurarte que solo tenga el borde. */
-}
-/* Estilos específicos para calendario */
-        .calendar-container {
-            width: 90%;
-            max-width: 800px;
-            margin: 20px auto;
-            font-family: Arial, sans-serif;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            background-color: #f0f0f0;
-            border-radius: 4px;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .calendar-header .month-navigation,
-        .calendar-header .year-selection {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .calendar-header h2 {
-            margin: 0;
-            flex-grow: 1;
-            text-align: center;
-        }
-
-        .calendar-header select {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 1em;
-        }
-
-        .calendar-body {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
-            padding: 10px 0;
-        }
-
-        .day-name {
-            font-weight: bold;
-            text-align: center;
-            padding: 5px;
-            background-color: #e0e0e0;
-        }
-
-        .day {
-            padding: 10px;
-            border: 1px solid #ddd;
-            text-align: center;
-            cursor: pointer;
-            transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s; /* Añadir box-shadow a la transición */
-            min-height: 50px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-        }
-
-        .day.empty {
-            background-color: #f9f9f9;
-            cursor: default;
-        }
-
-        /* Base para el día actual */
-        .day.today {
-            background-color: #e3f2fd; /* Azul muy claro */
-            border-color: #90caf9; /* Azul claro */
-            font-weight: bold;
-            box-shadow: inset 0 0 0 2px #90caf9; /* Borde interno para hoy */
-        }
-
-        /* Base para días con tareas */
-.day.has-tasks {
-    background-color: #e8f5e9; /* Verde muy claro */
-    border: 3px solid #ff0000; /* <<-- CAMBIO CLAVE AQUÍ: Borde rojo para tareas */
-    box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.1); /* Puedes ajustar o quitar la sombra si ya no la quieres. Mantenemos una sombra discreta si el día tiene tareas*/
-}
-
-/* Base para días con registros importantes */
-.day.has-registros {
-    /* Eliminamos el color de fondo y de borde que causaba el "amarillo" o tono rojizo/anaranjado */
-    /* Si quieres mantener el box-shadow como una señal sutil, puedes dejarlo. */
-    /* Si NO quieres ABSOLUTAMENTE NINGUNA señal, elimina también el box-shadow. */
-    box-shadow: inset 0 0 0 2px #ffab91; /* Mantendremos esta sombra como una señal sutil si no hay otro color */
-}
-        /* Combinaciones de colores y prioridades (usar !important si es necesario, pero intentemos evitarlo) */
-        /* Un día puede tener más de una clase. El orden de las reglas importa. */
-    /* Si hoy tiene tareas */
-.day.today.has-tasks {
-    background-color: #d1e7f7; /* Mezcla de azul y verde */
-    border: 3px solid #ff0000; /* <<-- Asegura el borde rojo aquí también */
-    box-shadow: inset 0 0 0 2px #64b5f6; /* Puedes mantener solo una sombra interna si quieres */
-}
-
-        /* Si hoy tiene registros */
-        .day.today.has-registros {
-            background-color: #f7d1d1; /* Mezcla de azul y rojo */
-            border-color: #ef9a9a;
-            box-shadow: inset 0 0 0 2px #ef9a9a, inset 0 0 0 4px #f44336;
-        }
-        
-       /* Si un día tiene tareas Y registros (color de la combinación) */
-.day.has-tasks.has-registros {
-    /* Para que no se pinte de amarillo, podemos hacer que herede el estilo de .has-tasks */
-    /* O definir un nuevo color que no sea amarillo. */
-    background-color: #e8f5e9; /* Reusa el verde muy claro de .has-tasks */
-    border-color: #a5d6a7;     /* Reusa el verde claro de .has-tasks */
-    box-shadow: inset 0 0 0 2px #a5d6a7; /* Reusa la sombra de .has-tasks */
-}
-
-       /* Si hoy tiene tareas Y registros */
-.day.today.has-tasks.has-registros {
-    /* Para que no se pinte de amarillo/naranja, podemos hacer que herede el estilo de .day.today.has-tasks */
-    background-color: #d1e7f7; /* Reusa el color de "hoy con tareas" */
-    border-color: #64b5f6;     /* Reusa el color de "hoy con tareas" */
-    box-shadow: inset 0 0 0 2px #64b5f6, inset 0 0 0 4px #4CAF50; /* Reusa la sombra de "hoy con tareas" */
-}
-
-        /* Estilo para el día seleccionado (DEBE SOBRESCRIBIR TODO lo anterior) */
-        .day.selected {
-            background-color: #c8e6c9 !important; /* Verde más oscuro para el día seleccionado */
-            border-color: #2e7d32 !important;
-            box-shadow: 0 0 0 3px #2e7d32 !important; /* Borde externo más pronunciado y color fuerte */
-        }
-
-        .day:hover:not(.empty) {
-            background-color: #f0f4c3;
-        }
-
-        .list-section {
-            margin-top: 20px;
-            border-top: 1px solid #eee;
-            padding-top: 20px;
-        }
-
-        .task-list {
-            list-style: none;
-            padding: 0;
-            margin-top: 10px;
-        }
-
-        .task-item {
-            background-color: #f9f9f9;
-            padding: 10px 15px;
-            margin-bottom: 8px;
-            border-radius: 4px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid #ddd;
-        }
-
-        .task-item.completada {
-    color: #888;
-    background-color: #e0e0e0;
-}
-
-/* Aplica el tachado SÓLO al texto de la tarea cuando está completada */
-.task-item.completada .task-text {
-    text-decoration: line-through;
-}
-
-        .task-item .task-text {
-            flex-grow: 1;
-            margin-right: 10px;
-            font-weight: bold;
-        }
-
-        .task-item .task-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .task-item .task-actions button {
-            padding: 6px 10px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: background-color 0.3s;
-        }
-
-        .task-item .task-actions .btn-completar {
-            background-color: #2196F3; /* Azul */
-            color: white;
-        }
-        .task-item .task-actions .btn-completar.completada {
-            background-color: #FFC107; /* Amarillo para 'descompletar' */
-        }
-        .task-item .task-actions .btn-completar:hover {
-            background-color: #1976D2;
-        }
-
-        .task-item .task-actions .btn-eliminar {
-            background-color: #f44336; /* Rojo */
-            color: white;
-        }
-        .task-item .task-actions .btn-eliminar:hover {
-            background-color: #d32f2f;
-        }
-
-        /* Estilo para el botón de guardar (icono) */
-        .task-item .task-actions .btn-guardar-registro-icon {
-            background: none;
-            border: none;
-            color: #4CAF50; /* Verde */
-            font-size: 1.2em;
-            cursor: pointer;
-            padding: 0 5px; /* Ajustar padding */
-            line-height: 1; /* Alinear verticalmente el icono */
-        }
-        .task-item .task-actions .btn-guardar-registro-icon:hover {
-            color: #388E3C;
-        }
-
-        .no-tasks, .loading, .error-message {
-            text-align: center;
-            font-style: italic;
-            color: #777;
-            padding: 10px;
-        }
-        .error-message {
-            color: #f44336;
-            font-weight: bold;
-        }
-
-        /* Estilos para el modal personalizado */
-        .custom-modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .custom-modal-content {
-            background-color: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            max-width: 450px;
-            width: 90%;
-            text-align: left;
-            position: relative;
-        }
-
-        .custom-modal-content h3 {
-            margin-top: 0;
-            color: #333;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-
-        .custom-modal-content label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
-        }
-
-        .custom-modal-content input[type="text"],
-        .custom-modal-content textarea,
-        .custom-modal-content select {
-            width: calc(100% - 20px); /* Restar padding */
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 1em;
-            box-sizing: border-box; /* Incluir padding en el ancho */
-        }
-
-        .custom-modal-content textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .custom-modal-content select {
-            width: 100%;
-            background-color: #f8f8f8;
-        }
-
-        .custom-modal-content .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .custom-modal-content .modal-actions .boton {
-            padding: 10px 20px;
-            font-size: 1em;
-        }
-        .custom-modal-content .modal-actions .cancel-button {
-            background-color: #6c757d;
-        }
-        .custom-modal-content .modal-actions .cancel-button:hover {
-            background-color: #5a6268;
-        }
-
-        .task-form-container {
-            margin-top: 20px;
-            padding: 15px;
-            border: 1px solid #eee;
-            border-radius: 8px;
-            background-color: #fcfcfc;
-        }
-        .task-form-container input[type="text"],
-        .task-form-container input[type="time"] {
-            width: calc(100% - 22px);
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        .task-form-container button {
-            width: 100%;
-            padding: 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: background-color 0.3s;
-        }
-        .task-form-container button:hover {
-            background-color: #388e3c;
-        }
-
-/* Estilos Generales */
+/* Estilos Generales para todo el cuerpo */
 body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    background-color: #f4f4f4;
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f7f6;
     color: #333;
-    width: auto;
-    min-width: 320px;
-    box-sizing: border-box;
-}
-
-h1, h2 {
-    color: #0056b3;
-}
-
-/* Estilos de Formularios y Entradas */
-form {
-    margin-bottom: 20px;
+    line-height: 1.6;
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+    flex-direction: column;
+    align-items: center; /* Centrar contenido principal */
+    min-height: 100vh;
 }
 
-input[type="text"],
-input[type="time"] {
-    flex-grow: 1;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    min-width: 150px;
+/* Contenedores principales y encabezados */
+h2, h3, h4 {
+    color: #2c3e50;
+    text-align: center;
+    margin-top: 25px;
+    margin-bottom: 15px;
 }
 
-/* Estilos de Botones */
+.fecha-actual-inicio {
+    font-size: 1.8em;
+    color: #34495e;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* --- Estilos para Botones Generales (.boton) --- */
 .boton {
-    background-color: #4CAF50;
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #3498db;
     color: white;
-    padding: 10px 15px;
+    text-align: center;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 1em;
     text-decoration: none;
-    margin-top: 0px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .boton:hover {
-    background-color: #45a049;
+    background-color: #2980b9;
+    transform: translateY(-2px);
 }
 
-.btn-completar {
-    background-color: #007bff;
-    color: white;
-    padding: 5px 10px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-left: 5px;
-    font-size: 0.9em;
+.boton.cancel-button {
+    background-color: #e74c3c;
+}
+.boton.cancel-button:hover {
+    background-color: #c0392b;
 }
 
-.btn-completar:hover {
-    background-color: #0056b3;
-}
-
-.btn-completar.completada {
-    background-color: #dc3545;
-}
-
-.btn-completar.completada:hover {
-    background-color: #c82333;
-}
-
-.btn-eliminar {
-    background-color: #dc3545;
-    color: white;
-    padding: 5px 10px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-left: 5px;
-    font-size: 0.9em;
-}
-
-.btn-eliminar:hover {
-    background-color: #c82333;
-}
-
-/* Estilos de Lista de Tareas */
-ul {
-    list-style-type: none;
-    padding: 0;
-}
-
-li {
-    background-color: #fff;
-    padding: 10px;
-    margin-bottom: 8px;
-    border-radius: 4px;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.tarea-acciones {
-    display: flex;
-    gap: 5px;
-    margin-top: 5px;
-}
-
-li span {
-    flex-grow: 1;
-    min-width: 150px;
-    word-break: break-word;
-}
-
-li.completada span {
-    text-decoration: line-through;
-    color: #888;
-}
-
-.mensaje-info {
-    color: #666;
-    font-style: italic;
-    text-align: center;
+/* --- Estilos para el Formulario Unificado (index.html y calendario.html) --- */
+.task-form-container {
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
     margin-top: 20px;
+    margin-bottom: 30px;
+    width: 100%;
+    max-width: 500px; /* Ancho máximo para pantallas grandes */
+    box-sizing: border-box; /* Incluir padding en el ancho total */
 }
 
-/* Estilos para el Calendario */
-.calendar-nav {
+.task-form-container .form-group {
+    margin-bottom: 15px;
+}
+
+.task-form-container label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #555;
+}
+
+.task-form-container input[type="text"],
+.task-form-container input[type="time"],
+.task-form-container select,
+.task-form-container textarea,
+.custom-modal-content input[type="text"],
+.custom-modal-content input[type="time"], /* Asegurar estos estilos en modales */
+.custom-modal-content select,
+.custom-modal-content textarea { /* Añadir estilos para el modal */
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1em;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+}
+
+.task-form-container input[type="text"]:focus,
+.task-form-container input[type="time"]:focus,
+.task-form-container select:focus,
+.task-form-container textarea:focus,
+.custom-modal-content input[type="text"]:focus,
+.custom-modal-content input[type="time"]:focus, /* Asegurar estos estilos en modales */
+.custom-modal-content select:focus,
+.custom-modal-content textarea:focus { /* Añadir estilos para el modal */
+    border-color: #3498db;
+    outline: none;
+}
+
+/* Estilo para el grupo de hora y botón de lista en index.html */
+.time-and-list-group {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
     flex-wrap: wrap;
+    align-items: flex-end;
     gap: 10px;
 }
 
-.month-year-container {
-    display: flex;
-    align-items: center;
-    gap: 10px; /* Espacio entre el mes/año y el selector de año */
-}
-
-.month-year-display {
-    font-size: 1.5em;
-    font-weight: bold;
-    color: #0056b3;
-    text-align: center;
-    white-space: nowrap; /* Evita que el texto del mes/año se rompa */
-}
-
-.nav-btn {
-    background-color: #007bff;
-    color: white;
-    padding: 5px 10px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    height: 30px;
-}
-
-.nav-btn:hover {
-    background-color: #0056b3;
-}
-
-/* Estilos para el selector de año */
-.year-selector {
-    padding: 5px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1em;
-    cursor: pointer;
-}
-
-table {
+.time-and-list-group label {
     width: 100%;
-    max-width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px;
-    background-color: #fff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    table-layout: fixed;
 }
 
-th, td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: center;
-    width: calc(100% / 7);
-    box-sizing: border-box;
-    font-size: 0.9em;
+.time-and-list-group input[type="time"] {
+    flex-grow: 1;
+    min-width: 100px;
 }
 
-th {
-    background-color: #28a745;
-    color: white;
-    padding: 10px;
-    text-align: center;
-}
-
-td.today {
-    background-color: #a0c4ff;
-    font-weight: bold;
-}
-
-td.selected {
-    background-color: #7bafed;
-    font-weight: bold;
-    border: 2px solid #0056b3;
-}
-
-td.other-month {
-    color: #ccc;
-    background-color: #f0f0f0;
-}
-
-.has-tasks {
-     border: 3px solid #ff0000;
-}
-
-td.today.has-tasks {
-    border: 3px solid #ff0000;
-}
-
-/* Nuevo estilo para el contenedor de botones de acción del calendario */
-.calendar-actions {
+.time-and-list-group .list-button {
+    flex-shrink: 0;
+    padding: 12px 15px;
+    font-size: 0.95em;
     display: flex;
-    justify-content: center; /* Centrar el botón "Hoy" */
-    margin-top: 15px; /* Margen superior para separarlo de la tabla */
-    margin-bottom: 20px; /* Margen inferior para separarlo de la sección de tareas */
+    align-items: center;
+    gap: 8px;
 }
 
 
-/* Estilos para la sección de tareas del día seleccionado en el calendario */
-#tareasDiaSeleccionado {
-    margin-top: 20px;
-    background-color: #fff;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.task-form-container button[type="submit"] {
+    width: 100%;
+    margin-top: 15px;
 }
 
-#listaTareasDiaSeleccionado li {
-    background-color: #e9ecef;
-}
-
-#listaTareasDiaSeleccionado li.completada span {
-    color: #6c757d;
-}
-
-/* Para la pantalla de inicio */
-.fecha-actual-inicio {
-    font-size: 1.2em;
-    font-weight: bold;
-    color: #0056b3;
+.day-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 10px;
     margin-bottom: 15px;
-    text-align: center;
 }
 
-/* Estilo para la hora de la tarea */
-.tarea-hora {
+.day-selector p {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 5px;
+    color: #777;
+    font-size: 0.95em;
+}
+
+.day-selector label {
+    background-color: #ecf0f1;
+    border: 1px solid #bdc3c7;
+    border-radius: 5px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    user-select: none;
+}
+.day-selector label:hover {
+    background-color: #dfe6e9;
+}
+
+.day-selector input[type="checkbox"] {
+    margin-right: 5px;
+    accent-color: #3498db;
+    transform: scale(1.2);
+}
+
+.day-selector input[type="checkbox"]:checked + span {
+    font-weight: bold;
+    color: #3498db;
+}
+
+/* --- Estilos para Listas de Entradas (Tareas y Rutinas) --- */
+.list-section {
+    width: 100%;
+    max-width: 700px;
+    margin-top: 20px;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.list-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.list-section ul li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease;
+}
+
+.list-section ul li:last-child {
+    margin-bottom: 0;
+}
+
+.list-section ul li:hover {
+    transform: translateY(-2px);
+}
+
+.mensaje-info, .no-tasks, .no-routines {
+    text-align: center;
+    color: #6c757d;
+    padding: 15px;
+    font-style: italic;
+    background-color: #e9ecef;
+    border-radius: 8px;
+}
+
+/* Contenido y acciones de las entradas (tareas/rutinas) */
+.entry-content-wrapper {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    padding-right: 10px;
+}
+
+.entry-text {
+    font-size: 1.1em;
+    color: #333;
+    word-break: break-word;
+}
+
+.entry-time {
     font-weight: bold;
     color: #555;
     margin-right: 5px;
+}
+
+/* Estilos específicos para TAREAS */
+.task-item {
+    background-color: #e8f5e9;
+    border-left: 5px solid #4CAF50;
+}
+.task-item.completada {
+    background-color: #d4edda; /* Fondo más claro */
+    color: #6c757d; /* Texto gris */
+    opacity: 0.8; /* Ligeramente transparente */
+    border-left-color: #6c757d; /* Borde gris */
+}
+.task-item.completada .entry-text {
+    text-decoration: line-through; /* Tachado */
+    color: #6c757d; /* Texto gris */
+}
+.time-left {
+    font-size: 0.85em;
+    font-style: italic;
+    margin-top: 3px;
+    color: #007bff;
+}
+.entry-text.vencida {
+    color: #dc3545; /* Rojo */
+    font-weight: bold;
+    text-decoration: none; /* Asegura que NO se tacha */
+}
+
+/* Estilos específicos para RUTINAS */
+.routine-item {
+    background-color: #fff3cd;
+    border-left: 5px solid #ffc107;
+    opacity: 0.95;
+}
+.routine-item .entry-text {
+    color: #333;
+}
+.routine-recurrence {
+    font-size: 0.8em;
+    color: #777;
+    font-weight: normal;
+    margin-left: 5px;
+}
+
+/* Estilos específicos para REGISTROS (en registros_importantes.html) */
+.registro-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center; /* Alinear al centro verticalmente */
+    padding: 10px 15px; /* Reducir el padding vertical */
+    margin-bottom: 8px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease;
+    background-color: #f8f8f8; /* Base para registros, color de borde se establecerá con JS */
+    border-left: 5px solid; /* El color se define dinámicamente en JS */
+}
+
+.registro-info {
+    flex-grow: 1; /* Permitir que ocupe el espacio disponible */
+    padding-right: 15px; /* Espacio entre el texto y los botones */
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* Permite que el contenido se encoja si es necesario */
+}
+
+.registro-header {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap; /* Permite que la fecha baje en pantallas pequeñas */
+    gap: 8px;
+    margin-bottom: 5px;
+}
+
+.registro-title {
+    font-size: 1.1em; /* Un poco más pequeño */
+    color: #2c3e50;
+    font-weight: bold;
+    word-break: break-word; /* Romper palabras largas */
+    flex-shrink: 1; /* Permite que el título se encoja */
+    min-width: 0;
+}
+
+.registro-date {
+    font-size: 0.8em; /* Más pequeño */
+    color: #777;
+    font-style: italic;
+    white-space: nowrap; /* Evita que la fecha se rompa en varias líneas */
     flex-shrink: 0;
+}
+
+.registro-description {
+    font-size: 0.9em; /* Un poco más pequeño */
+    color: #555;
+    margin-top: 5px; /* Menor margen */
+    margin-bottom: 0;
+    white-space: pre-wrap;
+    overflow: hidden; /* Oculta el desbordamiento si la descripción es muy larga */
+    text-overflow: ellipsis; /* Añade puntos suspensivos si se recorta */
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Limita a 2 líneas */
+    -webkit-box-orient: vertical;
+}
+
+.registro-actions {
+    flex-shrink: 0; /* No permitir que los botones se encojan */
+    margin-left: 10px; /* Espacio entre el contenido y los botones */
+    display: flex; /* Para alinear los botones de imagen y eliminar */
+    gap: 8px; /* Espacio entre los botones */
+}
+
+/* Estilos para las etiquetas de tipo en la gestión de tipos */
+.type-tag {
+    display: inline-block;
+    padding: 8px 12px;
+    border: 2px solid; /* El color del borde se define dinámicamente */
+    border-radius: 20px; /* Más redondeado para parecer una pastilla */
+    font-size: 0.9em;
+    font-weight: bold;
+    margin: 5px;
+    background-color: #f0f0f0; /* Fondo neutral */
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+.type-tag:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Botones de acción dentro de las entradas (generales) */
+.entry-actions button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.85em;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex; /* Para centrar iconos */
+    align-items: center;
+    justify-content: center;
+    gap: 5px; /* Espacio entre icono y texto */
+}
+.entry-actions button:hover {
+    background-color: #2980b9;
+    transform: translateY(-1px);
+}
+
+.entry-actions .btn-completar {
+    background-color: #28a745;
+}
+.entry-actions .btn-completar:hover {
+    background-color: #218838;
+}
+.entry-actions .btn-completar.completada {
+    background-color: #6c757d;
+}
+.entry-actions .btn-completar.completada:hover {
+    background-color: #5a6268;
+}
+
+.entry-actions .btn-eliminar {
+    background-color: #dc3545;
+}
+.entry-actions .btn-eliminar:hover {
+    background-color: #c82333;
+}
+
+.btn-guardar-registro-icon {
+    background-color: #6f42c1;
+    font-size: 1.1em !important;
+    padding: 8px 10px !important;
+}
+.btn-guardar-registro-icon:hover {
+    background-color: #5f36a8;
+}
+
+/* Nuevo estilo para el botón de eliminar registro (icono) */
+.btn-eliminar-icon {
+    background-color: #dc3545; /* Rojo */
+    color: white;
+    border: none;
+    padding: 10px 12px; /* Mayor padding para que sea cuadrado */
+    border-radius: 6px; /* Redondeado suave */
+    cursor: pointer;
+    font-size: 1.1em; /* Tamaño del icono */
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex; /* Para centrar el icono */
+    align-items: center;
+    justify-content: center;
+    width: 40px; /* Asegurar un ancho fijo para ser más cuadrado */
+    height: 40px; /* Asegurar una altura fija para ser más cuadrado */
+}
+.btn-eliminar-icon:hover {
+    background-color: #c82333;
+    transform: translateY(-1px);
+}
+
+/* Nuevo estilo para el botón de ver imagen (icono) */
+.btn-view-image-icon {
+    background-color: #17a2b8; /* Cian */
+    color: white;
+    border: none;
+    padding: 10px 12px; /* Mismo padding que el de eliminar para que sea cuadrado */
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.1em;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px; /* Asegurar un ancho fijo */
+    height: 40px; /* Asegurar una altura fija */
+}
+.btn-view-image-icon:hover {
+    background-color: #138496;
+    transform: translateY(-1px);
+}
+
+/* Estilos para el botón de "Ver Imagen" en registros_importantes.html (texto) */
+/* Esta clase se usaba antes del cambio a icono. La mantengo por si la usaras. */
+.btn-view-image {
+    background-color: #17a2b8; /* Cian */
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.85em;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex; /* Para centrar iconos */
+    align-items: center;
+    justify-content: center;
+    gap: 5px; /* Espacio entre icono y texto */
+}
+.btn-view-image:hover {
+    background-color: #138496;
+    transform: translateY(-1px);
+}
+
+
+/* --- Estilos para la Paginación --- */
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+    padding: 10px 0;
+    background-color: #f0f4f7;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.pagination-btn, .page-number-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.pagination-btn:hover:not(:disabled), .page-number-btn:hover:not(:disabled) {
+    background-color: #2980b9;
+    transform: translateY(-1px);
+}
+
+.pagination-btn:disabled, .page-number-btn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    opacity: 0.7;
+    box-shadow: none;
+}
+
+.page-numbers {
+    display: flex;
+    gap: 5px;
+}
+
+.page-number-btn.active {
+    background-color: #2c3e50;
+    font-weight: bold;
+    transform: scale(1.05);
+}
+.page-number-btn.active:hover {
+    background-color: #2c3e50; /* Mantener el color activo al hacer hover */
+}
+
+
+/* --- Estilos para la Navegación Inferior --- */
+.navigation {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 40px;
+    margin-bottom: 20px;
+    padding: 0 10px;
+}
+.navigation .boton {
+    min-width: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* Estilo para el contenedor del encabezado en registros_importantes.html */
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 700px;
+    margin-bottom: 20px;
+    flex-wrap: wrap; /* Permite que se envuelva en pantallas pequeñas */
+    gap: 10px; /* Espacio entre los elementos */
+}
+.header-container h1 {
+    margin: 0;
+    font-size: 2em;
+    color: #2c3e50;
+    flex-grow: 1; /* Permite que el título ocupe espacio */
+    text-align: left; /* Alinea el título a la izquierda */
+}
+.header-container .boton {
+    flex-shrink: 0; /* Evita que el botón se encoja */
+}
+
+
+/* --- Estilos del Calendario (para calendario.html) --- */
+.calendar-container {
+    width: 100%;
+    max-width: 900px;
+    background-color: #ffffff;
+    border-radius: 12px; /* Más redondeado */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Sombra más pronunciada */
+    padding: 30px; /* Más padding */
+    margin-bottom: 30px;
+    box-sizing: border-box;
+    border: 1px solid #e0e0e0; /* Borde suave */
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px; /* Más espacio */
+    flex-wrap: wrap;
+    gap: 15px; /* Más espacio entre elementos */
+}
+
+.month-navigation {
+    display: flex;
+    align-items: center;
+    gap: 12px; /* Más espacio */
+    flex-grow: 1;
+    justify-content: center;
+}
+
+.month-navigation .nav-btn {
+    background: none;
+    border: none;
+    font-size: 1.8em; /* Iconos más grandes */
+    color: #3498db;
+    cursor: pointer;
+    padding: 8px; /* Más padding */
+    transition: color 0.2s ease, transform 0.2s ease;
+    border-radius: 50%; /* Botones redondos */
+}
+.month-navigation .nav-btn:hover {
+    color: #2980b9;
+    background-color: #eaf6fc; /* Fondo suave al pasar el ratón */
+    transform: scale(1.1);
+}
+
+.month-navigation h2 {
+    margin: 0;
+    font-size: 2.2em; /* Título más grande */
+    color: #2c3e50;
+    text-align: center;
+    font-weight: 600; /* Más negrita */
+}
+
+.year-selection {
+    display: flex;
+    align-items: center;
+    gap: 12px; /* Más espacio */
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.year-selection select {
+    padding: 10px 15px; /* Más padding */
+    border: 1px solid #ccc;
+    border-radius: 8px; /* Más redondeado */
+    font-size: 1.1em; /* Fuente más grande */
+    background-color: #f8f8f8;
+    color: #333;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.year-selection select:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    outline: none;
+}
+
+.today-btn {
+    background-color: #28a745;
+    color: white;
+    padding: 10px 20px; /* Más padding */
+    border-radius: 8px; /* Más redondeado */
+    font-size: 1em;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15); /* Sombra más visible */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.today-btn:hover {
+    background-color: #218838;
+    transform: translateY(-2px);
+}
+
+
+.calendar-body {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px; /* Más espacio entre días */
+    text-align: center;
+}
+
+.day-name {
+    font-weight: bold;
+    color: #555;
+    padding: 10px 0; /* Más padding */
+    border-bottom: 2px solid #eee; /* Borde más visible */
+    background-color: #f9f9f9; /* Fondo más claro */
+    border-radius: 8px; /* Más redondeado */
+    font-size: 1.1em;
+}
+
+.day {
+    padding: 15px 5px; /* Más padding */
+    background-color: #ffffff; /* Fondo blanco */
+    border: 1px solid #e0e0e0; /* Borde suave */
+    border-radius: 10px; /* Más redondeado */
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    font-weight: normal;
+    color: #333;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 80px; /* Altura mínima para cada día */
+    font-size: 1.2em; /* Tamaño de número del día */
+}
+.day:hover {
+    background-color: #eaf6fc;
+    transform: translateY(-3px); /* Sutil elevación */
+    border-color: #3498db;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.day.empty {
+    background-color: #f0f4f7; /* Color más suave */
+    cursor: default;
+    border: 1px dashed #cfd8dc;
+    opacity: 0.7;
+    box-shadow: none;
+}
+.day.empty:hover {
+    transform: none;
+    background-color: #f0f4f7;
+    border-color: #cfd8dc;
+    box-shadow: none;
+}
+
+.day.today {
+    background-color: #d8eaff; /* Azul más vibrante para hoy */
+    border: 2px solid #007bff;
+    font-weight: bold;
+    color: #0056b3;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3); /* Anillo de hoy */
+}
+.day.today:hover {
+    background-color: #c0ddff;
+}
+
+.day.selected {
+    background-color: #a7d9ff;
+    border: 3px solid #0056b3; /* Borde más grueso para el seleccionado */
+    font-weight: bold;
+    color: #003e80;
+    box-shadow: 0 0 0 4px rgba(0, 86, 179, 0.4); /* Anillo más fuerte para seleccionado */
+}
+
+/* Marcas de actividad en los días del calendario */
+.day.has-tasks::after {
+    content: '';
+    display: block;
+    width: 8px; /* Más grande */
+    height: 8px; /* Más grande */
+    background-color: #4CAF50;
+    border-radius: 50%;
+    position: absolute;
+    bottom: 8px; /* Más separado del borde */
+    left: 8px; /* Más separado del borde */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.day.has-registros::before {
+    content: '';
+    display: block;
+    width: 8px; /* Más grande */
+    height: 8px; /* Más grande */
+    background-color: #6f42c1;
+    border-radius: 50%;
+    position: absolute;
+    bottom: 8px; /* Más separado del borde */
+    right: 8px; /* Más separado del borde */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* --- Estilos para el nuevo Panel de Detalles del Día --- */
+.day-details-panel {
+    width: 100%;
+    max-width: 900px; /* Mismo ancho que el calendario */
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    margin-top: 30px; /* Espacio entre el calendario y este panel */
+    margin-bottom: 30px;
+    box-sizing: border-box;
+    border: 1px solid #e0e0e0;
+}
+
+.day-details-panel h3 {
+    font-size: 1.8em;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    text-align: left; /* Alineado a la izquierda */
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.day-details-panel h4 {
+    color: #3498db;
+    font-size: 1.3em;
+    margin-top: 25px;
+    margin-bottom: 10px;
+    border-bottom: 1px dashed #cce7ff;
+    padding-bottom: 5px;
+}
+.day-details-panel .form-title { /* Estilo específico para el título del formulario dentro del panel */
+    color: #2c3e50;
+    font-size: 1.3em;
+    margin-top: 25px;
+    margin-bottom: 15px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 8px;
+}
+
+
+.day-details-panel ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.day-details-panel ul li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    background-color: #f8f8f8;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border-left: 4px solid #95a5a6; /* Borde neutro por defecto */
+}
+.day-details-panel ul li:last-child {
+    margin-bottom: 0;
+}
+
+/* Colores de borde específicos para elementos dentro del panel de detalles */
+.day-details-panel .task-item {
+    border-left-color: #4CAF50; /* Verde para tareas */
+}
+.day-details-panel .routine-item {
+    border-left-color: #ffc107; /* Amarillo para rutinas */
+}
+.day-details-panel .record-item { /* Mantenerlo por si acaso, aunque no se use activamente */
+    border-left-color: #6f42c1; /* Púrpura para registros */
+}
+
+
+/* Estilos para elementos dentro de las listas del panel */
+.day-details-panel .entry-text {
+    font-size: 1em;
+    color: #333;
+    flex-grow: 1;
+    word-break: break-word;
+}
+.day-details-panel .entry-time {
+    font-weight: bold;
+    color: #555;
+    margin-right: 5px;
+}
+.day-details-panel .time-left {
+    font-size: 0.8em;
+    font-style: italic;
+    color: #007bff;
+    margin-left: 10px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Estilos para completado/vencido dentro del panel */
+.day-details-panel .task-item.completada .entry-text {
+    text-decoration: line-through;
+    color: #6c757d;
+}
+.day-details-panel .entry-text.vencida {
+    color: #dc3545;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+
+/* --- Estilos de la Modal (para guardar registros importantes y cámara) --- */
+.custom-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85); /* Fondo más oscuro y opaco */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Z-index base para todos los overlays */
+    backdrop-filter: blur(10px); /* Blur más intenso */
+    -webkit-backdrop-filter: blur(10px); /* Para compatibilidad con Safari */
+}
+
+.custom-modal-content {
+    background-color: #ffffff;
+    padding: 35px; /* Más padding */
+    border-radius: 15px; /* Más redondeado */
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4); /* Sombra más grande y visible */
+    width: 95%; /* Un poco más ancho */
+    max-width: 550px; /* Ancho máximo aumentado */
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Más espacio entre elementos */
+    animation: fadeInScale 0.3s ease-out forwards; /* Animación de entrada */
+    border: 2px solid #3498db; /* Añadir un borde distintivo */
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.custom-modal-content h3 {
+    margin-top: 0;
+    color: #333;
+    text-align: center;
+    font-size: 1.8em;
+}
+
+.custom-modal-content label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #555;
+    font-size: 1.1em;
+}
+
+.custom-modal-content textarea {
+    min-height: 100px; /* Mayor altura mínima */
+    resize: vertical;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px; /* Más espacio */
+    margin-top: 25px; /* Más margen superior */
+}
+.modal-actions .boton {
+    min-width: 120px;
+    padding: 12px 20px; /* Más padding */
+}
+
+/* Estilos específicos para el modal de la cámara */
+.camera-modal-content {
+    max-width: 700px; /* Más ancho para la cámara */
+    padding: 20px;
+    border: 3px solid #28a745; /* Borde verde más fuerte para la cámara */
+    z-index: 2001; /* Z-INDEX MÁS ALTO PARA LA CÁMARA - ESTA ES LA CLAVE */
+}
+/* Asegurarse de que el overlay de la cámara también tenga un z-index alto */
+#cameraModal.custom-modal-overlay {
+    z-index: 2001; /* Asegura que el overlay de la cámara esté por encima */
+}
+
+.camera-stream {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 10px;
+    background-color: #000;
+    object-fit: cover; /* Para que el video ocupe el espacio sin distorsionar */
+    border: 1px solid #ccc; /* Borde suave para el stream */
+}
+.photo-preview {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 10px;
+    object-fit: contain; /* Para que la imagen se vea completa */
+    background-color: #000;
+    max-height: 400px; /* Limitar altura de la previsualización */
+    border: 1px solid #ccc; /* Borde suave para la previsualización */
+}
+.camera-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+.camera-actions .boton {
+    flex-grow: 1;
+    min-width: 120px;
+}
+.photo-capture-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+.photo-capture-section p { /* Estilo para el texto de instrucción en el modal de registro */
+    font-size: 0.9em;
+    color: #666;
+    margin-top: -10px;
+    margin-bottom: 5px;
+    text-align: center;
+}
+.photo-capture-section img.photo-preview { /* Estilo para la previsualización pequeña en el modal de registro */
+    border: 1px dashed #ccc;
+    object-fit: cover;
+    max-width: 120px;
+    max-height: 120px;
+}
+
+
+/* Estilos específicos para el modal de imagen (para visualizar) */
+.image-modal-content {
+    max-width: 800px; /* Aumentar el ancho máximo para la imagen */
+    padding: 20px;
+    border: 3px solid #17a2b8; /* Borde cian para el modal de imagen */
+}
+.full-size-image {
+    width: 100%;
+    height: auto;
+    max-height: 70vh; /* Ocupar máximo 70% de la altura del viewport */
+    object-fit: contain; /* Asegurar que la imagen completa sea visible */
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    background-color: #e0e0e0; /* Fondo si la imagen tiene transparencia */
+}
+
+
+/* --- Media Queries para Responsividad (móviles, tabletas) --- */
+
+/* En pantallas pequeñas (hasta 768px de ancho) */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    h2, h3, h4 {
+        font-size: 1.4em;
+        margin-top: 15px;
+        margin-bottom: 10px;
+    }
+
+    .fecha-actual-inicio {
+        font-size: 1.5em;
+        margin-bottom: 15px;
+    }
+
+    .task-form-container,
+    .list-section,
+    .calendar-container,
+    .day-details-panel { /* Aplicar estilos responsivos al panel */
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    }
+    .day-details-panel {
+        margin-top: 20px; /* Ajuste de margen en móviles */
+    }
+    .day-details-panel h3 {
+        font-size: 1.5em;
+        margin-bottom: 15px;
+    }
+    .day-details-panel h4 {
+        font-size: 1.1em;
+        margin-top: 20px;
+        margin-bottom: 8px;
+    }
+    .day-details-panel .form-title {
+        font-size: 1.1em;
+        margin-top: 15px;
+        margin-bottom: 10px;
+    }
+    .day-details-panel ul li {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 8px 10px;
+    }
+    .day-details-panel .entry-text {
+        font-size: 0.95em;
+        margin-bottom: 5px;
+    }
+    .day-details-panel .time-left {
+        font-size: 0.75em;
+        margin-left: 0;
+        width: 100%;
+        text-align: right;
+    }
+
+
+    .task-form-container input[type="text"],
+    .task-form-container input[type="time"],
+    .task-form-container select {
+        padding: 10px;
+        font-size: 0.95em;
+    }
+
+    .day-selector label {
+        padding: 6px 10px;
+        font-size: 0.8em;
+    }
+
+    .list-section ul li {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+    .entry-content-wrapper {
+        width: 100%;
+        margin-bottom: 10px;
+        padding-right: 0;
+    }
+    .entry-actions {
+        width: 100%;
+        justify-content: flex-start;
+        margin-left: 0;
+        margin-top: 5px;
+        flex-wrap: wrap;
+        gap: 5px; /* Reducir el espacio entre botones en móviles */
+    }
+    .entry-actions button {
+        padding: 6px 10px;
+        font-size: 0.8em;
+        flex-grow: 1;
+        min-width: unset;
+    }
+    .btn-guardar-registro-icon {
+        font-size: 0.9em !important;
+        padding: 6px 8px !important;
+    }
+    .btn-eliminar-icon, .btn-view-image-icon { /* Ajuste para los botones de icono en móvil */
+        padding: 8px 10px !important;
+        font-size: 1em !important;
+        width: 35px; /* Hacer ligeramente más pequeños */
+        height: 35px;
+    }
+
+
+    /* Calendario específico en móvil */
+    .calendar-header {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px; /* Ajuste para móviles */
+    }
+    .month-navigation, .year-selection {
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 5px; /* Menos margen en móviles */
+    }
+    .month-navigation h2 {
+        font-size: 1.8em; /* Ajuste para móviles */
+    }
+    .month-navigation .nav-btn {
+        font-size: 1.5em;
+        padding: 6px;
+    }
+    .year-selection select {
+        flex-grow: 1;
+        max-width: 150px;
+        padding: 8px 12px;
+        font-size: 1em;
+    }
+    .today-btn {
+        flex-grow: 1;
+        max-width: 150px;
+        padding: 8px 15px;
+        font-size: 0.95em;
+    }
+    .calendar-body {
+        gap: 8px; /* Ajuste para móviles */
+    }
+    .day, .day-name {
+        padding: 10px 3px; /* Ajuste de padding */
+        font-size: 0.95em; /* Ajuste de tamaño de fuente */
+        min-height: 70px; /* Menor altura mínima */
+    }
+    .day.has-tasks::after,
+    .day.has-registros::before {
+        width: 6px; /* Más pequeños */
+        height: 6px; /* Más pequeños */
+        bottom: 5px;
+        left: 5px; /* Ajuste de posición */
+        right: 5px; /* Ajuste de posición */
+    }
+
+    .day-details-panel { /* Aplicar estilos responsivos al panel */
+        padding: 15px;
+        margin-top: 20px;
+    }
+    .day-details-panel h3 {
+        font-size: 1.3em;
+        margin-bottom: 15px;
+    }
+    .day-details-panel h4 {
+        font-size: 1.1em;
+        margin-top: 20px;
+        margin-bottom: 8px;
+    }
+    .day-details-panel .form-title {
+        font-size: 1.1em;
+        margin-top: 15px;
+        margin-bottom: 10px;
+    }
+    .day-details-panel ul li {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 8px 10px;
+    }
+    .day-details-panel .entry-text {
+        font-size: 0.95em;
+    }
+    .day-details-panel .time-left {
+        font-size: 0.75em;
+    }
+
+    .navigation {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .navigation .boton {
+        width: 100%;
+    }
+
+    /* Ajustes específicos para el nuevo botón en el formulario de index.html */
+    .time-and-list-group {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    .time-and-list-group input[type="time"],
+    .time-and-list-group .list-button {
+        width: 100%;
+        max-width: unset;
+    }
+
+    /* Estilos para lista.html */
+    .add-item-form-layout {
+        display: flex; /* Make the form a flex container */
+        flex-wrap: wrap; /* Allow wrapping */
+        gap: 10px; /* Space between input and button */
+        margin-bottom: 20px; /* Space before the next section */
+    }
+
+    .add-item-form-layout input[type="text"] {
+        flex-grow: 1; /* Allow input to take most of the space */
+        min-width: 150px; /* Ensure input is not too small */
+    }
+
+    .add-item-form-layout button {
+        flex-shrink: 0; /* Prevent button from shrinking */
+    }
+
+
+    .list-sub-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap; /* Allow wrapping on small screens */
+        gap: 15px; /* Space between elements */
+        margin-bottom: 20px; /* Space below this header */
+        background-color: #e9f5ff; /* Light blue background */
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid #cceeff;
+    }
+
+    .current-date-display-card {
+        flex-grow: 1; /* Allow date to take available space */
+        text-align: left; /* Align date to the left */
+        font-size: 1.1em;
+        font-weight: bold;
+        color: #0056b3;
+    }
+
+    .clear-list-button {
+        flex-shrink: 0; /* Prevent button from shrinking */
+        padding: 8px 15px; /* Adjust padding for the button */
+        font-size: 0.9em;
+        /* Inherits btn-eliminar styles for red background */
+    }
+
+    /* Ajustes para modales en móviles */
+    .custom-modal-content {
+        padding: 20px;
+        gap: 15px;
+    }
+    .custom-modal-content h3 {
+        font-size: 1.5em;
+    }
+    .custom-modal-content label {
+        font-size: 1em;
+    }
+    .modal-actions {
+        margin-top: 15px;
+        gap: 8px;
+        flex-direction: column;
+        align-items: center;
+    }
+    .modal-actions .boton {
+        width: 100%;
+        padding: 10px 15px;
+    }
+    .camera-modal-content, .image-modal-content {
+        padding: 15px;
+    }
+
+}
+
+/* Pequeñas pantallas móviles (hasta 480px de ancho) */
+@media (max-width: 480px) {
+    .year-selection {
+        flex-direction: column;
+        gap: 8px;
+    }
+    .year-selection select, .today-btn {
+        width: 80%;
+        max-width: unset;
+    }
+    body {
+        padding: 5px;
+    }
+    h2, h3, h4 {
+        font-size: 1.2em;
+    }
+    .fecha-actual-inicio {
+        font-size: 1.3em;
+    }
+
+    .task-form-container {
+        padding: 15px;
+        margin-top: 15px;
+        margin-bottom: 20px;
+    }
+    .list-section {
+        padding: 15px;
+    }
+
+    .entry-actions {
+        gap: 5px;
+        margin-top: 8px;
+    }
+    .entry-actions button {
+        padding: 5px 8px;
+        font-size: 0.75em;
+    }
+    .btn-guardar-registro-icon {
+        font-size: 0.85em !important;
+        padding: 5px 7px !important;
+    }
+    .btn-eliminar-icon, .btn-view-image-icon { /* Ajuste para los botones de icono en móvil muy pequeño */
+        padding: 6px 8px !important;
+        font-size: 0.9em !important;
+        width: 30px; /* Hacer más pequeños aún */
+        height: 30px;
+    }
+
+
+    .calendar-container {
+        padding: 15px;
+    }
+    .month-navigation h2 {
+        font-size: 1.3em;
+    }
+    .month-navigation .nav-btn {
+        font-size: 1.3em;
+    }
+    .day, .day-name {
+        font-size: 0.8em;
+        padding: 6px 2px;
+    }
+    .day.has-tasks::after,
+    .day.has-registros::before {
+        width: 4px;
+        height: 4px;
+        bottom: 2px;
+        left: 2px;
+    }
+
+    .day-details-panel { /* Aplicar estilos responsivos al panel */
+        padding: 15px;
+        margin-top: 15px;
+    }
+    .day-details-panel h3 {
+        font-size: 1.3em;
+        margin-bottom: 10px;
+    }
+    .day-details-panel h4 {
+        font-size: 1em;
+        margin-top: 15px;
+        margin-bottom: 5px;
+    }
+    .day-details-panel .form-title {
+        font-size: 1em;
+        margin-top: 10px;
+        margin-bottom: 8px;
+    }
+    .day-details-panel ul li {
+        padding: 6px 8px;
+    }
+    .day-details-panel .entry-text {
+        font-size: 0.9em;
+    }
+    .day-details-panel .time-left {
+        font-size: 0.7em;
+    }
+
+    .navigation {
+        flex-direction: column;
+        gap: 8px;
+    }
+    .navigation .boton {
+        width: 100%;
+    }
+
+    /* Estilos para lista.html en móviles pequeños */
+    .add-item-form-layout {
+        gap: 8px; /* Slightly less gap for very small screens */
+    }
+    .list-sub-header {
+        flex-direction: column; /* Stack date and button vertically */
+        align-items: stretch; /* Stretch to full width */
+        gap: 8px;
+        padding: 12px 15px;
+    }
+    .current-date-display-card {
+        text-align: center; /* Center date text when stacked */
+    }
+    .clear-list-button {
+        width: 100%; /* Make button full width when stacked */
+    }
+
+    /* Ajustes para modales en móviles muy pequeños */
+    .custom-modal-content {
+        padding: 10px;
+        gap: 10px;
+    }
+    .custom-modal-content h3 {
+        font-size: 1.3em;
+    }
+    .custom-modal-content label {
+        font-size: 0.95em;
+    }
+    .modal-actions {
+        margin-top: 10px;
+        gap: 5px;
+    }
+    .modal-actions .boton {
+        padding: 8px 12px;
+    }
+    .camera-modal-content, .image-modal-content {
+        padding: 10px;
+    }
 }

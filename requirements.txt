@@ -9,3 +9,8 @@ MarkupSafe==3.0.2
 Werkzeug==3.1.3
 flask_cors==4.0.0
 psycopg2-binary==2.9.9
+supabase # <-- ¡AÑADE ESTA LÍNEA!
+# Opcional, pero recomendado para futuras variables de entorno si las usas:
+# python-dotenv
+# También podrías necesitar gunicorn para producción si Render lo recomienda:
+# gunicorn

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" xintegrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+    <div class="list-section">
+        <h2 class="list-title-header">Lista de la Compra</h2>
+        
+        <!-- Formulario para añadir ítems: arriba, como entrada principal -->
+        <form id="addItemForm" class="form-group add-item-form-layout">
+            <input type="text" id="itemInput" placeholder="Añadir nuevo ítem (o varios separados por espacio)..." required>
+            <button type="submit" class="boton"><i class="fas fa-plus"></i> Añadir</button>
+        </form>
+
+        <!-- Nueva sección para la fecha y el botón de borrar, actuando como encabezado para los ítems -->
+        <div class="list-sub-header">
+            <div class="current-date-display-card" id="currentDateDisplay"></div> <!-- Recuadro para la fecha -->
+            <button type="button" class="boton btn-eliminar clear-list-button" id="clearListButton">
+                <i class="fas fa-trash-alt"></i> Borrar toda la lista
+            </button>
+        </div>
+
+        <ul id="shoppingListItems">
+            <li class="mensaje-info">Cargando ítems...</li>
+        </ul>
+    </div>
+
+    <div class="navigation">
+        <a href="/" class="boton"><i class="fas fa-home"></i> Volver al Inicio</a>
+        <a href="/calendario" class="boton"><i class="fas fa-calendar-alt"></i> Calendario</a>
+        <a href="/registros_importantes" class="boton"><i class="fas fa-file-alt"></i> Registros Importantes</a>
+        <a href="/alimentacion" class="boton"><i class="fas fa-utensils"></i> Alimentación</a>
+        <a href="/documentos" class="boton"><i class="fas fa-folder-open"></i> Documentos</a>
+        <a href="/gimnasio" class="boton"><i class="fas fa-dumbbell"></i> Gimnasio</a>
+    </div>
+
+    <script>
+        const itemInput = document.getElementById('itemInput');
+        const shoppingListItems = document.getElementById('shoppingListItems');
+        const addItemForm = document.getElementById('addItemForm');
+        const currentDateDisplay = document.getElementById('currentDateDisplay');
+        const clearListButton = document.getElementById('clearListButton');
+
+        // Función para mostrar la fecha actual
+        function displayCurrentDate() {
+            const today = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            currentDateDisplay.textContent = `Lista de la Compra para hoy: ${today.toLocaleDateString('es-ES', options)}`;
+        }
+
+        async function fetchShoppingList() {
+            shoppingListItems.innerHTML = '<li class="mensaje-info">Cargando ítems...</li>';
+            try {
+                const response = await fetch('/api/lista_compra');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error desconocido al obtener la lista de la compra');
+                }
+                const items = await response.json();
+                renderShoppingList(items);
+            } catch (error) {
+                console.error('Error al cargar la lista de la compra:', error);
+                shoppingListItems.innerHTML = `<li class="mensaje-info">No se pudo cargar la lista de la compra. Error: ${error.message}</li>`;
+            }
+        }
+
+        function renderShoppingList(items) {
+            shoppingListItems.innerHTML = '';
+            if (items.length === 0) {
+                shoppingListItems.innerHTML = '<li class="mensaje-info">La lista de la compra está vacía.</li>';
+                return;
+            }
+
+            items.forEach(item => {
+                const li = document.createElement('li');
+                li.classList.add('task-item'); // Reutilizamos estilos de tareas para ítems
+                if (item.comprado) {
+                    li.classList.add('completada');
+                }
+                li.dataset.id = item.id;
+
+                const textSpan = document.createElement('span');
+                textSpan.classList.add('entry-text'); // Reutilizamos estilo de texto
+                textSpan.textContent = item.item;
+                if (item.comprado) {
+                    textSpan.classList.add('completada');
+                }
+                li.appendChild(textSpan);
+
+                const actionsDiv = document.createElement('div');
+                actionsDiv.classList.add('entry-actions'); // Reutilizamos estilos de acciones
+
+                const toggleButton = document.createElement('button');
+                toggleButton.classList.add('btn-completar');
+                toggleButton.dataset.id = item.id;
+                toggleButton.textContent = item.comprado ? 'Desmarcar' : 'Marcar';
+                if (item.comprado) toggleButton.classList.add('completada');
+                toggleButton.addEventListener('click', toggleComprado);
+                actionsDiv.appendChild(toggleButton);
+
+                const deleteButton = document.createElement('button');
+                deleteButton.classList.add('btn-eliminar');
+                deleteButton.dataset.id = item.id;
+                deleteButton.textContent = 'Eliminar';
+                deleteButton.addEventListener('click', deleteItem);
+                actionsDiv.appendChild(deleteButton);
+
+                li.appendChild(actionsDiv);
+                shoppingListItems.appendChild(li);
+            });
+        }
+
+        addItemForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const rawInput = itemInput.value.trim();
+            if (!rawInput) return;
+
+            // Dividir el texto por espacios y filtrar cadenas vacías
+            const itemsToAdd = rawInput.split(' ').filter(item => item.trim() !== '');
+
+            if (itemsToAdd.length === 0) {
+                alert('Por favor, introduce al menos un ítem.');
+                return;
+            }
+
+            let allItemsAddedSuccessfully = true;
+            for (const item of itemsToAdd) {
+                try {
+                    const response = await fetch('/api/lista_compra', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ item: item })
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || `Error al añadir "${item}"`);
+                    }
+                    console.log(`Ítem "${item}" añadido con éxito.`);
+                } catch (error) {
+                    console.error(`Error al añadir ítem "${item}":`, error);
+                    alert(`No se pudo añadir "${item}" a la lista: ${error.message}`);
+                    allItemsAddedSuccessfully = false;
+                }
+            }
+
+            itemInput.value = '';
+            fetchShoppingList();
+
+            if (allItemsAddedSuccessfully && itemsToAdd.length > 1) {
+                alert('Ítems añadidos a la lista con éxito.');
+            }
+        });
+
+        async function toggleComprado(event) {
+            const itemId = event.target.dataset.id;
+            try {
+                const response = await fetch(`/api/lista_compra/${itemId}/toggle_comprado`, {
+                    method: 'PATCH'
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error al actualizar el ítem');
+                }
+                fetchShoppingList();
+            } catch (error) {
+                console.error('Error al marcar ítem:', error);
+                alert(`No se pudo actualizar el ítem: ${error.message}`);
+            }
+        }
+
+        async function deleteItem(event) {
+            const itemId = event.target.dataset.id;
+            if (confirm('¿Estás seguro de que quieres eliminar este ítem?')) {
+                try {
+                    const response = await fetch(`/api/lista_compra/${itemId}`, {
+                        method: 'DELETE'
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Error al eliminar el ítem');
+                    }
+                    fetchShoppingList();
+                } catch (error) {
+                    console.error('Error al eliminar ítem:', error);
+                    alert(`No se pudo eliminar el ítem: ${error.message}`);
+                }
+            }
+        }
+
+        // Nueva función para borrar todos los ítems de la lista
+        async function clearAllItems() {
+            if (confirm('¿Estás seguro de que quieres borrar TODA la lista de la compra? Esta acción no se puede deshacer.')) {
+                try {
+                    const response = await fetch('/api/lista_compra/clear_all', {
+                        method: 'DELETE'
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Error al borrar toda la lista.');
+                    }
+                    alert('Lista de la compra borrada con éxito.');
+                    fetchShoppingList();
+                } catch (error) {
+                    console.error('Error al borrar la lista completa:', error);
+                    alert(`No se pudo borrar la lista completa: ${error.message}`);
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            displayCurrentDate();
+            fetchShoppingList();
+            clearListButton.addEventListener('click', clearAllItems);
+        });
+    </script>
+</body>
+</html>

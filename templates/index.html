@@ -5,45 +5,135 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi Agenda</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" xintegrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
     <div class="fecha-actual-inicio" id="fechaActualDisplay"></div>
 
-    <form id="tareaForm">
-        <input type="text" id="tareaInput" placeholder="Añadir una nueva tarea..." required>
-        <input type="time" id="horaInput">
-        <button type="submit" class="boton">Guardar Tarea</button>
+    <!-- Formulario Unificado para Tareas y Rutinas -->
+    <form id="unifiedEntryForm" class="task-form-container">
+        <div class="form-group">
+            <label for="entryType">Tipo:</label>
+            <select id="entryType">
+                <option value="tarea">Tarea</option>
+                <option value="rutina">Rutina</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="entryTextInput" id="entryTextLabel">Descripción:</label>
+            <input type="text" id="entryTextInput" placeholder="Añadir una nueva tarea o rutina..." required>
+        </div>
+
+        <div class="form-group time-and-list-group">
+            <label for="entryTimeInput">Hora:</label>
+            <input type="time" id="entryTimeInput">
+            <!-- Botón de Lista de la Compra con nueva lógica -->
+            <button type="button" class="boton list-button" id="quickListButton">
+                <i class="fas fa-shopping-cart"></i> Lista
+            </button>
+        </div>
+
+        <!-- Campos de Rutina (inicialmente ocultos) -->
+        <div id="routineFields" style="display: none;">
+            <div class="form-group day-selector">
+                <p>Repetir los días:</p>
+                <label><input type="checkbox" name="routineDay" value="Lunes"> <span>Lunes</span></label>
+                <label><input type="checkbox" name="routineDay" value="Martes"> <span>Martes</span></label>
+                <label><input type="checkbox" name="routineDay" value="Miércoles"> <span>Miércoles</span></label>
+                <label><input type="checkbox" name="routineDay" value="Jueves"> <span>Jueves</span></label>
+                <label><input type="checkbox" name="routineDay" value="Viernes"> <span>Viernes</span></label>
+                <label><input type="checkbox" name="routineDay" value="Sábado"> <span>Sábado</span></label>
+                <label><input type="checkbox" name="routineDay" value="Domingo"> <span>Domingo</span></label>
+            </div>
+        </div>
+
+        <button type="submit" class="boton">Guardar</button>
     </form>
 
-    <h2>Tareas pendientes:</h2>
-    <ul id="tareasPendientesList">
-        <li class="mensaje-info">Cargando tareas...</li>
-    </ul>
+    ---
 
-    <h2>Tareas completadas:</h2>
-    <ul id="tareasCompletadasList">
-        <li class="mensaje-info">Cargando tareas completadas...</li>
-    </ul>
+    <h2>Agenda de Hoy:</h2>
+    <div class="list-section">
+        <ul id="combinedAgendaList">
+            <li class="mensaje-info">Cargando agenda...</li>
+        </ul>
+    </div>
+
+    ---
 
     <div class="navigation">
-        <a href="/" class="boton">Volver al Inicio</a>
-        <a href="/calendario" class="boton">Calendario</a>
-        <a href="/registros_importantes" class="boton">Registros Importantes</a>
+        <a href="/calendario" class="boton"><i class="fas fa-calendar-alt"></i> Calendario</a>
+        <a href="/registros_importantes" class="boton"><i class="fas fa-file-alt"></i> Registros Importantes</a>
+        <a href="/alimentacion" class="boton"><i class="fas fa-utensils"></i> Alimentación</a>
+        <a href="/documentos" class="boton"><i class="fas fa-folder-open"></i> Documentos</a>
+        <a href="/gimnasio" class="boton"><i class="fas fa-dumbbell"></i> Gimnasio</a>
+        <!-- Nuevo botón para la imagen de la nube (ejemplo) -->
+        <button type="button" class="boton" id="cloudImageButton">
+            <i class="fas fa-cloud-upload-alt"></i> Imagen Nube
+        </button>
     </div>
+
+    <!-- Modal para Captura de Foto -->
+    <div id="cameraModal" class="custom-modal-overlay" style="display:none;">
+        <div class="custom-modal-content camera-modal-content">
+            <h3>Tomar Foto</h3>
+            <video id="videoStream" class="camera-stream" autoplay playsinline></video>
+            <canvas id="photoCanvas" style="display:none;"></canvas>
+            <img id="photoPreview" class="photo-preview" style="display:none;">
+            <p id="cameraStatus" style="text-align: center; color: #777; font-size: 0.9em;"></p>
+            <div class="camera-actions">
+                <!-- El botón startCameraButton ya no se usa, el flujo inicia con capturePhotoButton visible -->
+                <button id="capturePhotoButton" class="boton"><i class="fas fa-camera"></i> Tomar Foto</button>
+                <button id="retakePhotoButton" class="boton cancel-button" style="display:none;"><i class="fas fa-redo"></i> Repetir</button>
+                <button id="confirmPhotoButton" class="boton" style="display:none;"><i class="fas fa-check"></i> Confirmar</button>
+                <button id="closeCameraModalButton" class="boton cancel-button"><i class="fas fa-times"></i> Cerrar</button>
+            </div>
+        </div>
+    </div>
+
 
     <script>
         const fechaActualDisplay = document.getElementById('fechaActualDisplay');
-        const tareaInput = document.getElementById('tareaInput');
-        const horaInput = document.getElementById('horaInput');
-        const tareaForm = document.getElementById('tareaForm');
-        const tareasPendientesList = document.getElementById('tareasPendientesList');
-        const tareasCompletadasList = document.getElementById('tareasCompletadasList');
+        const combinedAgendaList = document.getElementById('combinedAgendaList');
+        let fechaActual = new Date();
+        let timeLeftUpdateInterval; 
 
-        let fechaActual = new Date(); // Usamos esto para la fecha actual de la agenda
-        let timeLeftUpdateInterval; // Variable global para el intervalo de actualización
+        const unifiedEntryForm = document.getElementById('unifiedEntryForm');
+        const entryTypeSelect = document.getElementById('entryType');
+        const entryTextInput = document.getElementById('entryTextInput');
+        const entryTextLabel = document.getElementById('entryTextLabel');
+        const entryTimeInput = document.getElementById('entryTimeInput');
+        const routineFieldsDiv = document.getElementById('routineFields');
+        const routineDayCheckboxes = document.querySelectorAll('input[name="routineDay"]');
+        const quickListButton = document.getElementById('quickListButton');
+        const cloudImageButton = document.getElementById('cloudImageButton');
 
-        // Función para formatear la fecha a YYYY-MM-DD
+        // Elementos de la Cámara
+        const cameraModal = document.getElementById('cameraModal');
+        const videoStream = document.getElementById('videoStream');
+        const photoCanvas = document.getElementById('photoCanvas');
+        const photoPreview = document.getElementById('photoPreview');
+        // Eliminado startCameraButton del JS ya que su display está en HTML
+        const capturePhotoButton = document.getElementById('capturePhotoButton');
+        const retakePhotoButton = document.getElementById('retakePhotoButton');
+        const confirmPhotoButton = document.getElementById('confirmPhotoButton');
+        const closeCameraModalButton = document.getElementById('closeCameraModalButton');
+        const cameraStatus = document.getElementById('cameraStatus'); // Nuevo elemento para el estado de la cámara
+
+        let currentStream; // Para guardar la referencia al stream de la cámara
+        let capturedImageBase64 = null; // Para guardar la imagen capturada en Base64
+
+        // Variable para controlar qué botón de "Tomar Foto" en el modal de registro abrió la cámara.
+        // Esto es útil si tuvieras múltiples botones de cámara en el futuro.
+        let currentRegistroPhotoPreviewElement = null; 
+
+
+        const dayNameToNumber = {
+            'Domingo': 0, 'Lunes': 1, 'Martes': 2, 'Miércoles': 3, 'Jueves': 4, 'Viernes': 5, 'Sábado': 6
+        };
+        const dayNumberToName = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
         function formatFecha(date) {
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -56,26 +146,69 @@
             fechaActualDisplay.textContent = fechaActual.toLocaleDateString('es-ES', options);
         }
 
-        async function fetchTareas() {
-            const fecha = formatFecha(fechaActual);
+        async function fetchCombinedAgenda() {
+            const todayDate = formatFecha(fechaActual);
+            const todayDayOfWeek = (fechaActual.getDay());
+
+            let allEntries = [];
+
             try {
-                const response = await fetch(`/api/tareas/${fecha}`);
-                const tareas = await response.json();
-                renderTareas(tareas);
+                const tasksResponse = await fetch(`/api/tareas/${todayDate}`);
+                const tasks = await tasksResponse.json();
+                tasks.forEach(task => {
+                    console.log(`DEBUG Fetch - Tarea Recibida: ID=${task.id}, Texto="${task.texto}", Fecha="${task.fecha}", Hora="${task.hora}", Completada=${task.completada}`);
+                    allEntries.push({
+                        ...task,
+                        type: 'tarea',
+                        displayTime: task.hora,
+                        displayText: task.texto
+                    });
+                });
             } catch (error) {
                 console.error('Error al cargar las tareas:', error);
-                tareasPendientesList.innerHTML = '<li class="mensaje-info">No se pudieron cargar las tareas.</li>';
-                tareasCompletadasList.innerHTML = '';
             }
+
+            try {
+                const routinesResponse = await fetch('/api/rutinas');
+                const routines = await routinesResponse.json();
+                routines.forEach(routine => {
+                    if (routine.dias && Array.isArray(routine.dias) && routine.dias.includes(todayDayOfWeek)) {
+                        allEntries.push({
+                            id: routine.id,
+                            type: 'rutina',
+                            displayTime: routine.hora,
+                            displayText: routine.nombre,
+                            dias: routine.dias
+                        });
+                    }
+                });
+            } catch (error) {
+                console.error('Error al cargar las rutinas:', error);
+            }
+
+            allEntries.sort((a, b) => {
+                if (a.type === 'tarea' && a.completada && (!b.completada || b.type !== 'tarea')) return 1;
+                if (b.type === 'tarea' && b.completada && (!a.completada || b.type !== 'tarea')) return -1;
+
+                const timeA = a.displayTime || '24:00';
+                const timeB = b.displayTime || '24:00';
+                const timeCompare = timeA.localeCompare(timeB);
+                if (timeCompare !== 0) return timeCompare;
+
+                if (a.type === 'tarea' && b.type === 'rutina') return -1;
+                if (a.type === 'rutina' && b.type === 'tarea') return 1;
+
+                return a.displayText.localeCompare(b.displayText);
+            });
+
+            renderCombinedAgenda(allEntries);
         }
 
-        function renderTareas(tareas) {
-            tareasPendientesList.innerHTML = '';
-            tareasCompletadasList.innerHTML = '';
-
-            if (tareas.length === 0) {
-                tareasPendientesList.innerHTML = '<li class="no-tasks">No hay tareas para hoy.</li>';
-                // Detener el intervalo de actualización si no hay tareas
+        function renderCombinedAgenda(entries) {
+            combinedAgendaList.innerHTML = '';
+            
+            if (entries.length === 0) {
+                combinedAgendaList.innerHTML = '<li class="mensaje-info">No hay tareas ni rutinas programadas para hoy.</li>';
                 if (timeLeftUpdateInterval) {
                     clearInterval(timeLeftUpdateInterval);
                     timeLeftUpdateInterval = null;
@@ -83,141 +216,108 @@
                 return;
             }
 
-            tareas.sort((a, b) => {
-                // Tareas completadas al final
-                if (a.completada && !b.completada) return 1;
-                if (!a.completada && b.completada) return -1;
-
-                // Luego, por hora (si existe)
-                if (a.hora && b.hora) {
-                    return a.hora.localeCompare(b.hora);
-                }
-                if (a.hora) return -1; // Tareas con hora primero
-                if (b.hora) return 1;  // Tareas con hora primero
-                
-                // Si no hay hora, ordenar por texto
-                return a.texto.localeCompare(b.texto);
-            });
-
-            tareas.forEach(tarea => {
+            entries.forEach(entry => {
                 const li = document.createElement('li');
-                li.classList.add('task-item'); // Usamos la misma clase que en calendario.html
-                if (tarea.completada) {
-                    li.classList.add('completada');
-                }
-                li.dataset.id = tarea.id;
-                li.dataset.fecha = tarea.fecha;
-                li.dataset.textoOriginal = tarea.texto;
-                li.dataset.horaOriginal = tarea.hora || '';
+                li.dataset.id = entry.id;
 
-                // Contenedor principal del texto de la tarea y el tiempo restante
-                const taskContentDiv = document.createElement('div');
-                taskContentDiv.classList.add('task-content-wrapper');
+                const contentDiv = document.createElement('div');
+                contentDiv.classList.add('entry-content-wrapper');
 
-                // Span para la hora (si existe) y el texto de la tarea
-                const taskTextSpan = document.createElement('span');
-                taskTextSpan.classList.add('task-text');
-                const horaPrefix = tarea.hora ? `<span class="task-time">${tarea.hora}</span> - ` : '';
-                taskTextSpan.innerHTML = `${horaPrefix}${tarea.texto}`;
+                const textSpan = document.createElement('span');
+                textSpan.classList.add('entry-text');
 
-                // Span para el tiempo restante (se llenará en updateTimeLeft)
-                const timeLeftSpan = document.createElement('span');
-                timeLeftSpan.classList.add('time-left');
-                timeLeftSpan.dataset.taskId = tarea.id;       // Importante para encontrarlo en updateTimeLeft
-                timeLeftSpan.dataset.taskDate = tarea.fecha;
-                timeLeftSpan.dataset.taskTime = tarea.hora || '';
-
-                taskContentDiv.appendChild(taskTextSpan);
-                taskContentDiv.appendChild(timeLeftSpan);
-
-                li.appendChild(taskContentDiv);
-
-                // Contenedor de acciones (botones)
                 const actionsDiv = document.createElement('div');
-                actionsDiv.classList.add('task-actions');
+                actionsDiv.classList.add('entry-actions');
 
-                // Botón Completar/Descompletar
-                const completeButton = document.createElement('button');
-                completeButton.classList.add('btn-completar');
-                completeButton.dataset.id = tarea.id;
-                if (tarea.completada) {
-                    completeButton.textContent = 'Descompletar';
-                    completeButton.classList.add('completada');
-                } else {
-                    completeButton.textContent = 'Completar';
+                if (entry.type === 'tarea') {
+                    li.classList.add('task-item');
+                    li.dataset.fecha = entry.fecha;
+                    li.dataset.textoOriginal = entry.displayText;
+                    li.dataset.horaOriginal = entry.displayTime || ''; 
+
+                    // Formato HH:MM
+                    const formattedTime = entry.displayTime ? entry.displayTime.substring(0, 5) : '';
+                    const horaPrefix = formattedTime ? `<span class="entry-time">${formattedTime}</span> - ` : '';
+                    textSpan.innerHTML = `${horaPrefix}${entry.displayText}`;
+                    if (entry.completada) {
+                        li.classList.add('completada');
+                        textSpan.classList.add('completada');
+                    }
+
+                    const timeLeftSpan = document.createElement('span');
+                    timeLeftSpan.classList.add('time-left');
+                    timeLeftSpan.dataset.taskId = entry.id;
+                    timeLeftSpan.dataset.taskDate = entry.fecha;
+                    timeLeftSpan.dataset.taskTime = entry.displayTime || '';
+                    contentDiv.appendChild(textSpan);
+                    contentDiv.appendChild(timeLeftSpan);
+
+                    const completeButton = document.createElement('button');
+                    completeButton.classList.add('btn-completar');
+                    completeButton.dataset.id = entry.id;
+                    completeButton.textContent = entry.completada ? 'Descompletar' : 'Completar';
+                    if (entry.completada) completeButton.classList.add('completada');
+                    completeButton.addEventListener('click', toggleTaskCompletada);
+                    actionsDiv.appendChild(completeButton);
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.classList.add('btn-eliminar');
+                    deleteButton.dataset.id = entry.id;
+                    deleteButton.textContent = 'Eliminar';
+                    deleteButton.addEventListener('click', deleteTask);
+                    actionsDiv.appendChild(deleteButton);
+
+                    const saveRegistroButton = document.createElement('button');
+                    saveRegistroButton.classList.add('btn-guardar-registro-icon');
+                    saveRegistroButton.dataset.id = entry.id;
+                    saveRegistroButton.title = 'Guardar en Registro';
+                    saveRegistroButton.innerHTML = '<i class="fas fa-save"></i>';
+                    saveRegistroButton.addEventListener('click', () => saveTaskToRegistro(entry.id));
+                    actionsDiv.appendChild(saveRegistroButton);
+
+                    // NUEVO BOTÓN APLAZAR
+                    const postponeButton = document.createElement('button');
+                    postponeButton.classList.add('boton'); // Using generic boton class for now
+                    postponeButton.innerHTML = '<i class="fas fa-calendar-alt"></i> Aplazar';
+                    postponeButton.addEventListener('click', () => postponeTask(entry.id, entry.fecha, entry.hora, entry.displayText));
+                    actionsDiv.appendChild(postponeButton);
+
+
+                } else if (entry.type === 'rutina') {
+                    li.classList.add('routine-item');
+                    // Formato HH:MM
+                    const formattedTime = entry.displayTime ? entry.displayTime.substring(0, 5) : '';
+                    const horaPrefix = formattedTime ? `<span class="entry-time">${formattedTime}</span> - ` : '';
+                    textSpan.innerHTML = `${horaPrefix}${entry.displayText}`;
+                    contentDiv.appendChild(textSpan);
+
+                    const timeLeftSpan = document.createElement('span');
+                    timeLeftSpan.classList.add('time-left');
+                    // Para rutinas, la fecha siempre es la actual para el cálculo del tiempo restante
+                    timeLeftSpan.dataset.taskId = `routine-${entry.id}`; // Un ID único para la rutina
+                    timeLeftSpan.dataset.taskDate = formatFecha(fechaActual); 
+                    timeLeftSpan.dataset.taskTime = entry.displayTime || '';
+                    contentDiv.appendChild(timeLeftSpan);
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.classList.add('btn-eliminar');
+                    deleteButton.dataset.id = entry.id;
+                    deleteButton.textContent = 'Eliminar Rutina';
+                    deleteButton.addEventListener('click', deleteRoutine);
+                    actionsDiv.appendChild(deleteButton);
                 }
-                completeButton.addEventListener('click', toggleTaskCompletada);
-                actionsDiv.appendChild(completeButton);
 
-                // Botón Eliminar
-                const deleteButton = document.createElement('button');
-                deleteButton.classList.add('btn-eliminar');
-                deleteButton.dataset.id = tarea.id;
-                deleteButton.textContent = 'Eliminar';
-                deleteButton.addEventListener('click', deleteTask);
-                actionsDiv.appendChild(deleteButton);
-
-                // Botón Guardar en Registro
-                const saveRegistroButton = document.createElement('button');
-                saveRegistroButton.classList.add('btn-guardar-registro-icon');
-                saveRegistroButton.dataset.id = tarea.id;
-                saveRegistroButton.title = 'Guardar en Registro';
-                saveRegistroButton.innerHTML = '<i class="fas fa-save"></i>'; // Icono de guardar
-                saveRegistroButton.addEventListener('click', () => saveTaskToRegistro(tarea.id));
-                actionsDiv.appendChild(saveRegistroButton);
-
+                li.appendChild(contentDiv);
                 li.appendChild(actionsDiv);
-
-                if (tarea.completada) {
-                    tareasCompletadasList.appendChild(li);
-                } else {
-                    tareasPendientesList.appendChild(li);
-                }
+                combinedAgendaList.appendChild(li);
             });
 
-            // Después de renderizar las tareas, inicia o reinicia el intervalo de actualización
             if (timeLeftUpdateInterval) {
                 clearInterval(timeLeftUpdateInterval);
             }
-            // Actualiza los contadores cada minuto (60 segundos)
-            timeLeftUpdateInterval = setInterval(updateAllTimeLeftCounters, 60 * 1000); 
-            updateAllTimeLeftCounters(); // Llama una vez inmediatamente
+            timeLeftUpdateInterval = setInterval(updateAllTimeLeftCounters, 60 * 1000);
+            updateAllTimeLeftCounters(); // Llamar una vez inmediatamente
         }
-
-        tareaForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const texto = tareaInput.value.trim();
-            const hora = horaInput.value.trim();
-
-            if (!texto) {
-                alert('El texto de la tarea no puede estar vacío.');
-                return;
-            }
-
-            const fecha = formatFecha(fechaActual);
-
-            try {
-                const response = await fetch('/api/tareas', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ fecha, texto, hora }),
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Error desconocido al guardar la tarea.');
-                }
-
-                tareaInput.value = '';
-                horaInput.value = '';
-                fetchTareas(); // Vuelve a cargar las tareas para actualizar la lista
-            } catch (error) {
-                console.error('Error al guardar la tarea:', error);
-                alert(`No se pudo guardar la tarea. Inténtalo de nuevo. Error: ${error.message}`);
-            }
-        });
 
         async function toggleTaskCompletada(event) {
             const taskId = event.target.dataset.id;
@@ -229,16 +329,21 @@
                     const errorData = await response.json();
                     throw new Error(errorData.error || 'Error desconocido al actualizar la tarea.');
                 }
-                fetchTareas(); // Recarga las tareas para actualizar la lista
+                fetchCombinedAgenda();
             } catch (error) {
-                console.error('Error al cambiar estado:', error);
-                alert(`No se pudo actualizar la tarea. Error: ${error.message}`);
+                    console.error('Error al cambiar estado:', error);
+                    const errorDetails = response && response.headers.get('content-type')?.includes('application/json')
+                        ? (await response.json()).error
+                        : (await response.text());
+                    alert(`No se pudo actualizar la tarea. Error: ${errorDetails}`);
             }
         }
 
         async function deleteTask(event) {
             const taskId = event.target.dataset.id;
-            if (confirm('¿Estás seguro de que quieres eliminar esta tarea?')) {
+            // Reemplazar confirm() con una modal customizada
+            const confirmAction = await showCustomConfirm('¿Estás seguro de que quieres eliminar esta tarea?');
+            if (confirmAction) {
                 try {
                     const response = await fetch(`/api/tareas/${taskId}`, {
                         method: 'DELETE'
@@ -247,7 +352,7 @@
                         const errorData = await response.json();
                         throw new Error(errorData.error || 'Error al eliminar la tarea');
                     }
-                    fetchTareas(); // Recarga las tareas
+                    fetchCombinedAgenda();
                 } catch (error) {
                     console.error('Error al eliminar la tarea:', error);
                     alert(`No se pudo eliminar la tarea: ${error.message}`);
@@ -255,76 +360,128 @@
             }
         }
 
-        // --- FUNCIÓN PARA CALCULAR Y ACTUALIZAR EL TIEMPO RESTANTE (CORREGIDA) ---
-        function updateTimeLeft(taskId, taskDate, taskTime) {
-            const targetElement = document.querySelector(`.time-left[data-task-id="${taskId}"]`);
-            if (!targetElement || targetElement.closest('.task-item').classList.contains('completada')) {
+        function updateTimeLeft(itemId, itemDate, itemTime) {
+            const targetElement = document.querySelector(`.time-left[data-task-id="${itemId}"]`);
+            if (!targetElement) { // If element not found, exit
+                return;
+            }
+
+            const parentItem = targetElement.closest('.task-item') || targetElement.closest('.routine-item');
+            
+            // If it's a task and it's completed, clear time left and return
+            if (parentItem && parentItem.classList.contains('task-item') && parentItem.classList.contains('completada')) {
+                targetElement.textContent = '';
                 return;
             }
 
             const now = new Date();
-            // Si no hay hora, asumimos el final del día (23:59:59) para la cuenta regresiva
-            // Esto asegura que las tareas sin hora se consideren "vencidas" al final del día
-            const taskDateTimeStr = taskDate + (taskTime ? ' ' + taskTime : ' 23:59:59');
-            const taskMoment = new Date(taskDateTimeStr);
+            let year, month, day, hours, minutes;
 
-            if (taskMoment < now) {
-                targetElement.textContent = '(Vencida)';
-                targetElement.style.color = '#dc3545'; // Rojo
-                targetElement.closest('.task-item').querySelector('.task-text').classList.add('vencida');
+            // Parse the date (YYYY-MM-DD)
+            const dateParts = itemDate.split('-');
+            year = parseInt(dateParts[0]);
+            month = parseInt(dateParts[1]) - 1; // Months are 0-indexed in JavaScript
+            day = parseInt(dateParts[2]);
+
+            // Ensure itemTime is HH:MM before parsing
+            let formattedItemTime = typeof itemTime === 'string' && itemTime.length >= 5 ? itemTime.substring(0, 5) : '';
+
+            if (formattedItemTime.match(/^\d{2}:\d{2}$/)) {
+                const timeParts = formattedItemTime.split(':');
+                hours = parseInt(timeParts[0]);
+                minutes = parseInt(timeParts[1]);
+            } else {
+                // If time is invalid or not present, the activity is due at the end of the day
+                hours = 23;
+                minutes = 59;
+            }
+            
+            const itemMoment = new Date(year, month, day, hours, minutes, 0); // Seconds to 0 for precision
+
+
+            if (isNaN(itemMoment.getTime())) { 
+                targetElement.textContent = '(Fecha/Hora Inválida)';
+                targetElement.style.color = '#dc3545';
+                if (parentItem) parentItem.querySelector('.entry-text').classList.add('vencida');
                 return;
             }
 
-            const diffMs = taskMoment - now; // Diferencia en milisegundos
+            if (itemMoment < now) {
+                targetElement.textContent = '(Vencida)';
+                targetElement.style.color = '#dc3545';
+                if (parentItem) parentItem.querySelector('.entry-text').classList.add('vencida');
+                return;
+            }
 
+            const diffMs = itemMoment - now;
             const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+            const hoursLeft = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutesLeft = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 
             let timeLeftText = '';
             if (days > 0) {
-                // Solo días si hay 1 o más días
                 timeLeftText = `(${days} día${days !== 1 ? 's' : ''})`;
-            } else if (hours > 0) {
-                // Horas y minutos si hay horas pero no días
-                timeLeftText = `(${hours}h ${minutes}m)`;
-            } else if (minutes > 0) {
-                // Solo minutos si hay minutos pero no horas ni días
-                timeLeftText = `(${minutes}m)`;
+            } else if (hoursLeft > 0) {
+                timeLeftText = `(${hoursLeft}h ${minutesLeft}m)`;
+            } else if (minutesLeft > 0) {
+                timeLeftText = `(${minutesLeft}m)`;
             } else {
-                // Menos de 1 minuto
                 timeLeftText = '(Menos de 1m)';
             }
 
             targetElement.textContent = timeLeftText;
-            targetElement.style.color = '#007bff'; // Azul
-            targetElement.closest('.task-item').querySelector('.task-text').classList.remove('vencida');
+            targetElement.style.color = '#007bff';
+            if (parentItem) parentItem.querySelector('.entry-text').classList.remove('vencida');
         }
 
-        // Función para actualizar todos los contadores de tiempo restante visibles
         function updateAllTimeLeftCounters() {
-            const activeTasksTimeSpans = document.querySelectorAll('.task-item:not(.completada) .time-left');
+            const activeTasksTimeSpans = document.querySelectorAll('.task-item:not(.completada) .time-left, .routine-item .time-left');
             activeTasksTimeSpans.forEach(span => {
-                const taskId = span.dataset.taskId;
-                const taskDate = span.dataset.taskDate;
-                const taskTime = span.dataset.taskTime;
-                updateTimeLeft(taskId, taskDate, taskTime);
+                const itemId = span.dataset.taskId;
+                const itemDate = span.dataset.taskDate;
+                const itemTime = span.dataset.taskTime;
+                updateTimeLeft(itemId, itemDate, itemTime);
             });
         }
 
-        // --- FUNCIONES PARA LA MODAL DE REGISTRO ---
         async function saveTaskToRegistro(taskId) {
             const taskElement = document.querySelector(`.task-item[data-id="${taskId}"]`);
             if (!taskElement) {
-                console.error("Error: taskElement no encontrado para taskId:", taskId);
+                console.error("Error: taskElement not found for taskId:", taskId);
                 alert('No se pudo encontrar la tarea para guardar. Intenta de nuevo.');
                 return;
             }
 
             const fecha = taskElement.dataset.fecha;
             const textoOriginal = taskElement.dataset.textoOriginal;
-            const horaOriginal = taskElement.dataset.horaOriginal;
             
+            // Fetch dynamic types
+            let tiposDisponibles = [];
+            try {
+                const response = await fetch('/api/tipos_registro');
+                if (!response.ok) throw new Error('Error al cargar los tipos de registro.');
+                tiposDisponibles = await response.json();
+            } catch (error) {
+                console.error('Error al cargar tipos para el modal de registro:', error);
+                alert('No se pudieron cargar los tipos de registro. Se usará el tipo "General".');
+                tiposDisponibles = [{ id: -1, nombre: 'General' }]; // Fallback
+            }
+
+            // Ordenar los tipos alfabéticamente por nombre
+            tiposDisponibles.sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+            let tipoOptionsHtml = tiposDisponibles.map(type => 
+                `<option value="${type.nombre}">${type.nombre}</option>`
+            ).join('');
+
+            // Asegurar que "General" esté seleccionado por defecto si existe, o añadirlo si no
+            const generalOptionExists = tiposDisponibles.some(type => type.nombre === 'General');
+            if (!generalOptionExists) {
+                tipoOptionsHtml = `<option value="General" selected>General</option>` + tipoOptionsHtml;
+            } else {
+                tipoOptionsHtml = tipoOptionsHtml.replace(`value="General"`, `value="General" selected`);
+            }
+
             const formContent = document.createElement('div');
             formContent.innerHTML = `
                 <h3>Guardar en Registro Importante</h3>
@@ -332,18 +489,18 @@
                 <input type="text" id="registroTitulo" value="${textoOriginal}" required>
 
                 <label for="registroDescripcion">Descripción:</label>
-                <textarea id="registroDescripcion">Original: "${textoOriginal}"${horaOriginal ? ` (Hora: ${horaOriginal})` : ''}</textarea>
+                <textarea id="registroDescripcion">${textoOriginal}</textarea>
 
                 <label for="registroTipo">Tipo:</label>
                 <select id="registroTipo">
-                    <option value="Salud">Salud</option>
-                    <option value="Cita">Cita</option>
-                    <option value="Escolar">Escolar</option>
-                    <option value="General" selected>General</option>
-                    <option value="Personal">Personal</option>
-                    <option value="Finanzas">Finanzas</option>
-                    <option value="Documento">Documento</option>
+                    ${tipoOptionsHtml}
                 </select>
+                
+                <div class="photo-capture-section" style="margin-top: 15px;">
+                    <p>Opcional: Adjuntar una foto</p>
+                    <button type="button" id="openCameraButton" class="boton"><i class="fas fa-camera"></i> Tomar Foto</button>
+                    <img id="registroPhotoPreview" class="photo-preview" style="display:none; margin-top: 10px;">
+                </div>
 
                 <div class="modal-actions">
                     <button id="guardarRegistroBtn" class="boton">Guardar</button>
@@ -353,6 +510,33 @@
 
             const modal = createModal(formContent);
             document.body.appendChild(modal);
+
+            // Referencias a los elementos del modal de registro
+            const openCameraButton = modal.querySelector('#openCameraButton');
+            currentRegistroPhotoPreviewElement = modal.querySelector('#registroPhotoPreview'); // Guardar referencia
+
+            // Si ya hay una imagen capturada de una sesión anterior (ej. si se reabrió el modal), mostrarla
+            if (capturedImageBase64) { 
+                currentRegistroPhotoPreviewElement.src = capturedImageBase64;
+                currentRegistroPhotoPreviewElement.style.display = 'block';
+            } else {
+                currentRegistroPhotoPreviewElement.style.display = 'none';
+            }
+
+            openCameraButton.addEventListener('click', () => {
+                console.log("DEBUG: Botón 'Tomar Foto' en modal de registro clickeado. Abriendo modal de cámara.");
+                cameraModal.style.display = 'flex'; // Mostrar el modal de la cámara
+                // Reiniciar los estados de la cámara para la nueva captura
+                videoStream.style.display = 'block';
+                photoPreview.style.display = 'none';
+                // Asegurarse de que el botón de CAPTURA esté visible y los otros ocultos al iniciar la cámara
+                capturePhotoButton.style.display = 'block'; 
+                retakePhotoButton.style.display = 'none';
+                confirmPhotoButton.style.display = 'none';
+
+                capturedImageBase64 = null; // Limpiar imagen previa al reabrir la cámara 
+                initCamera(); // Iniciar la cámara cuando se abre el modal
+            });
 
             document.getElementById('guardarRegistroBtn').addEventListener('click', async () => {
                 const titulo = document.getElementById('registroTitulo').value.trim();
@@ -370,7 +554,8 @@
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ fecha, titulo, descripcion, tipo })
+                        // Envía la imagen Base64 si existe, de lo contrario envía null
+                        body: JSON.stringify({ fecha, titulo, descripcion, tipo, imagen_base64: capturedImageBase64 })
                     });
                     if (!response.ok) {
                         const errorData = await response.json();
@@ -378,6 +563,11 @@
                     }
                     alert('Registro guardado con éxito.');
                     modal.remove();
+                    capturedImageBase64 = null; // Limpiar la imagen capturada después de guardar
+                    currentRegistroPhotoPreviewElement = null; // Limpiar la referencia
+                    console.log("DEBUG: Registro guardado, imagen Base64 y referencia limpiadas.");
+                    // Considerar recargar la lista de registros en registros_importantes.html si fuera necesario
+                    // aunque en index.html no se muestra directamente.
                 } catch (error) {
                     console.error('Error al guardar el registro:', error);
                     alert(`No se pudo guardar el registro: ${error.message}`);
@@ -386,9 +576,14 @@
 
             document.getElementById('cancelRegistroBtn').addEventListener('click', () => {
                 modal.remove();
+                capturedImageBase64 = null; // Limpiar la imagen si se cierra sin confirmar
+                currentRegistroPhotoPreviewElement = null; // Limpiar la referencia
+                stopCamera(); // Asegurarse de que la cámara se detenga si estaba abierta y se cancela
+                console.log("DEBUG: Modal de registro cancelado, imagen y cámara detenidas.");
             });
         }
 
+        // Function to create a generic modal
         function createModal(content) {
             const modalOverlay = document.createElement('div');
             modalOverlay.classList.add('custom-modal-overlay');
@@ -402,18 +597,415 @@
             modalOverlay.addEventListener('click', (e) => {
                 if (e.target === modalOverlay) {
                     modalOverlay.remove();
+                    // Si es el modal de la cámara, asegúrate de detener el stream
+                    if (modalOverlay.id === 'cameraModal') {
+                        stopCamera();
+                        // Resetear los botones del modal de la cámara al cerrar
+                        capturePhotoButton.style.display = 'block';
+                        retakePhotoButton.style.display = 'none';
+                        confirmPhotoButton.style.display = 'none';
+                    }
+                     // Si se cierra el modal de registro, limpiar la imagen capturada
+                    // Esta lógica es más crítica para el modal de registro en sí, no para el overlay genérico
+                    // currentRegistroPhotoPreviewElement se maneja al cerrar el modal de registro o al guardar
                 }
             });
 
             return modalOverlay;
         }
 
-        // --- Inicialización al cargar la página ---
+        // Function to show a custom confirmation modal
+        function showCustomConfirm(message) {
+            return new Promise((resolve) => {
+                const confirmContent = document.createElement('div');
+                confirmContent.innerHTML = `
+                    <h3>Confirmación</h3>
+                    <p>${message}</p>
+                    <div class="modal-actions">
+                        <button id="confirmYes" class="boton">Sí</button>
+                        <button id="confirmNo" class="boton cancel-button">No</button>
+                    </div>
+                `;
+                const confirmModal = createModal(confirmContent);
+                document.body.appendChild(confirmModal);
+
+                document.getElementById('confirmYes').addEventListener('click', () => {
+                    confirmModal.remove();
+                    resolve(true);
+                });
+                document.getElementById('confirmNo').addEventListener('click', () => {
+                    confirmModal.remove();
+                    resolve(false);
+                });
+            });
+        }
+
+
+        async function deleteRoutine(event) {
+            const routineId = event.target.dataset.id;
+            // Replace confirm() with a custom modal
+            const confirmAction = await showCustomConfirm('¿Estás seguro de que quieres eliminar esta rutina?');
+            if (confirmAction) {
+                try {
+                    const response = await fetch(`/api/rutinas/${routineId}`, {
+                        method: 'DELETE'
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Error deleting routine');
+                    }
+                    fetchCombinedAgenda();
+                }
+                catch (error) {
+                    console.error('Error deleting routine:', error);
+                    alert(`No se pudo eliminar la rutina: ${error.message}`);
+                }
+            }
+        }
+
+        entryTypeSelect.addEventListener('change', () => {
+            if (entryTypeSelect.value === 'rutina') {
+                routineFieldsDiv.style.display = 'block';
+                entryTextLabel.textContent = 'Nombre de la Rutina:';
+                entryTextInput.placeholder = 'Ej. Meditar, Correr, Estudiar Inglés';
+                entryTimeInput.required = true;
+            } else {
+                routineFieldsDiv.style.display = 'none';
+                entryTextLabel.textContent = 'Descripción:';
+                entryTextInput.placeholder = 'Añadir una nueva tarea...';
+                entryTimeInput.required = false;
+                routineDayCheckboxes.forEach(checkbox => checkbox.checked = false);
+            }
+        });
+
+        unifiedEntryForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const type = entryTypeSelect.value;
+            const text = entryTextInput.value.trim();
+            const hora = entryTimeInput.value.trim();
+
+            if (!text) {
+                alert('La descripción no puede estar vacía.');
+                return;
+            }
+
+            if (type === 'tarea') {
+                const fecha = formatFecha(fechaActual);
+                try {
+                    const response = await fetch('/api/tareas', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ fecha, texto: text, hora }),
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Error desconocido al guardar la tarea.');
+                    }
+                    alert('Tarea guardada con éxito.');
+                    fetchCombinedAgenda();
+                } catch (error) {
+                    console.error('Error saving task:', error);
+                    alert(`No se pudo guardar la tarea. Inténtalo de nuevo. Error: ${error.message}`);
+                }
+            } else if (type === 'rutina') {
+                const diasSeleccionados = Array.from(routineDayCheckboxes)
+                                               .filter(checkbox => checkbox.checked)
+                                               .map(checkbox => dayNameToNumber[checkbox.value]);
+
+                if (!hora || diasSeleccionados.length === 0) {
+                    alert('Para una rutina, la hora y al menos un día son obligatorios.');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/rutinas', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ nombre: text, hora, dias: diasSeleccionados }),
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Error desconocido al guardar la rutina.');
+                    }
+                    alert('Rutina guardada con éxito.');
+                    fetchCombinedAgenda();
+                } catch (error) {
+                    console.error('Error saving routine:', error);
+                    alert(`No se pudo guardar la rutina. Inténtalo de nuevo. Error: ${error.message}`);
+                }
+            }
+
+            entryTextInput.value = '';
+            entryTimeInput.value = '';
+            routineDayCheckboxes.forEach(checkbox => checkbox.checked = false);
+            entryTypeSelect.value = 'tarea';
+            routineFieldsDiv.style.display = 'none';
+            entryTextLabel.textContent = 'Descripción:';
+            entryTextInput.placeholder = 'Add a new task...';
+            entryTimeInput.required = false;
+        });
+
+        // Event for the quick list button
+        quickListButton.addEventListener('click', async () => {
+            const rawInput = entryTextInput.value.trim();
+            if (rawInput) {
+                // Split text by spaces and filter out empty strings
+                const itemsToAdd = rawInput.split(' ').filter(item => item.trim() !== '');
+
+                let allItemsAddedSuccessfully = true;
+                for (const item of itemsToAdd) {
+                    try {
+                        const response = await fetch('/api/lista_compra', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ item: item })
+                        });
+                        if (!response.ok) {
+                            const errorData = await response.text();
+                            throw new Error(errorData || `Error adding "${item}" to shopping list.`);
+                        }
+                        console.log(`Item "${item}" added successfully to shopping list.`);
+                    } catch (error) {
+                        console.error(`Error adding item "${item}" to shopping list:`, error);
+                        alert(`No se pudo añadir "${item}" a la lista de la compra: ${error.message}`);
+                        allItemsAddedSuccessfully = false;
+                    }
+                }
+                entryTextInput.value = '';
+            }
+            window.location.href = '/lista';
+        });
+
+        // Event listener para el botón de imagen de la nube (ejemplo)
+        cloudImageButton.addEventListener('click', () => {
+            // Esta URL es solo un ejemplo. En un caso real, podrías enlazar a una imagen subida a un servicio de nube real.
+            const imageUrl = 'https://placehold.co/800x600/FF5733/FFFFFF?text=Tu%20Imagen%20desde%20la%20Nube'; 
+            window.open(imageUrl, '_blank'); // Abre la imagen en una nueva pestaña
+        });
+
+
+        // --- Lógica de la Cámara ---
+        async function initCamera() {
+            cameraStatus.textContent = 'Iniciando cámara...';
+            videoStream.style.display = 'block'; // Asegurarse de que el video esté visible
+            photoPreview.style.display = 'none'; // Asegurarse de que la previsualización no esté visible
+            // Restablecer los botones de la cámara a su estado inicial
+            capturePhotoButton.style.display = 'block'; 
+            retakePhotoButton.style.display = 'none';
+            confirmPhotoButton.style.display = 'none';
+            console.log("DEBUG: Intentando iniciar cámara...");
+
+            if (currentStream) { // Si ya hay un stream activo, detenerlo primero
+                stopCamera();
+            }
+
+            try {
+                // Intentar usar la cámara trasera primero
+                currentStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: { exact: 'environment' } // Cámara trasera
+                    }
+                });
+                videoStream.srcObject = currentStream;
+                videoStream.play();
+                cameraStatus.textContent = 'Cámara trasera activa. Haz clic en "Tomar Foto".';
+                console.log("DEBUG: Cámara trasera iniciada con éxito.");
+            } catch (err) {
+                console.warn("ADVERTENCIA: No se pudo acceder a la cámara trasera, intentando la frontal:", err);
+                cameraStatus.textContent = 'Cámara trasera no disponible, intentando la frontal.';
+                try {
+                    // Si falla la trasera, intentar la frontal
+                    currentStream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            facingMode: 'user' // Cámara frontal
+                        }
+                    });
+                    videoStream.srcObject = currentStream;
+                    videoStream.play();
+                    cameraStatus.textContent = 'Cámara frontal activa. Haz clic en "Tomar Foto".';
+                    console.log("DEBUG: Cámara frontal iniciada con éxito.");
+                } catch (errFront) {
+                    console.error("ERROR: No se pudo acceder a ninguna cámara: ", errFront);
+                    alert('No se pudo acceder a la cámara. Asegúrate de haber dado permiso y de que no esté en uso por otra aplicación.');
+                    cameraModal.style.display = 'none'; // Ocultar el modal si no hay cámara
+                    cameraStatus.textContent = 'No se pudo acceder a ninguna cámara. Verifica permisos.';
+                    return;
+                }
+            }
+        }
+
+        function stopCamera() {
+            if (currentStream) {
+                console.log("DEBUG: Deteniendo stream de cámara.");
+                currentStream.getTracks().forEach(track => track.stop());
+                videoStream.srcObject = null;
+            }
+        }
+
+        capturePhotoButton.addEventListener('click', () => {
+            console.log("DEBUG: Botón 'Tomar Foto' (de cámara) clickeado.");
+            // Asegurarse de que el video esté cargado para obtener las dimensiones correctas
+            if (videoStream.readyState === videoStream.HAVE_ENOUGH_DATA) {
+                console.log("DEBUG: Video stream tiene datos suficientes. Procediendo a capturar.");
+                photoCanvas.width = videoStream.videoWidth;
+                photoCanvas.height = videoStream.videoHeight;
+                const context = photoCanvas.getContext('2d');
+                context.drawImage(videoStream, 0, 0, photoCanvas.width, photoCanvas.height);
+                
+                capturedImageBase64 = photoCanvas.toDataURL('image/png'); // Guarda la imagen como Base64
+                photoPreview.src = capturedImageBase64;
+
+                videoStream.style.display = 'none';
+                photoPreview.style.display = 'block';
+                capturePhotoButton.style.display = 'none'; // Esconde "Tomar Foto"
+                retakePhotoButton.style.display = 'block'; // Muestra "Repetir"
+                confirmPhotoButton.style.display = 'block'; // Muestra "Confirmar"
+                cameraStatus.textContent = 'Foto capturada. Confirma o repite.';
+                stopCamera(); // Detener la cámara una vez capturada la foto
+                console.log("DEBUG: Estado de botones y stream actualizados después de capturar.");
+            } else {
+                cameraStatus.textContent = 'Esperando stream de video para capturar...';
+                console.log("DEBUG: Video stream aún no tiene datos suficientes (readyState: " + videoStream.readyState + ").");
+            }
+        });
+
+        retakePhotoButton.addEventListener('click', () => {
+            console.log("DEBUG: Botón 'Repetir' clickeado. Reiniciando cámara.");
+            capturedImageBase64 = null; // Limpiar la imagen capturada
+            photoPreview.style.display = 'none';
+            // Al reiniciar, asegurar que el botón de captura esté visible
+            capturePhotoButton.style.display = 'block'; 
+            retakePhotoButton.style.display = 'none';
+            confirmPhotoButton.style.display = 'none';
+            initCamera(); // Volver a iniciar la cámara
+        });
+
+        confirmPhotoButton.addEventListener('click', () => {
+            console.log("DEBUG: Botón 'Confirmar' clickeado. Cerrando modal de cámara.");
+            cameraModal.style.display = 'none'; // Cerrar el modal de la cámara
+            stopCamera(); // Asegurarse de que la cámara se detenga
+            // Mostrar la previsualización en el modal de registro
+            if (currentRegistroPhotoPreviewElement && capturedImageBase64) {
+                currentRegistroPhotoPreviewElement.src = capturedImageBase64;
+                currentRegistroPhotoPreviewElement.style.display = 'block';
+            }
+            cameraStatus.textContent = ''; // Limpiar estado al cerrar
+            // Resetear los botones del modal de la cámara
+            capturePhotoButton.style.display = 'block';
+            retakePhotoButton.style.display = 'none';
+            confirmPhotoButton.style.display = 'none';
+        });
+
+        closeCameraModalButton.addEventListener('click', () => {
+            console.log("DEBUG: Botón 'Cerrar' modal de cámara clickeado.");
+            cameraModal.style.display = 'none'; // Cerrar el modal de la cámara
+            stopCamera(); // Asegurarse de que la cámara se detenga
+            capturedImageBase64 = null; // Limpiar la imagen si se cierra sin confirmar
+            // También limpiar la previsualización en el modal de registro si se cierra la cámara
+            if (currentRegistroPhotoPreviewElement) {
+                currentRegistroPhotoPreviewElement.src = '';
+                currentRegistroPhotoPreviewElement.style.display = 'none';
+            }
+            currentRegistroPhotoPreviewElement = null; // Limpiar la referencia
+            cameraStatus.textContent = ''; // Limpiar estado al cerrar
+            // Resetear los botones del modal de la cámara
+            capturePhotoButton.style.display = 'block';
+            retakePhotoButton.style.display = 'none';
+            confirmPhotoButton.style.display = 'none';
+        });
+
+        // --- Funciones de Acción (Aplazar - COPIADAS DE calendario.html) ---
+        async function postponeTask(taskId, currentFecha, currentHora, currentTexto) {
+            const confirmAction = await showCustomConfirm(`¿Estás seguro de que quieres aplazar la tarea "${currentTexto}"?`);
+            if (!confirmAction) {
+                return;
+            }
+
+            const formContent = document.createElement('div');
+            formContent.innerHTML = `
+                <h3>Aplazar Tarea</h3>
+                <p>Tarea: <strong>${currentTexto}</strong></p>
+                <div class="form-group">
+                    <label for="newFecha">Nueva Fecha:</label>
+                    <input type="date" id="newFecha" value="${currentFecha}" required>
+                </div>
+                <div class="form-group">
+                    <label for="newHora">Nueva Hora (opcional):</label>
+                    <input type="time" id="newHora" value="${currentHora ? currentHora.substring(0, 5) : ''}">
+                </div>
+                <div class="modal-actions">
+                    <button id="aplazarBtn" class="boton">Aplazar</button>
+                    <button id="cancelAplazarBtn" class="boton cancel-button">Cancelar</button>
+                </div>
+            `;
+
+            const modal = createModal(formContent);
+            document.body.appendChild(modal);
+
+            // Set min date to today for newFecha input
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            document.getElementById('newFecha').min = `${year}-${month}-${day}`;
+
+
+            document.getElementById('aplazarBtn').addEventListener('click', async () => {
+                const newFecha = document.getElementById('newFecha').value;
+                const newHora = document.getElementById('newHora').value;
+
+                if (!newFecha) {
+                    alert('Por favor, selecciona una nueva fecha.');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/tareas/${taskId}/aplazar`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ new_fecha: newFecha, new_hora: newHora || null })
+                    });
+
+                    // MEJORA: Manejo de errores más robusto
+                    if (!response.ok) {
+                        let errorMessage = 'Error desconocido al aplazar la tarea.';
+                        const contentType = response.headers.get('content-type');
+                        if (contentType && contentType.includes('application/json')) {
+                            const errorData = await response.json();
+                            errorMessage = errorData.error || errorMessage;
+                        } else {
+                            // Si la respuesta no es JSON, capturamos el texto directamente
+                            const errorText = await response.text();
+                            errorMessage = `El servidor respondió con un error no JSON. Código: ${response.status}. Mensaje: ${errorText.substring(0, 100)}...`;
+                            console.error("Respuesta de error no JSON del servidor:", errorText);
+                        }
+                        throw new Error(errorMessage);
+                    }
+                    alert('Tarea aplazada con éxito.');
+                    modal.remove();
+                    fetchCombinedAgenda(); // Recargar actividades de hoy
+                } catch (error) {
+                    console.error('Error al aplazar la tarea:', error);
+                    alert(`No se pudo aplazar la tarea. Error: ${error.message}`);
+                }
+            });
+
+            document.getElementById('cancelAplazarBtn').addEventListener('click', () => {
+                modal.remove();
+            });
+        }
+
+
         document.addEventListener('DOMContentLoaded', () => {
-            displayFechaActual(); // Muestra la fecha actual
-            fetchTareas(); // Carga las tareas para la fecha actual
-            
-            // El intervalo de actualización se gestiona en renderTareas para asegurar que se reinicie correctamente
+            displayFechaActual();
+            fetchCombinedAgenda();
+            entryTypeSelect.dispatchEvent(new Event('change'));
         });
     </script>
 </body>
