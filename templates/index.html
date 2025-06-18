@@ -562,7 +562,7 @@
                 diasRestantesTextFirst = 'Hoy';
             } else if (firstCita.dias_restantes === 1) {
                 diasRestantesTextFirst = 'Mañana';
-            } else if (firstCita.dias_restantes > 1) { // Corregido: firstCitas -> firstCita
+            } else if (firstCita.dias_restantes > 1) { 
                 diasRestantesTextFirst = `En ${firstCita.dias_restantes} días`;
             } else {
                 diasRestantesTextFirst = 'Pasada'; 
@@ -1421,48 +1421,94 @@
             entryTypeSelect.dispatchEvent(new Event('change')); 
         });
 
+        /**
+         * Parsea la cadena de entrada de la lista de la compra, manejando frases con "de".
+         * @param {string} inputString La cadena de texto del input.
+         * @returns {string[]} Un array de ítems parseados.
+         */
+        function parseShoppingListInput(inputString) {
+            const items = [];
+            
+            // Primero, divide por comas para manejar elementos separados explícitamente.
+            // Elimina los espacios en blanco alrededor de las comas.
+            const commaSeparatedParts = inputString.split(',').map(part => part.trim());
+
+            // Expresión regular para capturar frases "adhesivas" como "X de Y" o palabras individuales.
+            // Busca:
+            // a) Una o más palabras (incluyendo acentos) seguidas de un espacio,
+            //    y luego una de las preposiciones/artículos ("de", "del", "de la", "de los", "de las"),
+            //    seguido de un espacio y otra palabra. Ejemplo: "pechuga de pollo".
+            // b) O cualquier secuencia de caracteres no espaciados (para palabras individuales).
+            // La bandera 'i' es para ignorar mayúsculas/minúsculas. 'g' para todas las coincidencias.
+            const smartSplitRegex = /\b(?:[\w\u00C0-\u017F]+\s+(?:de|del|de la|de los|de las)\s+[\w\u00C0-\u017F]+|\S+)\b/gi;
+
+            commaSeparatedParts.forEach(part => {
+                // Usa `match` para extraer los tokens basados en la expresión regular inteligente.
+                const tokens = part.match(smartSplitRegex);
+                if (tokens) {
+                    tokens.forEach(token => {
+                        const trimmedToken = token.trim();
+                        if (trimmedToken) {
+                            items.push(trimmedToken);
+                        }
+                    });
+                }
+            });
+
+            return items;
+        }
+
+
         // Event for the quick list button
         quickListButton.addEventListener('click', async () => {
             const rawInput = entryTextInput.value.trim();
-            if (rawInput) {
-                const itemsToAdd = rawInput.split(' ').filter(item => item.trim() !== '');
-
-                let allItemsAddedSuccessfully = true;
-                for (const item of itemsToAdd) {
-                    try {
-                        const response = await fetch('/api/lista_compra', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ item: item })
-                        });
-                        if (!response.ok) {
-                            let errorMessage = `HTTP error! status: ${response.status}`;
-                            const contentType = response.headers.get('content-type');
-                            const responseBody = await response.text(); 
-                            if (contentType && contentType.includes('application/json')) {
-                                try {
-                                    const errorData = JSON.parse(responseBody);
-                                    errorMessage = errorData.error || errorMessage;
-                                } catch (jsonParseError) {
-                                    console.warn("JSON parsing failed for lista_compra error, falling back to raw text.", jsonParseError);
-                                    errorMessage = `El servidor respondió con un JSON inválido. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
-                                }
-                            } else {
-                                errorMessage = `El servidor respondió con un error no JSON. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
-                                console.error("Respuesta de error no JSON del servidor:", responseBody);
-                            }
-                            throw new Error(errorMessage);
-                        }
-                        console.log(`Item "${item}" added successfully to shopping list.`);
-                    } catch (error) {
-                        console.error(`Error adding item "${item}" to shopping list:`, error);
-                        showCustomAlert(`No se pudo añadir "${item}" a la lista de la compra: ${error.message}`, 'Error de Lista');
-                        allItemsAddedSuccessfully = false;
-                    }
-                }
-                entryTextInput.value = '';
+            if (!rawInput) {
+                window.location.href = '/lista'; // Si no hay texto, simplemente ve a la lista
+                return;
             }
-            window.location.href = '/lista';
+
+            // MODIFICADO: Usar la nueva función de parseo inteligente
+            const itemsToAdd = parseShoppingListInput(rawInput);
+
+
+            let allItemsAddedSuccessfully = true;
+            for (const item of itemsToAdd) {
+                try {
+                    const response = await fetch('/api/lista_compra', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ item: item })
+                    });
+                    if (!response.ok) {
+                        let errorMessage = `HTTP error! status: ${response.status}`;
+                        const contentType = response.headers.get('content-type');
+                        const responseBody = await response.text(); 
+                        if (contentType && contentType.includes('application/json')) {
+                            try {
+                                const errorData = JSON.parse(responseBody);
+                                errorMessage = errorData.error || errorMessage;
+                            } catch (jsonParseError) {
+                                console.warn("JSON parsing failed for lista_compra error, falling back to raw text.", jsonParseError);
+                                errorMessage = `El servidor respondió con un JSON inválido. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
+                            }
+                        } else {
+                            errorMessage = `El servidor respondió con un error no JSON. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
+                            console.error("Respuesta de error no JSON del servidor:", responseBody);
+                        }
+                        throw new Error(errorMessage);
+                    }
+                    console.log(`Item "${item}" added successfully to shopping list.`);
+                } catch (error) {
+                    console.error(`Error adding item "${item}" to shopping list:`, error);
+                    showCustomAlert(`No se pudo añadir "${item}" a la lista de la compra: ${error.message}`, 'Error de Lista');
+                    allItemsAddedSuccessfully = false;
+                }
+            }
+            entryTextInput.value = '';
+            // No redirigir si no todos los ítems se añadieron con éxito
+            if (allItemsAddedSuccessfully) {
+                 window.location.href = '/lista';
+            }
         });
 
         // Event listener para el botón de Notas Rápidas
@@ -1643,7 +1689,7 @@
                 photoPreview.style.display = 'block';
                 capturePhotoButton.style.display = 'none';
                 retakePhotoButton.style.display = 'block';
-                confirmPhotoButton.style.display = 'block';
+                confirmPhotoButton.style.display = 'none';
                 cameraStatus.textContent = 'Foto capturada. Confirma o repite.';
                 stopCamera();
                 console.log("DEBUG: Estado de botones y stream actualizados después de capturar.");
