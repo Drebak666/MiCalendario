@@ -115,13 +115,51 @@
             });
         }
 
+        /**
+         * Parsea la cadena de entrada de la lista de la compra, manejando frases con "de".
+         * @param {string} inputString La cadena de texto del input.
+         * @returns {string[]} Un array de ítems parseados.
+         */
+        function parseShoppingListInput(inputString) {
+            const items = [];
+            
+            // Primero, divide por comas para manejar elementos separados explícitamente.
+            // Elimina los espacios en blanco alrededor de las comas.
+            const commaSeparatedParts = inputString.split(',').map(part => part.trim());
+
+            // Expresión regular para capturar frases "adhesivas" como "X de Y" o palabras individuales.
+            // Busca:
+            // a) Una o más palabras (incluyendo acentos) seguidas de un espacio,
+            //    y luego una de las preposiciones/artículos ("de", "del", "de la", "de los", "de las"),
+            //    seguido de un espacio y otra palabra. Ejemplo: "pechuga de pollo".
+            // b) O cualquier secuencia de caracteres no espaciados (para palabras individuales).
+            // La bandera 'i' es para ignorar mayúsculas/minúsculas. 'g' para todas las coincidencias.
+            const smartSplitRegex = /\b(?:[\w\u00C0-\u017F]+\s+(?:de|del|de la|de los|de las)\s+[\w\u00C0-\u017F]+|\S+)\b/gi;
+
+            commaSeparatedParts.forEach(part => {
+                // Usa `match` para extraer los tokens basados en la expresión regular inteligente.
+                const tokens = part.match(smartSplitRegex);
+                if (tokens) {
+                    tokens.forEach(token => {
+                        const trimmedToken = token.trim();
+                        if (trimmedToken) {
+                            items.push(trimmedToken);
+                        }
+                    });
+                }
+            });
+
+            return items;
+        }
+
+
         addItemForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const rawInput = itemInput.value.trim();
             if (!rawInput) return;
 
-            // Dividir el texto por espacios y filtrar cadenas vacías
-            const itemsToAdd = rawInput.split(' ').filter(item => item.trim() !== '');
+            // MODIFICADO: Usar la nueva función de parseo inteligente
+            const itemsToAdd = parseShoppingListInput(rawInput);
 
             if (itemsToAdd.length === 0) {
                 alert('Por favor, introduce al menos un ítem.');
@@ -196,13 +234,11 @@
         async function clearAllItems() {
             if (confirm('¿Estás seguro de que quieres borrar TODA la lista de la compra? Esta acción no se puede deshacer.')) {
                 try {
-                    // MODIFICADO: Cambia la ruta a una que espera el backend
                     const response = await fetch('/api/lista_compra/clear_all', {
                         method: 'DELETE'
                     });
                     if (!response.ok) {
                         const errorData = await response.json();
-                        // Manejar el caso donde el backend devuelve un error específico.
                         const errorMessage = errorData.error || 'Error desconocido al borrar toda la lista.';
                         throw new Error(errorMessage);
                     }
