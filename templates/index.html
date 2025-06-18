@@ -130,6 +130,13 @@
             padding: 8px 12px;
             font-size: 0.9em;
         } */
+
+        /* NUEVO: Estilo para contenido de modal con scroll */
+        .scrollable-modal-content {
+            max-height: 90vh; /* 90% del alto de la ventana */
+            overflow-y: auto; /* Habilita el scroll vertical si el contenido excede la altura */
+            padding-bottom: 1rem; /* Espacio extra en la parte inferior para que el contenido no se pegue al borde */
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans antialiased">
@@ -141,6 +148,12 @@
             <ul id="upcomingCitasList" class="space-y-2">
                 <li class="text-gray-500 italic">Cargando citas...</li>
             </ul>
+             <div id="moreCitasContainer" style="display:none;" class="mt-4 space-y-2">
+                <!-- Aquí se cargarán las citas adicionales -->
+            </div>
+            <button id="toggleCitasButton" class="mt-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200" style="display:none;">
+                Ver más citas
+            </button>
         </div>
 
         <h2 class="text-2xl font-bold text-gray-800 mb-3 border-b pb-2">Añadir Actividad:</h2> 
@@ -256,7 +269,7 @@
     </div>
 
     <!-- Modal para Captura de Foto -->
-    <div id="cameraModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display:none;">
+    <div id="cameraModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]" style="display:none;">
         <div class="bg-white p-6 rounded-lg shadow-xl camera-modal-content">
             <h3 class="text-xl font-bold mb-4 text-center">Tomar Foto</h3>
             <video id="videoStream" class="camera-stream" autoplay playsinline></video>
@@ -281,7 +294,7 @@
     </div>
 
     <!-- Custom Alert/Confirm Modal HTML (GLOBAL) -->
-    <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display:none;">
+    <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10000]" style="display:none;">
         <div class="bg-white p-6 rounded-lg shadow-xl custom-modal-content">
             <h3 id="customModalTitle" class="text-xl font-bold mb-4 text-center"></h3>
             <p id="customModalMessage" class="mb-6 text-gray-700 text-center"></p>
@@ -292,8 +305,8 @@
     </div>
 
     <!-- NUEVO: Modal para añadir cita rápida desde el botón de Cita -->
-    <div id="quickCitaModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display:none;">
-        <div class="bg-white p-6 rounded-lg shadow-xl custom-modal-content">
+    <div id="quickCitaModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9998]" style="display:none;">
+        <div class="bg-white p-6 rounded-lg shadow-xl custom-modal-content scrollable-modal-content">
             <h3 class="text-xl font-bold mb-4 text-center">Registrar Cita Rápida</h3>
             <p id="quickCitaTextDisplay" class="mb-4 text-gray-700 text-center"></p>
             <div class="mb-4">
@@ -315,6 +328,9 @@
         const fechaActualDisplay = document.getElementById('fechaActualDisplay');
         const combinedAgendaList = document.getElementById('combinedAgendaList');
         const upcomingCitasList = document.getElementById('upcomingCitasList'); 
+        const moreCitasContainer = document.getElementById('moreCitasContainer'); 
+        const toggleCitasButton = document.getElementById('toggleCitasButton'); 
+
         let fechaActual = new Date();
         let timeLeftUpdateInterval; 
 
@@ -332,7 +348,6 @@
         const quickListButton = document.getElementById('quickListButton');
         const quickNotesButton = document.getElementById('quickNotesButton');
         const quickCitaButton = document.getElementById('quickCitaButton'); 
-        // const cloudImageButton = document.getElementById('cloudImageButton'); // ELIMINADO
 
         // Elements for count badges
         const quickListCountElem = document.getElementById('quickListCount');
@@ -356,7 +371,9 @@
 
         let currentStream;
         let capturedImageBase64 = null;
-        let currentRegistroPhotoPreviewElement = null;
+        let currentFileName = null; // Variable para almacenar el nombre del archivo
+        let currentMimeType = null; // Variable para almacenar el tipo MIME
+        let currentRegistroPhotoPreviewElement = null; // Referencia al <img> del modal de registro
 
         const dayNameToNumber = {
             'Domingo': 0, 'Lunes': 1, 'Martes': 2, 'Miércoles': 3, 'Jueves': 4, 'Viernes': 5, 'Sábado': 6
@@ -452,7 +469,7 @@
                     throw new Error(`Error al cargar citas próximas: ${errorText}`);
                 }
                 upcomingCitas = await citasResponse.json();
-                // FUTURO: Actualizar el contador de citas
+                // Actualizar el contador de citas
                 quickCitaCountElem.textContent = upcomingCitas.length;
                 navCitasCountElem.textContent = upcomingCitas.length;
             } catch (error) {
@@ -462,41 +479,42 @@
                 navCitasCountElem.textContent = '0';
             }
 
-            // FUTURO: Fetch para el conteo de ítems de la lista de compra
-            // try {
-            //     const listCountResponse = await fetch('/api/lista_compra/count_uncompleted'); // Necesitas crear esta API en app.py
-            //     if (listCountResponse.ok) {
-            //         const count = await listCountResponse.json();
-            //         quickListCountElem.textContent = count;
-            //         navListCountElem.textContent = count;
-            //     } else {
-            //         console.warn('No se pudo obtener el conteo de la lista de compra.');
-            //         quickListCountElem.textContent = '0';
-            //         navListCountElem.textContent = '0';
-            //     }
-            // } catch (error) {
-            //     console.error('Error fetching list count:', error);
-            //     quickListCountElem.textContent = '0';
-            //     navListCountElem.textContent = '0';
-            // }
+            // Fetch para el conteo de ítems de la lista de compra
+            try {
+                const listCountResponse = await fetch('/api/lista_compra'); // Fetch all to count uncompleted
+                if (listCountResponse.ok) {
+                    const items = await listCountResponse.json();
+                    const uncompletedCount = items.filter(item => !item.comprado).length;
+                    quickListCountElem.textContent = uncompletedCount;
+                    navListCountElem.textContent = uncompletedCount;
+                } else {
+                    console.warn('No se pudo obtener el conteo de la lista de compra.');
+                    quickListCountElem.textContent = '0';
+                    navListCountElem.textContent = '0';
+                }
+            } catch (error) {
+                console.error('Error fetching list count:', error);
+                quickListCountElem.textContent = '0';
+                navListCountElem.textContent = '0';
+            }
 
-            // FUTURO: Fetch para el conteo de notas rápidas
-            // try {
-            //     const notesCountResponse = await fetch('/api/notas/count'); // Necesitas crear esta API en app.py
-            //     if (notesCountResponse.ok) {
-            //         const count = await notesCountResponse.json();
-            //         quickNotesCountElem.textContent = count;
-            //         navNotesCountElem.textContent = count;
-            //     } else {
-            //         console.warn('No se pudo obtener el conteo de notas.');
-            //         quickNotesCountElem.textContent = '0';
-            //         navNotesCountElem.textContent = '0';
-            //     }
-            // } catch (error) {
-            //     console.error('Error fetching notes count:', error);
-            //     quickNotesCountElem.textContent = '0';
-            //     navNotesCountElem.textContent = '0';
-            // }
+            // Fetch para el conteo de notas rápidas
+            try {
+                const notesCountResponse = await fetch('/api/notas');
+                if (notesCountResponse.ok) {
+                    const notes = await notesCountResponse.json();
+                    quickNotesCountElem.textContent = notes.length;
+                    navNotesCountElem.textContent = notes.length;
+                } else {
+                    console.warn('No se pudo obtener el conteo de notas.');
+                    quickNotesCountElem.textContent = '0';
+                    navNotesCountElem.textContent = '0';
+                }
+            } catch (error) {
+                console.error('Error fetching notes count:', error);
+                quickNotesCountElem.textContent = '0';
+                navNotesCountElem.textContent = '0';
+            }
 
 
             renderUpcomingCitas(upcomingCitas); // Renderizar citas en su propia sección
@@ -513,6 +531,10 @@
 
         function renderUpcomingCitas(citas) {
             upcomingCitasList.innerHTML = '';
+            moreCitasContainer.innerHTML = '';
+            toggleCitasButton.style.display = 'none';
+            moreCitasContainer.style.display = 'none';
+
             if (citas.length === 0) {
                 upcomingCitasList.innerHTML = '<li class="text-gray-500 italic">No hay citas pendientes para el mes actual.</li>';
                 return;
@@ -524,38 +546,87 @@
                 return dateA - dateB;
             });
 
-            citas.forEach(cita => {
-                const li = document.createElement('li');
-                li.classList.add('cita-item');
-                if (cita.completada) { 
-                    li.classList.add('completada');
-                }
+            // Mostrar solo la cita más próxima
+            const firstCita = citas[0];
+            const liFirst = document.createElement('li');
+            liFirst.classList.add('cita-item');
+            if (firstCita.completada) { 
+                liFirst.classList.add('completada');
+            }
 
-                const fechaFormateada = new Date(cita.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
-                const horaFormateada = cita.hora ? cita.hora.substring(0, 5) : 'N/A';
-                
-                let diasRestantesText = '';
-                if (cita.dias_restantes === 0) {
-                    diasRestantesText = 'Hoy';
-                } else if (cita.dias_restantes === 1) {
-                    diasRestantesText = 'Mañana';
-                } else if (cita.dias_restantes > 1) {
-                    diasRestantesText = `En ${cita.dias_restantes} días`;
-                } else {
-                    diasRestantesText = 'Pasada'; 
-                }
+            const fechaFormateadaFirst = new Date(firstCita.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+            const horaFormateadaFirst = firstCita.hora ? firstCita.hora.substring(0, 5) : 'N/A';
+            
+            let diasRestantesTextFirst = '';
+            if (firstCita.dias_restantes === 0) {
+                diasRestantesTextFirst = 'Hoy';
+            } else if (firstCita.dias_restantes === 1) {
+                diasRestantesTextFirst = 'Mañana';
+            } else if (firstCita.dias_restantes > 1) { // Corregido: firstCitas -> firstCita
+                diasRestantesTextFirst = `En ${firstCita.dias_restantes} días`;
+            } else {
+                diasRestantesTextFirst = 'Pasada'; 
+            }
 
-                li.innerHTML = `
-                    <div class="flex-grow">
-                        <span class="entry-text">${cita.nombre}</span>
-                        <div class="cita-info">
-                            Fecha: ${fechaFormateada} Hora: ${horaFormateada}
-                        </div>
+            liFirst.innerHTML = `
+                <div class="flex-grow">
+                    <span class="entry-text">${firstCita.nombre}</span>
+                    <div class="cita-info">
+                        Fecha: ${fechaFormateadaFirst} Hora: ${horaFormateadaFirst}
                     </div>
-                    <div class="dias-restantes text-sm text-blue-600 font-semibold">${diasRestantesText}</div>
-                `;
-                upcomingCitasList.appendChild(li);
-            });
+                </div>
+                <div class="dias-restantes text-sm text-blue-600 font-semibold">${diasRestantesTextFirst}</div>
+            `;
+            upcomingCitasList.appendChild(liFirst);
+
+            // Si hay más citas, preparar el resto y el botón
+            if (citas.length > 1) {
+                toggleCitasButton.style.display = 'block';
+                toggleCitasButton.textContent = `Ver ${citas.length - 1} cita${citas.length - 1 > 1 ? 's' : ''} más`; 
+
+                const remainingCitas = citas.slice(1);
+                remainingCitas.forEach(cita => {
+                    const li = document.createElement('li');
+                    li.classList.add('cita-item');
+                    if (cita.completada) { 
+                        li.classList.add('completada');
+                    }
+
+                    const fechaFormateada = new Date(cita.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+                    const horaFormateada = cita.hora ? cita.hora.substring(0, 5) : 'N/A';
+                    
+                    let diasRestantesText = '';
+                    if (cita.dias_restantes === 0) {
+                        diasRestantesText = 'Hoy';
+                    } else if (cita.dias_restantes === 1) {
+                        diasRestantesText = 'Mañana';
+                    } else if (cita.dias_restantes > 1) {
+                        diasRestantesText = `En ${cita.dias_restantes} días`;
+                    } else {
+                        diasRestantesText = 'Pasada'; 
+                    }
+
+                    li.innerHTML = `
+                        <div class="flex-grow">
+                            <span class="entry-text">${cita.nombre}</span>
+                            <div class="cita-info">
+                                Fecha: ${fechaFormateada} Hora: ${horaFormateada}
+                            </div>
+                        </div>
+                        <div class="dias-restantes text-sm text-blue-600 font-semibold">${diasRestantesText}</div>
+                    `;
+                    moreCitasContainer.appendChild(li);
+                });
+            }
+            toggleCitasButton.onclick = () => { 
+                if (moreCitasContainer.style.display === 'none') {
+                    moreCitasContainer.style.display = 'block';
+                    toggleCitasButton.textContent = 'Ver menos citas';
+                } else {
+                    moreCitasContainer.style.display = 'none';
+                    toggleCitasButton.textContent = `Ver ${citas.length - 1} cita${citas.length - 1 > 1 ? 's' : ''} más`;
+                }
+            };
         }
 
 
@@ -657,7 +728,7 @@
                     const postponeButton = document.createElement('button');
                     postponeButton.classList.add('boton', 'bg-yellow-500', 'hover:bg-yellow-700', 'text-white', 'py-1', 'px-3', 'rounded', 'text-sm', 'flex', 'items-center', 'space-x-1');
                     postponeButton.innerHTML = '<i class="fas fa-calendar-alt"></i> <span>Aplazar</span>';
-                    postponeButton.addEventListener('click', () => postponeTask(entry.id, entry.fecha, entry.hora, entry.displayText));
+                    postponeButton.addEventListener('click', (event) => postponeTask(entry.id, entry.fecha, entry.hora, entry.displayText));
                     actionsDiv.appendChild(postponeButton);
 
                     const saveRegistroButton = document.createElement('button');
@@ -665,7 +736,7 @@
                     saveRegistroButton.dataset.id = entry.id;
                     saveRegistroButton.title = 'Guardar en Registro';
                     saveRegistroButton.innerHTML = '<i class="fas fa-save"></i> <span>Registro</span>';
-                    saveRegistroButton.addEventListener('click', () => saveTaskToRegistro(entry.id));
+                    saveRegistroButton.addEventListener('click', (event) => saveTaskToRegistro(entry.fecha, entry.displayText)); // Pass relevant task data directly
                     actionsDiv.appendChild(saveRegistroButton);
 
                     const deleteButton = document.createElement('button');
@@ -708,7 +779,7 @@
                     }
 
                     completeRoutineButton.addEventListener('click', async (event) => {
-                        const routineId = entry.id;
+                        const routineId = event.currentTarget.dataset.id; 
                         try {
                             const response = await fetch(`/api/rutinas/${routineId}/toggle_completada_dia`, {
                                 method: 'POST',
@@ -717,8 +788,22 @@
                             });
 
                             if (!response.ok) {
-                                const errorData = await response.json();
-                                throw new Error(errorData.error || 'Error al actualizar estado de rutina.');
+                                let errorMessage = `HTTP error! status: ${response.status}`;
+                                const contentType = response.headers.get('content-type');
+                                const responseBody = await response.text(); 
+                                if (contentType && contentType.includes('application/json')) {
+                                    try {
+                                        const errorData = JSON.parse(responseBody);
+                                        errorMessage = errorData.error || errorMessage;
+                                    } catch (jsonParseError) {
+                                        console.warn("JSON parsing failed for routine toggle error, falling back to raw text.", jsonParseError);
+                                        errorMessage = `El servidor respondió con un JSON inválido. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
+                                    }
+                                } else {
+                                    errorMessage = `El servidor respondió con un error no JSON. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
+                                    console.error("Respuesta de error no JSON del servidor:", responseBody);
+                                }
+                                throw new Error(errorMessage);
                             }
                             showCustomAlert('Estado de rutina actualizado.', 'Actualización Exitosa');
                             fetchCombinedAgenda(); 
@@ -750,27 +835,43 @@
         }
 
         async function toggleTaskCompletada(event) {
-            const taskId = event.target.dataset.id;
+            const taskId = event.currentTarget.dataset.id; 
             try {
                 const response = await fetch(`/api/tareas/${taskId}/toggle_completada`, {
                     method: 'PATCH',
                 });
+                
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Error desconocido al actualizar la tarea.');
+                    let errorMessage = `HTTP error! status: ${response.status}`;
+                    const contentType = response.headers.get('content-type');
+                    const responseBody = await response.text(); 
+                    if (contentType && contentType.includes('application/json')) {
+                        try {
+                            const errorData = JSON.parse(responseBody);
+                            errorMessage = errorData.error || errorMessage;
+                        } catch (jsonParseError) {
+                            console.warn("JSON parsing failed for task toggle error, falling back to raw text.", jsonParseError);
+                            errorMessage = `El servidor respondió con un JSON inválido. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
+                        }
+                    } else {
+                        errorMessage = `El servidor respondió con un error no JSON. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
+                        console.error("Respuesta de error no JSON del servidor:", responseBody);
+                    }
+                    throw new Error(errorMessage);
                 }
+
+                const data = await response.json(); 
+                console.log('Tarea actualizada:', data);
+                showCustomAlert('Estado de tarea actualizado con éxito.', 'Actualización Exitosa');
                 fetchCombinedAgenda();
             } catch (error) {
-                console.error('Error al cambiar estado:', error);
-                const errorDetails = response && response.headers.get('content-type')?.includes('application/json')
-                    ? (await response.json()).error
-                    : (await response.text());
-                showCustomAlert(`No se pudo actualizar la tarea. Error: ${errorDetails}`, 'Error de Actualización');
+                console.error('Error al actualizar el estado de la tarea:', error);
+                showCustomAlert(`No se pudo actualizar la tarea. Error: ${error.message}`, 'Error de Actualización');
             }
         }
 
         async function deleteTask(event) {
-            const taskId = event.target.dataset.id;
+            const taskId = event.currentTarget.dataset.id; 
             const confirmAction = await showCustomConfirm('¿Estás seguro de que quieres eliminar esta tarea?');
             if (confirmAction) {
                 try {
@@ -778,8 +879,22 @@
                         method: 'DELETE'
                     });
                     if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || 'Error al eliminar la tarea');
+                        let errorMessage = `HTTP error! status: ${response.status}`;
+                        const contentType = response.headers.get('content-type');
+                        const responseBody = await response.text(); 
+                        if (contentType && contentType.includes('application/json')) {
+                            try {
+                                const errorData = JSON.parse(responseBody);
+                                errorMessage = errorData.error || errorMessage;
+                            } catch (jsonParseError) {
+                                console.warn("JSON parsing failed for task delete error, falling back to raw text.", jsonParseError);
+                                errorMessage = `El servidor respondió con un JSON inválido. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
+                            }
+                        } else {
+                            errorMessage = `El servidor respondió con un error no JSON. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
+                            console.error("Respuesta de error no JSON del servidor:", responseBody);
+                        }
+                        throw new Error(errorMessage);
                     }
                     showCustomAlert('Tarea eliminada exitosamente.', 'Eliminación Exitosa');
                     fetchCombinedAgenda();
@@ -884,41 +999,7 @@
             });
         }
 
-        async function saveTaskToRegistro(taskId) {
-            const taskElement = document.querySelector(`.task-item[data-id="${taskId}"]`);
-            if (!taskElement) {
-                console.error("Error: taskElement not found for taskId:", taskId);
-                showCustomAlert('No se pudo encontrar la tarea para guardar. Intenta de nuevo.', 'Error');
-                return;
-            }
-
-            const fecha = taskElement.dataset.fecha;
-            const textoOriginal = taskElement.dataset.textoOriginal;
-            
-            let tiposDisponibles = [];
-            try {
-                const response = await fetch('/api/tipos_registro');
-                if (!response.ok) throw new Error('Error al cargar los tipos de registro.');
-                tiposDisponibles = await response.json();
-            } catch (error) {
-                console.error('Error al cargar tipos para el modal de registro:', error);
-                showCustomAlert('No se pudieron cargar los tipos de registro. Se usará el tipo "General".', 'Advertencia');
-                tiposDisponibles = [{ id: null, nombre: 'General' }];
-            }
-
-            tiposDisponibles.sort((a, b) => a.nombre.localeCompare(b.nombre));
-
-            let tipoOptionsHtml = tiposDisponibles.map(type => 
-                `<option value="${type.nombre}">${type.nombre}</option>`
-            ).join('');
-
-            const generalOptionExists = tiposDisponibles.some(type => type.nombre === 'General');
-            if (!generalOptionExists) {
-                tipoOptionsHtml = `<option value="General" selected>General</option>` + tipoOptionsHtml;
-            } else {
-                tipoOptionsHtml = tipoOptionsHtml.replace(`value="General"`, `value="General" selected`);
-            }
-
+        async function saveTaskToRegistro(fecha, textoOriginal) {
             const formContent = document.createElement('div');
             formContent.innerHTML = `
                 <h3 class="text-xl font-bold mb-4 text-center">Guardar en Registro Importante</h3>
@@ -935,7 +1016,7 @@
                 <div class="mb-4">
                     <label for="registroTipo" class="block text-gray-700 text-sm font-bold mb-2">Tipo:</label>
                     <select id="registroTipo" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                        ${tipoOptionsHtml}
+                        <option value="General" selected>General</option>
                     </select>
                 </div>
                 
@@ -959,6 +1040,7 @@
             const openCameraButton = modal.querySelector('#openCameraButton');
             currentRegistroPhotoPreviewElement = modal.querySelector('#registroPhotoPreview');
 
+            // Mostrar la imagen capturada si ya existe
             if (capturedImageBase64) { 
                 currentRegistroPhotoPreviewElement.src = capturedImageBase64;
                 currentRegistroPhotoPreviewElement.style.display = 'block';
@@ -969,20 +1051,23 @@
             openCameraButton.addEventListener('click', () => {
                 console.log("DEBUG: Botón 'Tomar Foto' en modal de registro clickeado. Abriendo modal de cámara.");
                 cameraModal.style.display = 'flex';
+                // Reset camera preview states
                 videoStream.style.display = 'block';
                 photoPreview.style.display = 'none';
                 capturePhotoButton.style.display = 'block'; 
                 retakePhotoButton.style.display = 'none';
                 confirmPhotoButton.style.display = 'none';
 
-                capturedImageBase64 = null;
+                capturedImageBase64 = null; // Clear previous capture when opening camera
+                currentFileName = null;
+                currentMimeType = null;
                 initCamera();
             });
 
             document.getElementById('guardarRegistroBtn').addEventListener('click', async () => {
                 const titulo = document.getElementById('registroTitulo').value.trim();
                 const descripcion = document.getElementById('registroDescripcion').value.trim();
-                const tipo = document.getElementById('registroTipo').value;
+                const tipo = document.getElementById('registroTipo').value; // Siempre "General"
 
                 if (!titulo) {
                     showCustomAlert('El título es obligatorio.', 'Campo Obligatorio');
@@ -995,7 +1080,15 @@
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ fecha, titulo, descripcion, tipo, imagen_base64: capturedImageBase64 })
+                        body: JSON.stringify({ 
+                            fecha: fecha, 
+                            titulo: titulo, 
+                            descripcion: descripcion, 
+                            tipo: tipo,
+                            imagen_base64: capturedImageBase64, // Enviar imagen si existe
+                            nombre_archivo: currentFileName,     // Enviar nombre de archivo si existe
+                            mime_type: currentMimeType         // Enviar tipo MIME si existe
+                        })
                     });
                     if (!response.ok) {
                         const errorData = await response.json();
@@ -1003,7 +1096,10 @@
                     }
                     showCustomAlert('Registro guardado con éxito.', 'Guardado Exitoso');
                     modal.remove();
+                    // Limpiar las variables globales de la cámara después de un guardado exitoso
                     capturedImageBase64 = null;
+                    currentFileName = null;
+                    currentMimeType = null;
                     currentRegistroPhotoPreviewElement = null;
                     console.log("DEBUG: Registro guardado, imagen Base64 y referencia limpiadas.");
                 } catch (error) {
@@ -1014,19 +1110,24 @@
 
             document.getElementById('cancelRegistroBtn').addEventListener('click', () => {
                 modal.remove();
+                // Limpiar las variables globales de la cámara si se cancela el registro
                 capturedImageBase64 = null;
+                currentFileName = null;
+                currentMimeType = null;
                 currentRegistroPhotoPreviewElement = null;
-                stopCamera();
+                stopCamera(); // Asegurarse de detener la cámara si sigue activa
                 console.log("DEBUG: Modal de registro cancelado, imagen y cámara detenidas.");
             });
         }
 
+        // Función para crear modales genéricos con z-index
         function createModal(content) {
             const modalOverlay = document.createElement('div');
-            modalOverlay.classList.add('fixed', 'inset-0', 'bg-black', 'bg-opacity-50', 'flex', 'items-center', 'justify-center', 'z-50');
+            // Z-index para modales generados dinámicamente (ej. aplazar, guardar registro)
+            modalOverlay.classList.add('fixed', 'inset-0', 'bg-black', 'bg-opacity-50', 'flex', 'items-center', 'justify-center', 'z-[9998]'); 
 
             const modalContent = document.createElement('div');
-            modalContent.classList.add('bg-white', 'p-6', 'rounded-lg', 'shadow-xl', 'max-w-md', 'mx-4', 'w-full');
+            modalContent.classList.add('bg-white', 'p-6', 'rounded-lg', 'shadow-xl', 'max-w-md', 'mx-4', 'w-full', 'scrollable-modal-content');
             modalContent.appendChild(content);
 
             modalOverlay.appendChild(modalContent);
@@ -1034,17 +1135,23 @@
             modalOverlay.addEventListener('click', (e) => {
                 if (e.target === modalOverlay) {
                     modalOverlay.remove();
-                    if (modalOverlay.id === 'cameraModal') {
+                    // Solo detener cámara si el modal de la cámara es el que se cierra haciendo clic fuera
+                    if (modalOverlay.id === 'cameraModal') { // Esto ya no es relevante aquí, cameraModal es estático
                         stopCamera();
-                        capturePhotoButton.style.display = 'block';
-                        retakePhotoButton.style.display = 'none';
-                        confirmPhotoButton.style.display = 'none';
+                        capturedImageBase64 = null; // Discard photo if modal closed without confirming
+                        currentFileName = null;
+                        currentMimeType = null;
+                        if (currentRegistroPhotoPreviewElement) { // Limpiar si hay una referencia
+                           currentRegistroPhotoPreviewElement.src = '';
+                           currentRegistroPhotoPreviewElement.style.display = 'none';
+                        }
                     }
                 }
             });
             return modalOverlay;
         }
 
+        // Custom Alert/Confirm Modals (reutilizadas de registros_importantes.html para consistencia)
         function showCustomModal(message, title = 'Mensaje', type = 'alert') {
             return new Promise((resolve) => {
                 const modalOverlay = document.getElementById('customModalOverlay');
@@ -1065,7 +1172,20 @@
                         resolve(true);
                     });
                     modalActions.appendChild(okButton);
-                } else if (type === 'confirm') {
+                }
+                else if (type === 'alert-immediate') { 
+                    const okButton = document.createElement('button');
+                    okButton.classList.add('bg-blue-500', 'hover:bg-blue-700', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded-full');
+                    okButton.textContent = 'Aceptar';
+                    okButton.addEventListener('click', () => {
+                        modalOverlay.style.display = 'none';
+                    });
+                    modalActions.appendChild(okButton);
+                    modalOverlay.style.display = 'flex';
+                    resolve(true); 
+                    return; 
+                }
+                else if (type === 'confirm') {
                     const yesButton = document.createElement('button');
                     yesButton.classList.add('bg-green-500', 'hover:bg-green-700', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded-full');
                     yesButton.textContent = 'Sí';
@@ -1089,7 +1209,7 @@
         }
 
         function showCustomAlert(message, title = 'Mensaje') {
-            return showCustomModal(message, title, 'alert');
+            return showCustomModal(message, title, 'alert-immediate'); 
         }
 
         async function showCustomConfirm(message, title = 'Confirmación') {
@@ -1098,7 +1218,7 @@
 
 
         async function deleteRoutine(event) {
-            const routineId = event.target.dataset.id;
+            const routineId = event.currentTarget.dataset.id; 
             const confirmAction = await showCustomConfirm('¿Estás seguro de que quieres eliminar esta rutina?');
             if (confirmAction) {
                 try {
@@ -1106,8 +1226,22 @@
                         method: 'DELETE'
                     });
                     if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || 'Error deleting routine');
+                        let errorMessage = `HTTP error! status: ${response.status}`;
+                        const contentType = response.headers.get('content-type');
+                        const responseBody = await response.text(); 
+                        if (contentType && contentType.includes('application/json')) {
+                            try {
+                                const errorData = JSON.parse(responseBody);
+                                errorMessage = errorData.error || errorMessage;
+                            } catch (jsonParseError) {
+                                console.warn("JSON parsing failed for routine delete error, falling back to raw text.", jsonParseError);
+                                errorMessage = `El servidor respondió con un JSON inválido. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
+                            }
+                        } else {
+                            errorMessage = `El servidor respondió con un error no JSON. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
+                            console.error("Respuesta de error no JSON del servidor:", responseBody);
+                        }
+                        throw new Error(errorMessage);
                     }
                     showCustomAlert('Rutina eliminada con éxito.', 'Eliminación Exitosa');
                     fetchCombinedAgenda();
@@ -1170,12 +1304,27 @@
                     });
 
                     if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || 'Error desconocido al guardar la tarea.');
+                        let errorMessage = `HTTP error! status: ${response.status}`;
+                        const contentType = response.headers.get('content-type');
+                        const responseBody = await response.text(); 
+                        if (contentType && contentType.includes('application/json')) {
+                            try {
+                                const errorData = JSON.parse(responseBody);
+                                errorMessage = errorData.error || errorMessage;
+                            } catch (jsonParseError) {
+                                console.warn("JSON parsing failed for add_tarea error, falling back to raw text.", jsonParseError);
+                                errorMessage = `El servidor respondió con un JSON inválido. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
+                            }
+                        } else {
+                            errorMessage = `El servidor respondió con un error no JSON. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
+                            console.error("Respuesta de error no JSON del servidor:", responseBody);
+                        }
+                        throw new Error(errorMessage);
                     }
                     showCustomAlert('Tarea guardada con éxito.', 'Guardado Exitoso');
                     fetchCombinedAgenda();
-                } catch (error) {
+                }
+                 catch (error) {
                     console.error('Error saving task:', error);
                     showCustomAlert(`No se pudo guardar la tarea. Inténtalo de nuevo. Error: ${error.message}`, 'Error de Guardado');
                 }
@@ -1199,8 +1348,22 @@
                     });
 
                     if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || 'Error desconocido al guardar la rutina.');
+                        let errorMessage = `HTTP error! status: ${response.status}`;
+                        const contentType = response.headers.get('content-type');
+                        const responseBody = await response.text(); 
+                        if (contentType && contentType.includes('application/json')) {
+                            try {
+                                const errorData = JSON.parse(responseBody);
+                                errorMessage = errorData.error || errorMessage;
+                            } catch (jsonParseError) {
+                                console.warn("JSON parsing failed for add_rutina error, falling back to raw text.", jsonParseError);
+                                errorMessage = `El servidor respondió con un JSON inválido. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
+                            }
+                        } else {
+                            errorMessage = `El servidor respondió con un error no JSON. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
+                            console.error("Respuesta de error no JSON del servidor:", responseBody);
+                        }
+                        throw new Error(errorMessage);
                     }
                     showCustomAlert('Rutina guardada con éxito.', 'Guardado Exitoso');
                     fetchCombinedAgenda();
@@ -1226,8 +1389,22 @@
                     });
 
                     if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || 'Error desconocido al guardar la cita.');
+                        let errorMessage = `HTTP error! status: ${response.status}`;
+                        const contentType = response.headers.get('content-type');
+                        const responseBody = await response.text(); 
+                        if (contentType && contentType.includes('application/json')) {
+                            try {
+                                const errorData = JSON.parse(responseBody);
+                                errorMessage = errorData.error || errorMessage;
+                            } catch (jsonParseError) {
+                                console.warn("JSON parsing failed for add_cita error, falling back to raw text.", jsonParseError);
+                                errorMessage = `El servidor respondió con un JSON inválido. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
+                            }
+                        } else {
+                            errorMessage = `El servidor respondió con un error no JSON. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
+                            console.error("Respuesta de error no JSON del servidor:", responseBody);
+                        }
+                        throw new Error(errorMessage);
                     }
                     showCustomAlert('Cita guardada con éxito.', 'Guardado Exitoso');
                     fetchCombinedAgenda(); 
@@ -1259,8 +1436,22 @@
                             body: JSON.stringify({ item: item })
                         });
                         if (!response.ok) {
-                            const errorData = await response.text();
-                            throw new Error(errorData || `Error adding "${item}" to shopping list.`);
+                            let errorMessage = `HTTP error! status: ${response.status}`;
+                            const contentType = response.headers.get('content-type');
+                            const responseBody = await response.text(); 
+                            if (contentType && contentType.includes('application/json')) {
+                                try {
+                                    const errorData = JSON.parse(responseBody);
+                                    errorMessage = errorData.error || errorMessage;
+                                } catch (jsonParseError) {
+                                    console.warn("JSON parsing failed for lista_compra error, falling back to raw text.", jsonParseError);
+                                    errorMessage = `El servidor respondió con un JSON inválido. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
+                                }
+                            } else {
+                                errorMessage = `El servidor respondió con un error no JSON. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
+                                console.error("Respuesta de error no JSON del servidor:", responseBody);
+                            }
+                            throw new Error(errorMessage);
                         }
                         console.log(`Item "${item}" added successfully to shopping list.`);
                     } catch (error) {
@@ -1286,8 +1477,22 @@
                         body: JSON.stringify({ texto: noteText, fecha: fecha })
                     });
                     if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || 'Error desconocido al guardar la nota.');
+                        let errorMessage = `HTTP error! status: ${response.status}`;
+                        const contentType = response.headers.get('content-type');
+                        const responseBody = await response.text(); 
+                        if (contentType && contentType.includes('application/json')) {
+                            try {
+                                const errorData = JSON.parse(responseBody);
+                                errorMessage = errorData.error || errorMessage;
+                            } catch (jsonParseError) {
+                                console.warn("JSON parsing failed for add_nota error, falling back to raw text.", jsonParseError);
+                                errorMessage = `El servidor respondió con un JSON inválido. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
+                            }
+                        } else {
+                            errorMessage = `El servidor respondió con un error no JSON. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
+                            console.error("Respuesta de error no JSON del servidor:", responseBody);
+                        }
+                        throw new Error(errorMessage);
                     }
                     showCustomAlert('Nota rápida guardada con éxito.', 'Nota Guardada');
                     entryTextInput.value = ''; 
@@ -1304,7 +1509,7 @@
             const citaText = entryTextInput.value.trim();
             
             if (!citaText) {
-                window.location.href = '/citas'; // ENLACE CORREGIDO A RUTA FLASK
+                window.location.href = '/citas'; 
                 return;
             }
 
@@ -1332,8 +1537,22 @@
                     body: JSON.stringify({ nombre: citaText, fecha: citaFecha, hora: citaHora || null })
                 });
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Error desconocido al guardar la cita rápida.');
+                    let errorMessage = `HTTP error! status: ${response.status}`;
+                    const contentType = response.headers.get('content-type');
+                    const responseBody = await response.text(); 
+                    if (contentType && contentType.includes('application/json')) {
+                        try {
+                            const errorData = JSON.parse(responseBody);
+                            errorMessage = errorData.error || errorMessage;
+                        } catch (jsonParseError) {
+                            console.warn("JSON parsing failed for add_cita (quick) error, falling back to raw text.", jsonParseError);
+                            errorMessage = `El servidor respondió con un JSON inválido. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
+                        }
+                    } else {
+                        errorMessage = `El servidor respondió con un error no JSON. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
+                        console.error("Respuesta de error no JSON del servidor:", responseBody);
+                    }
+                    throw new Error(errorMessage);
                 }
                 showCustomAlert('Cita rápida guardada con éxito.', 'Cita Guardada');
                 quickCitaModal.style.display = 'none'; 
@@ -1343,20 +1562,12 @@
                 console.error('Error al guardar la cita rápida:', error);
                 showCustomAlert(`No se pudo guardar la cita rápida: ${error.message}`, 'Error al Guardar Cita');
             }
-            window.location.href = '/citas'; // ENLACE CORREGIDO A RUTA FLASK
+            window.location.href = '/citas'; 
         });
 
         cancelQuickCitaBtn.addEventListener('click', () => {
             quickCitaModal.style.display = 'none';
         });
-
-
-        // Event listener para el botón de imagen de la nube (ejemplo)
-        // cloudImageButton.addEventListener('click', () => { // ELIMINADO
-        //     const imageUrl = 'https://placehold.co/800x600/FF5733/FFFFFF?text=Tu%20Imagen%20desde%20la%20Nube'; 
-        //     window.open(imageUrl, '_blank');
-        // });
-
 
         // --- Lógica de la Cámara ---
         async function initCamera() {
@@ -1423,6 +1634,9 @@
                 context.drawImage(videoStream, 0, 0, photoCanvas.width, photoCanvas.height);
                 
                 capturedImageBase64 = photoCanvas.toDataURL('image/png');
+                currentFileName = `foto_registro_${Date.now()}.png`; // Nombre de archivo genérico
+                currentMimeType = 'image/png'; // Tipo MIME fijo para PNG
+
                 photoPreview.src = capturedImageBase64;
 
                 videoStream.style.display = 'none';
@@ -1442,6 +1656,8 @@
         retakePhotoButton.addEventListener('click', () => {
             console.log("DEBUG: Botón 'Repetir' clickeado. Reiniciando cámara.");
             capturedImageBase64 = null;
+            currentFileName = null;
+            currentMimeType = null;
             photoPreview.style.display = 'none';
             capturePhotoButton.style.display = 'block'; 
             retakePhotoButton.style.display = 'none';
@@ -1468,6 +1684,8 @@
             cameraModal.style.display = 'none';
             stopCamera();
             capturedImageBase64 = null;
+            currentFileName = null; // Limpiar nombre de archivo
+            currentMimeType = null;  // Limpiar tipo MIME
             if (currentRegistroPhotoPreviewElement) {
                 currentRegistroPhotoPreviewElement.src = '';
                 currentRegistroPhotoPreviewElement.style.display = 'none';

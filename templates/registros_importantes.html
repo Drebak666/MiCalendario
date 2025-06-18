@@ -23,189 +23,6 @@
             margin-top: 1.5rem; /* mt-6 */
         }
 
-        /* Estilos específicos para la página de registros importantes */
-        .registro-item {
-            background-color: #fff;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        @media (min-width: 768px) { /* md: */
-            .registro-item {
-                flex-direction: row;
-                align-items: flex-start;
-                justify-content: space-between;
-            }
-        }
-        .registro-header {
-            display: flex;
-            flex-direction: column; /* Cambiado a columna para móvil */
-            justify-content: space-between;
-            align-items: flex-start; /* Alineado a la izquierda para móvil */
-            flex-wrap: wrap; 
-            gap: 10px; 
-            width: 100%; /* Ocupa todo el ancho en móvil */
-        }
-        @media (min-width: 768px) { /* md: */
-            .registro-header {
-                flex-direction: row;
-                align-items: center;
-                justify-content: space-between;
-            }
-        }
-        .registro-title {
-            font-size: 1.3em;
-            color: #333;
-            flex-grow: 1; 
-            min-width: 150px; 
-            font-weight: bold; /* Añadido para hacer el título más prominente */
-        }
-        .registro-date, .registro-type {
-            font-size: 0.9em;
-            color: #666;
-            background-color: #e9ecef;
-            padding: 5px 10px;
-            border-radius: 5px;
-        }
-        .registro-actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            justify-content: flex-end; /* Alineado a la derecha */
-            width: 100%; /* Ocupa todo el ancho en móvil */
-            margin-top: 10px; /* Espacio para móvil */
-        }
-        @media (min-width: 768px) { /* md: */
-            .registro-actions {
-                width: auto;
-                margin-top: 0;
-            }
-        }
-        .registro-description {
-            font-size: 1em;
-            color: #555;
-            margin-top: 5px;
-            line-height: 1.5;
-            white-space: pre-wrap; 
-            width: 100%; /* Ocupa todo el ancho */
-        }
-        .registro-image-container {
-            margin-top: 10px;
-            text-align: center;
-            width: 100%; /* Ocupa todo el ancho en móvil */
-        }
-        @media (min-width: 768px) { /* md: */
-            .registro-image-container {
-                max-width: 150px; /* Más pequeño en escritorio */
-                flex-shrink: 0; /* No se encoge */
-            }
-        }
-        .registro-image {
-            max-width: 100%;
-            height: auto;
-            border-radius: 5px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            object-fit: cover; /* Asegura que la imagen se ajuste bien */
-        }
-        .month-header {
-            font-size: 1.5rem; /* text-2xl */
-            font-weight: bold;
-            color: #4a5568; /* gray-700 */
-            margin-top: 2rem; /* mt-8 */
-            margin-bottom: 0.75rem; /* mb-3 */
-            border-bottom: 1px solid #e2e8f0; /* border-b */
-            padding-bottom: 0.5rem; /* pb-2 */
-        }
-        .month-navigation {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            background-color: #f8f9fa;
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .month-navigation button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: background-color 0.2s ease-in-out;
-        }
-        .month-navigation button:hover {
-            background-color: #0056b3;
-        }
-        .current-month-year {
-            font-size: 1.2em;
-            font-weight: bold;
-            color: #333;
-        }
-        .add-registro-container {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        .add-registro-container label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #333;
-        }
-        .add-registro-container input[type="text"],
-        .add-registro-container input[type="date"],
-        .add-registro-container textarea,
-        .add-registro-container select {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            box-sizing: border-box;
-            font-size: 1em;
-        }
-        .add-registro-container button.boton {
-            width: auto;
-            padding: 10px 20px;
-            margin-right: 10px;
-        }
-        .file-upload-section, .photo-capture-section {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px dashed #eee;
-        }
-        .file-upload-section input[type="file"] {
-            margin-top: 5px;
-            margin-bottom: 10px;
-            padding: 5px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            width: auto;
-        }
-        .file-preview-container {
-            margin-top: 10px;
-            text-align: center;
-        }
-        .file-preview-container img, .file-preview-container video {
-            max-width: 100%;
-            height: auto;
-            border-radius: 5px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .file-preview-container p {
-            font-style: italic;
-            color: #777;
-        }
-
         /* Estilos de la cámara */
         .camera-modal-content {
             max-width: 700px;
@@ -228,125 +45,77 @@
         .camera-actions button {
             margin: 5px;
         }
-
-        /* Estilos para el modal de login */
-        #loginModal {
-            position: fixed;
-            inset: 0;
-            background-color: rgba(0, 0, 0, 0.5);
+        .registro-item {
+            background-color: #f0f9ff; /* Un azul muy claro */
+            border-left: 5px solid #0ea5e9; /* Border azul de Tailwind */
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
             display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .registro-item-header {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            z-index: 9999;
         }
-        #loginModal .custom-modal-content {
-            background-color: #fff;
-            padding: 24px; /* p-6 */
-            border-radius: 8px; /* rounded-lg */
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); /* shadow-xl */
-            max-width: 400px;
-            text-align: center;
-            width: 90%; /* Ajuste para móvil */
-        }
-        #loginModal input[type="password"] {
-            padding: 10px;
-            margin: 15px 0;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            width: calc(100% - 20px);
-            box-sizing: border-box;
-            font-size: 1.2em;
-            text-align: center;
-        }
-        #loginModal button {
-            width: 100%;
-            padding: 12px 0;
-            font-size: 1.1em;
-            background-color: #007bff; /* blue-500 */
-            color: white;
+        .registro-item-title {
             font-weight: bold;
-            border-radius: 9999px; /* rounded-full */
-            transition: background-color 0.2s;
+            color: #1f2937; /* gray-800 */
         }
-        #loginModal button:hover {
-            background-color: #0056b3; /* blue-700 */
+        .registro-item-date {
+            font-size: 0.875rem; /* text-sm */
+            color: #6b7280; /* gray-500 */
         }
-        #loginError {
-            color: #dc3545; /* red-500 */
-            margin-top: 10px;
+        .registro-item-description {
+            color: #374151; /* gray-700 */
         }
-
-        /* Estilos para el modal genérico (alert/confirm) */
-        .custom-modal-overlay {
-            position: fixed;
-            inset: 0;
-            background-color: rgba(0, 0, 0, 0.5);
+        .registro-item-image img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.375rem; /* rounded-md */
+            margin-top: 0.5rem;
+        }
+        .registro-actions {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000; /* Asegura que esté por encima de otros elementos */
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            justify-content: flex-end; /* Alinea los botones a la derecha */
         }
-        .custom-modal-content {
-            background-color: #fff;
-            padding: 24px;
-            border-radius: 8px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
-            width: 90%;
-            text-align: center;
+        .registro-actions button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
         }
-        .custom-modal-content h3 {
-            font-size: 1.25rem; /* text-xl */
-            font-weight: bold;
-            margin-bottom: 1rem; /* mb-4 */
-            color: #1a202c; /* gray-900 */
-        }
-        .custom-modal-content p {
-            margin-bottom: 1.5rem; /* mb-6 */
-            color: #4a5568; /* gray-700 */
-        }
-        .modal-actions {
-            display: flex;
-            justify-content: center;
-            gap: 1rem; /* space-x-4 */
-        }
-        .modal-actions .boton {
-            padding: 0.5rem 1rem; /* py-2 px-4 */
-            font-weight: bold;
-            border-radius: 9999px; /* rounded-full */
-            transition: all 0.2s ease-in-out;
-            background-color: #4299e1; /* blue-500 */
+        .btn-eliminar {
+            background-color: #ef4444; /* red-500 */
             color: white;
         }
-        .modal-actions .boton:hover {
-            background-color: #2b6cb0; /* blue-700 */
-        }
-        .modal-actions .cancel-button {
-            background-color: #a0aec0; /* gray-500 */
-        }
-        .modal-actions .cancel-button:hover {
-            background-color: #718096; /* gray-700 */
+        .btn-eliminar:hover {
+            background-color: #dc2626; /* red-600 */
         }
     </style>
 </head>
 <body class="bg-gray-100 font-sans antialiased">
-    <!-- Modal de Login (Inicialmente visible) -->
-    <div id="loginModal">
-        <div class="custom-modal-content">
-            <h3 class="text-xl font-bold mb-4">Acceso a Registros Importantes</h3>
-            <p class="mb-4 text-gray-700">Por favor, introduce el PIN para acceder.</p>
-            <input type="password" id="pinInput" placeholder="Introduce tu PIN" maxlength="4" class="block w-full p-3 mb-4 border border-gray-300 rounded-md text-center text-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <button id="loginButton" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-full w-full">Acceder</button>
-            <p id="loginError" class="text-red-500 mt-2 text-sm"></p>
+    <div class="container-wrapper">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Registros Importantes</h1>
+
+        <div class="navigation-buttons mb-6 flex justify-between">
+            <a href="/" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200">
+                <i class="fas fa-arrow-left mr-2"></i>Volver a Agenda
+            </a>
+            <button id="clearAllRegistrosBtn" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200">
+                <i class="fas fa-trash-alt mr-2"></i>Borrar Todos
+            </button>
         </div>
-    </div>
 
-    <div class="container-wrapper" id="mainContent" style="display:none;">
-        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Tus Registros Importantes</h1>
-
-        <!-- Formulario para Añadir Nuevo Registro -->
-        <div class="add-registro-container">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Añadir Nuevo Registro</h2>
+        <div class="add-registro-section mb-8 p-4 bg-purple-50 rounded-lg shadow-inner">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">Añadir Nuevo Registro</h2>
             <form id="addRegistroForm">
                 <div class="mb-4">
                     <label for="registroAddFecha" class="block text-gray-700 text-sm font-bold mb-2">Fecha:</label>
@@ -354,120 +123,51 @@
                 </div>
                 <div class="mb-4">
                     <label for="registroAddTitulo" class="block text-gray-700 text-sm font-bold mb-2">Título:</label>
-                    <input type="text" id="registroAddTitulo" placeholder="Título del registro" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <input type="text" id="registroAddTitulo" placeholder="Ej. Visita al médico, Reparación del coche" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 </div>
                 <div class="mb-4">
-                    <label for="registroAddDescripcion" class="block text-gray-700 text-sm font-bold mb-2">Descripción:</label>
-                    <textarea id="registroAddDescripcion" rows="5" placeholder="Contenido o descripción del registro" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
-                </div>
-                <div class="mb-4">
-                    <label for="registroAddTipo" class="block text-gray-700 text-sm font-bold mb-2">Tipo:</label>
-                    <select id="registroAddTipo" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                        <!-- Opciones cargadas dinámicamente -->
-                    </select>
+                    <label for="registroAddDescripcion" class="block text-gray-700 text-sm font-bold mb-2">Descripción (opcional):</label>
+                    <textarea id="registroAddDescripcion" placeholder="Detalles del registro..." class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-24"></textarea>
                 </div>
                 
-                <div class="photo-capture-section flex flex-col items-center border-t border-dashed border-gray-300 pt-4 mt-4">
-                    <p class="text-gray-700 text-sm font-bold mb-3">Opcional: Adjuntar una foto o archivo</p>
-                    <div class="flex flex-col md:flex-row gap-3 items-center w-full justify-center">
-                        <button type="button" id="openCameraAddButton" class="boton bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full flex items-center space-x-2">
-                            <i class="fas fa-camera"></i> <span>Tomar Foto</span>
-                        </button>
-                        <input type="file" id="fileUploadInput" accept="image/*, .txt, .pdf, .doc, .docx" class="block text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                    </div>
-                    <div id="filePreviewContainer" class="file-preview-container mt-4 p-3 border border-gray-200 rounded-lg bg-gray-50" style="display:none;">
-                        <img id="fileImagePreview" class="registro-image" style="display:none;">
-                        <p id="fileTextPreview" class="text-sm text-gray-600" style="display:none;"></p>
-                    </div>
-                    <button type="button" id="clearFileButton" class="boton cancel-button bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full mt-4 flex items-center space-x-2" style="display:none;">
-                        <i class="fas fa-times"></i> <span>Limpiar Archivo/Foto</span>
+                <div class="mb-4 text-center">
+                    <p class="text-gray-700 text-sm font-bold mb-2">Opcional: Adjuntar una foto o documento</p>
+                    <button type="button" id="openCameraForRegistro" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full flex items-center justify-center mx-auto space-x-2">
+                        <i class="fas fa-camera"></i> <span>Tomar Foto</span>
                     </button>
+                    <img id="registroPhotoPreview" class="photo-preview mt-4 mx-auto" style="display:none;">
+                    <span id="registroFileName" class="text-sm text-gray-600 mt-2 block"></span>
                 </div>
 
-                <button type="submit" class="boton bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:shadow-lg w-full mt-6">
-                    <i class="fas fa-save"></i> Guardar Registro
-                </button>
+                <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:shadow-lg w-full transition-all duration-200">Guardar Registro</button>
             </form>
         </div>
 
-        <!-- Filtros y Navegación de Registros -->
-        <div class="month-navigation mt-8">
-            <button id="prevMonth" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full flex items-center space-x-2">
-                <i class="fas fa-chevron-left"></i> <span>Mes Anterior</span>
-            </button>
-            <span id="currentMonthYear" class="current-month-year text-lg"></span>
-            <button id="nextMonth" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full flex items-center space-x-2">
-                <span>Mes Siguiente</span> <i class="fas fa-chevron-right"></i>
-            </button>
-        </div>
-
-        <div class="mb-4 mt-4">
-            <label for="filterTipo" class="block text-gray-700 text-sm font-bold mb-2">Filtrar por Categoría:</label>
-            <select id="filterTipo" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                <option value="">Todas las categorías</option>
-                <!-- Opciones cargadas dinámicamente -->
-            </select>
-        </div>
-
-        <ul id="registrosList" class="notes-list space-y-4">
-            <li class="text-gray-500 italic">Cargando registros...</li>
-        </ul>
-
-        <div class="navigation grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 p-2 mt-8">
-            <a href="/" class="boton flex flex-col items-center justify-center p-3 rounded-lg shadow hover:shadow-lg transition-shadow bg-blue-400 text-white">
-                <i class="fas fa-home text-2xl mb-1"></i>
-                <span>Inicio</span>
-            </a>
-            <a href="/calendario" class="boton flex flex-col items-center justify-center p-3 rounded-lg shadow hover:shadow-lg transition-shadow bg-blue-400 text-white">
-                <i class="fas fa-calendar-alt text-2xl mb-1"></i>
-                <span>Calendario</span>
-            </a>
-            <a href="/alimentacion" class="boton flex flex-col items-center justify-center p-3 rounded-lg shadow hover:shadow-lg transition-shadow bg-yellow-400 text-white">
-                <i class="fas fa-utensils text-2xl mb-1"></i>
-                <span>Alimentación</span>
-            </a>
-            <a href="/documentacion" class="boton flex flex-col items-center justify-center p-3 rounded-lg shadow hover:shadow-lg transition-shadow bg-pink-400 text-white">
-                <i class="fas fa-folder-open text-2xl mb-1"></i>
-                <span>Documentos</span>
-            </a>
-            <a href="/gimnasio" class="boton flex flex-col items-center justify-center p-3 rounded-lg shadow hover:shadow-lg transition-shadow bg-red-400 text-white">
-                <i class="fas fa-dumbbell text-2xl mb-1"></i>
-                <span>Gimnasio</span>
-            </a>
-            <a href="/citas" class="relative boton flex flex-col items-center justify-center p-3 rounded-lg shadow hover:shadow-lg transition-shadow bg-teal-400 text-white">
-                <i class="fas fa-calendar-check text-2xl mb-1"></i>
-                <span>Citas</span>
-            </a>
-            <a href="/lista" class="relative boton flex flex-col items-center justify-center p-3 rounded-lg shadow hover:shadow-lg transition-shadow bg-orange-400 text-white">
-                <i class="fas fa-shopping-cart text-2xl mb-1"></i>
-                <span>Lista Compra</span>
-            </a>
-            <a href="/notas" class="relative boton flex flex-col items-center justify-center p-3 rounded-lg shadow hover:shadow-lg transition-shadow bg-indigo-400 text-white">
-                <i class="fas fa-pencil-alt text-2xl mb-1"></i>
-                <span>Notas</span>
-            </a>
+        <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Todos los Registros</h2>
+        <div id="registrosList" class="space-y-4">
+            <p class="text-gray-500 italic">Cargando registros...</p>
         </div>
     </div>
 
-    <!-- Modal para Captura de Foto (REUTILIZADO DEL INDEX) -->
-    <div id="cameraModal" class="custom-modal-overlay" style="display:none;">
-        <div class="custom-modal-content camera-modal-content">
-            <h3 class="text-xl font-bold mb-4 text-center">Tomar Foto</h3>
-            <video id="videoStream" class="camera-stream" autoplay playsinline></video>
-            <canvas id="photoCanvas" style="display:none;"></canvas>
-            <img id="photoPreview" class="photo-preview" style="display:none;">
-            <p id="cameraStatus" class="text-center text-gray-600 text-sm mb-4"></p>
-            <div class="camera-actions flex justify-center flex-wrap gap-2">
-                <button id="capturePhotoButton" class="boton bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full flex items-center space-x-2">
+    <!-- Modal para Captura de Foto (Mismo que index.html, pero con id único si se usa como modal individual) -->
+    <div id="cameraModalRegistro" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display:none;">
+        <div class="bg-white p-6 rounded-lg shadow-xl camera-modal-content">
+            <h3 class="text-xl font-bold mb-4 text-center">Tomar Foto para Registro</h3>
+            <video id="videoStreamRegistro" class="camera-stream" autoplay playsinline></video>
+            <canvas id="photoCanvasRegistro" style="display:none;"></canvas>
+            <img id="photoPreviewRegistro" class="photo-preview" style="display:none;">
+            <p id="cameraStatusRegistro" class="text-center text-sm text-gray-600 mb-4"></p>
+            <div class="flex justify-center flex-wrap gap-2 camera-actions">
+                <button id="capturePhotoButtonRegistro" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full flex items-center space-x-2">
                     <i class="fas fa-camera"></i> <span>Tomar Foto</span>
                 </button>
-                <button id="retakePhotoButton" class="boton cancel-button bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full flex items-center space-x-2" style="display:none;">
+                <button id="retakePhotoButtonRegistro" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full flex items-center space-x-2" style="display:none;">
                     <i class="fas fa-redo"></i> <span>Repetir</span>
                 </button>
-                <button id="confirmPhotoButton" class="boton bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full flex items-center space-x-2" style="display:none;">
+                <button id="confirmPhotoButtonRegistro" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full flex items-center space-x-2" style="display:none;">
                     <i class="fas fa-check"></i> <span>Confirmar</span>
                 </button>
-                <button id="closeCameraModalButton" class="boton cancel-button bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-full flex items-center space-x-2">
+                <button id="closeCameraModalRegistroButton" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-full flex items-center space-x-2">
                     <i class="fas fa-times"></i> <span>Cerrar</span>
                 </button>
             </div>
@@ -475,63 +175,53 @@
     </div>
 
     <!-- Custom Alert/Confirm Modal HTML (GLOBAL) -->
-    <div id="customModalOverlay" class="custom-modal-overlay" style="display:none;">
-        <div class="custom-modal-content">
+    <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display:none;">
+        <div class="bg-white p-6 rounded-lg shadow-xl custom-modal-content">
             <h3 id="customModalTitle" class="text-xl font-bold mb-4 text-center"></h3>
             <p id="customModalMessage" class="mb-6 text-gray-700 text-center"></p>
-            <div class="modal-actions flex justify-center space-x-4" id="customModalActions">
+            <div class="flex justify-center space-x-4" id="customModalActions">
                 <!-- Buttons will be injected here -->
             </div>
         </div>
     </div>
 
     <script>
-        const loginModal = document.getElementById('loginModal');
-        const pinInput = document.getElementById('pinInput');
-        const loginButton = document.getElementById('loginButton');
-        const loginError = document.getElementById('loginError');
-        const mainContent = document.getElementById('mainContent');
-
         const addRegistroForm = document.getElementById('addRegistroForm');
         const registroAddFecha = document.getElementById('registroAddFecha');
         const registroAddTitulo = document.getElementById('registroAddTitulo');
         const registroAddDescripcion = document.getElementById('registroAddDescripcion');
-        const registroAddTipo = document.getElementById('registroAddTipo');
-
-        const fileUploadInput = document.getElementById('fileUploadInput');
-        const filePreviewContainer = document.getElementById('filePreviewContainer');
-        const fileImagePreview = document.getElementById('fileImagePreview');
-        const fileTextPreview = document.getElementById('fileTextPreview');
-        const clearFileButton = document.getElementById('clearFileButton');
-        const openCameraAddButton = document.getElementById('openCameraAddButton');
-
-
         const registrosList = document.getElementById('registrosList');
-        const prevMonthButton = document.getElementById('prevMonth');
-        const nextMonthButton = document.getElementById('nextMonth');
-        const currentMonthYearSpan = document.getElementById('currentMonthYear');
-        const filterTipoSelect = document.getElementById('filterTipo');
+        const clearAllRegistrosBtn = document.getElementById('clearAllRegistrosBtn');
 
-        let currentDisplayDate = new Date(); // Usado para la navegación por meses/años
-        let allRegistros = []; // Cache para todos los registros para filtrado
-        let currentFileBase64 = null;
+        // Camera elements (prefixed with Registro to avoid conflicts if this script were merged)
+        const cameraModal = document.getElementById('cameraModalRegistro');
+        const videoStream = document.getElementById('videoStreamRegistro');
+        const photoCanvas = document.getElementById('photoCanvasRegistro');
+        const photoPreview = document.getElementById('photoPreviewRegistro');
+        const capturePhotoButton = document.getElementById('capturePhotoButtonRegistro');
+        const retakePhotoButton = document.getElementById('retakePhotoButtonRegistro');
+        const confirmPhotoButton = document.getElementById('confirmPhotoButtonRegistro');
+        const closeCameraModalButton = document.getElementById('closeCameraModalRegistroButton');
+        const cameraStatus = document.getElementById('cameraStatusRegistro');
+        const openCameraForRegistroButton = document.getElementById('openCameraForRegistro');
+        const registroPhotoPreview = document.getElementById('registroPhotoPreview');
+        const registroFileName = document.getElementById('registroFileName');
+
+        let currentStream;
+        let capturedImageBase64 = null;
         let currentFileName = null;
         let currentMimeType = null;
 
-        // Elementos de la Cámara
-        const cameraModal = document.getElementById('cameraModal');
-        const videoStream = document.getElementById('videoStream');
-        const photoCanvas = document.getElementById('photoCanvas');
-        const photoPreview = document.getElementById('photoPreview');
-        const capturePhotoButton = document.getElementById('capturePhotoButton');
-        const retakePhotoButton = document.getElementById('retakePhotoButton');
-        const confirmPhotoButton = document.getElementById('confirmPhotoButton');
-        const closeCameraModalButton = document.getElementById('closeCameraModalButton');
-        const cameraStatus = document.getElementById('cameraStatus');
 
-        let currentStream;
+        // --- Utility Functions ---
+        function formatFecha(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
 
-        // --- Funciones de Modal Personalizado (copiado de index.html) ---
+        // --- Custom Alert/Confirm Modals ---
         function showCustomModal(message, title = 'Mensaje', type = 'alert') {
             return new Promise((resolve) => {
                 const modalOverlay = document.getElementById('customModalOverlay');
@@ -541,7 +231,7 @@
 
                 modalTitle.textContent = title;
                 modalMessage.textContent = message;
-                modalActions.innerHTML = ''; // Limpiar botones anteriores
+                modalActions.innerHTML = ''; 
 
                 if (type === 'alert') {
                     const okButton = document.createElement('button');
@@ -583,31 +273,7 @@
             return await showCustomModal(message, title, 'confirm');
         }
 
-        // --- Lógica de Autenticación (PIN) ---
-        loginButton.addEventListener('click', async () => {
-            const pin = pinInput.value;
-            const response = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ pin: pin })
-            });
-            const data = await response.json();
-            if (response.ok) {
-                loginModal.style.display = 'none';
-                mainContent.style.display = 'block';
-                await fetchAndRenderAllData(); // Cargar todos los datos una vez logueado
-            } else {
-                loginError.textContent = data.error;
-            }
-        });
-
-        pinInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                loginButton.click();
-            }
-        });
-
-        // --- Lógica de la Cámara (adaptada para registros_importantes) ---
+        // --- Camera Logic ---
         async function initCamera() {
             cameraStatus.textContent = 'Iniciando cámara...';
             videoStream.style.display = 'block';
@@ -615,7 +281,6 @@
             capturePhotoButton.style.display = 'block'; 
             retakePhotoButton.style.display = 'none';
             confirmPhotoButton.style.display = 'none';
-            clearFilePreview(); // Limpiar previsualización de archivo antes de cámara
 
             if (currentStream) {
                 stopCamera();
@@ -624,7 +289,7 @@
             try {
                 currentStream = await navigator.mediaDevices.getUserMedia({
                     video: {
-                        facingMode: { exact: 'environment' } // Preferir cámara trasera
+                        facingMode: { exact: 'environment' } // Prefer rear camera
                     }
                 });
                 videoStream.srcObject = currentStream;
@@ -636,7 +301,7 @@
                 try {
                     currentStream = await navigator.mediaDevices.getUserMedia({
                         video: {
-                            facingMode: 'user'
+                            facingMode: 'user' // Fallback to front camera
                         }
                     });
                     videoStream.srcObject = currentStream;
@@ -659,6 +324,15 @@
             }
         }
 
+        openCameraForRegistroButton.addEventListener('click', () => {
+            cameraModal.style.display = 'flex';
+            capturedImageBase64 = null; // Clear any previous image
+            currentFileName = null;
+            currentMimeType = null;
+            clearFilePreview(); // Clear UI
+            initCamera();
+        });
+
         capturePhotoButton.addEventListener('click', () => {
             if (videoStream.readyState === videoStream.HAVE_ENOUGH_DATA) {
                 photoCanvas.width = videoStream.videoWidth;
@@ -666,11 +340,12 @@
                 const context = photoCanvas.getContext('2d');
                 context.drawImage(videoStream, 0, 0, photoCanvas.width, photoCanvas.height);
                 
-                currentFileBase64 = photoCanvas.toDataURL('image/png');
-                currentFileName = `foto_registro_${new Date().toISOString().substring(0,10)}.png`;
+                capturedImageBase64 = photoCanvas.toDataURL('image/png');
+                currentFileName = `registro_foto_${Date.now()}.png`; // Generic filename
                 currentMimeType = 'image/png';
 
-                photoPreview.src = currentFileBase64;
+                photoPreview.src = capturedImageBase64;
+
                 videoStream.style.display = 'none';
                 photoPreview.style.display = 'block';
                 capturePhotoButton.style.display = 'none';
@@ -684,401 +359,114 @@
         });
 
         retakePhotoButton.addEventListener('click', () => {
-            currentFileBase64 = null;
+            capturedImageBase64 = null;
             currentFileName = null;
             currentMimeType = null;
             photoPreview.style.display = 'none';
-            capturePhotoButton.style.display = 'block'; 
-            retakePhotoButton.style.display = 'none';
-            confirmPhotoButton.style.display = 'none';
             initCamera();
         });
 
         confirmPhotoButton.addEventListener('click', () => {
             cameraModal.style.display = 'none';
             stopCamera();
-            updateFilePreview(); // Mostrar la foto capturada en el formulario de añadir/editar
+            if (capturedImageBase64) {
+                registroPhotoPreview.src = capturedImageBase64;
+                registroPhotoPreview.style.display = 'block';
+                registroFileName.textContent = currentFileName || '';
+            }
             cameraStatus.textContent = '';
-            capturePhotoButton.style.display = 'block';
-            retakePhotoButton.style.display = 'none';
-            confirmPhotoButton.style.display = 'none';
         });
 
         closeCameraModalButton.addEventListener('click', () => {
             cameraModal.style.display = 'none';
             stopCamera();
-            currentFileBase64 = null;
+            capturedImageBase64 = null; // Discard photo if modal closed without confirming
             currentFileName = null;
             currentMimeType = null;
-            clearFilePreview(); // Limpiar si se cierra sin confirmar
-            cameraStatus.textContent = '';
-            capturePhotoButton.style.display = 'block';
-            retakePhotoButton.style.display = 'none';
-            confirmPhotoButton.style.display = 'none';
-        });
-
-        openCameraAddButton.addEventListener('click', () => {
-            cameraModal.style.display = 'flex';
-            videoStream.style.display = 'block';
-            photoPreview.style.display = 'none';
-            capturePhotoButton.style.display = 'block'; 
-            retakePhotoButton.style.display = 'none';
-            confirmPhotoButton.style.display = 'none';
-            initCamera();
-        });
-
-        // --- Lógica de Subida de Archivos ---
-        fileUploadInput.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    currentFileBase64 = e.target.result;
-                    currentFileName = file.name;
-                    currentMimeType = file.type;
-                    updateFilePreview();
-                };
-                reader.readAsDataURL(file);
-            } else {
-                currentFileBase64 = null;
-                currentFileName = null;
-                currentMimeType = null;
-                clearFilePreview();
-            }
-        });
-
-        clearFileButton.addEventListener('click', () => {
-            currentFileBase64 = null;
-            currentFileName = null;
-            currentMimeType = null;
-            fileUploadInput.value = ''; // Reset file input
             clearFilePreview();
+            cameraStatus.textContent = '';
         });
-
-        function updateFilePreview() {
-            filePreviewContainer.style.display = 'block';
-            clearFilePreviewContent(); // Limpiar cualquier previsualización anterior
-
-            if (currentFileBase64 && currentMimeType) {
-                clearFileButton.style.display = 'block'; // Mostrar botón de limpiar
-
-                if (currentMimeType.startsWith('image/')) {
-                    fileImagePreview.src = currentFileBase64;
-                    fileImagePreview.style.display = 'block';
-                } else if (currentMimeType.startsWith('text/')) {
-                    // Para archivos de texto, mostrar un snippet o un icono
-                    fileTextPreview.textContent = `Archivo de texto: ${currentFileName || 'Sin Nombre'}`;
-                    fileTextPreview.style.display = 'block';
-                } else {
-                    fileTextPreview.textContent = `Archivo adjunto: ${currentFileName || 'Sin Nombre'} (${currentMimeType})`;
-                    fileTextPreview.style.display = 'block';
-                }
-            } else {
-                filePreviewContainer.style.display = 'none';
-                clearFileButton.style.display = 'none';
-            }
-        }
 
         function clearFilePreview() {
-            filePreviewContainer.style.display = 'none';
-            clearFilePreviewContent();
-            clearFileButton.style.display = 'none';
-            fileUploadInput.value = ''; // Reset file input
-        }
-
-        function clearFilePreviewContent() {
-            fileImagePreview.style.display = 'none';
-            fileImagePreview.src = '';
-            fileTextPreview.style.display = 'none';
-            fileTextPreview.textContent = '';
+            registroPhotoPreview.src = '';
+            registroPhotoPreview.style.display = 'none';
+            registroFileName.textContent = '';
         }
 
 
-        // --- Lógica de Filtros y Navegación de Registros ---
-        function updateMonthYearDisplay() {
-            const options = { year: 'numeric', month: 'long' };
-            currentMonthYearSpan.textContent = currentDisplayDate.toLocaleDateString('es-ES', options).
-                                                replace(/\b\w/g, char => char.toUpperCase()); // Capitalize words
-        }
-
-        async function fetchTiposRegistro() {
-            try {
-                // Fetch tipos_registro sin requerir login inicialmente
-                const response = await fetch('/api/tipos_registro'); 
-                if (!response.ok) {
-                    // Si el login no ha ocurrido, se espera un 401.
-                    // Si el usuario no está logueado, esta llamada fallará hasta que lo esté.
-                    if (response.status === 401) {
-                         console.warn("No autenticado para cargar tipos de registro. Se cargará después del login.");
-                         return; // Sale sin mostrar error al usuario
-                    }
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Error al cargar los tipos de registro.');
-                }
-                const tipos = await response.json();
-                
-                // Rellenar select de añadir registro
-                registroAddTipo.innerHTML = '';
-                tipos.forEach(tipo => {
-                    const option = document.createElement('option');
-                    option.value = tipo.nombre;
-                    option.textContent = tipo.nombre;
-                    registroAddTipo.appendChild(option);
-                });
-
-                // Rellenar select de filtro
-                filterTipoSelect.innerHTML = '<option value="">Todas las categorías</option>';
-                tipos.forEach(tipo => {
-                    const option = document.createElement('option');
-                    option.value = tipo.nombre;
-                    option.textContent = tipo.nombre;
-                    filterTipoSelect.appendChild(option);
-                });
-
-            } catch (error) {
-                console.error('Error al cargar tipos de registro:', error);
-                showCustomAlert(`No se pudieron cargar las categorías de registro: ${error.message}`, 'Error de Categorías');
-            }
-        }
-
+        // --- Fetch and Render Registros ---
         async function fetchAndRenderAllData() {
-            registrosList.innerHTML = '<li class="text-gray-500 italic">Cargando registros...</li>';
             try {
+                // Borrar todos los registros existentes en la UI para evitar duplicados
+                registrosList.innerHTML = '<p class="text-gray-500 italic">Cargando registros...</p>'; 
+
                 const response = await fetch('/api/registros_importantes');
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(errorData.error || 'Error al cargar los registros importantes.');
+                    throw new Error(errorData.error || 'Error al cargar registros.');
                 }
-                allRegistros = await response.json(); // Guarda todos los registros
-                
-                // Sort all records once by date ascending for correct monthly grouping
-                allRegistros.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+                const registros = await response.json();
 
-                renderRegistros(); // Llama a render sin argumentos para usar el caché
-                await fetchTiposRegistro(); // Cargar tipos después del login
+                if (registros.length === 0) {
+                    registrosList.innerHTML = '<p class="text-gray-500 italic">No hay registros importantes guardados.</p>';
+                    return;
+                }
+
+                registrosList.innerHTML = ''; // Clear loading message
+                registros.forEach(registro => {
+                    const li = document.createElement('div');
+                    li.classList.add('registro-item');
+                    li.dataset.id = registro.id;
+
+                    const fechaFormateada = new Date(registro.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+                    let imageHtml = '';
+                    if (registro.imagen_base64 && registro.mime_type && registro.nombre_archivo) {
+                        imageHtml = `
+                            <div class="registro-item-image">
+                                <img src="${registro.imagen_base64}" alt="Imagen de registro" class="w-full h-auto rounded-md mt-2">
+                                <p class="text-xs text-gray-500 text-center mt-1">Archivo: ${registro.nombre_archivo}</p>
+                            </div>
+                        `;
+                    }
+
+                    li.innerHTML = `
+                        <div class="registro-item-header">
+                            <span class="registro-item-title">${registro.titulo}</span>
+                            <span class="registro-item-date">${fechaFormateada}</span>
+                        </div>
+                        <p class="registro-item-description">${registro.descripcion || 'Sin descripción'}</p>
+                        <p class="registro-item-type text-sm text-gray-500">Tipo: ${registro.tipo || 'General'}</p>
+                        ${imageHtml}
+                        <div class="registro-actions">
+                            <button class="btn-eliminar" data-id="${registro.id}">Eliminar</button>
+                        </div>
+                    `;
+                    registrosList.appendChild(li);
+                });
+
+                document.querySelectorAll('.btn-eliminar').forEach(button => {
+                    button.addEventListener('click', deleteRegistro);
+                });
+
             } catch (error) {
-                console.error('Error al cargar registros:', error);
-                registrosList.innerHTML = `<li class="mensaje-info" style="color: #dc3545;">Error: ${error.message}. No se pudieron cargar los registros.</li>`;
+                console.error('Error al cargar registros importantes:', error);
+                registrosList.innerHTML = `<p class="text-red-500 italic">Error al cargar registros: ${error.message}</p>`;
                 showCustomAlert(`No se pudieron cargar los registros: ${error.message}`, 'Error de Carga');
             }
         }
 
-        function renderRegistros() {
-            registrosList.innerHTML = '';
-            
-            const selectedCategory = filterTipoSelect.value;
-            let currentMonthYear = ''; // To track the current month and year for grouping
-
-            const filteredRegistros = allRegistros.filter(registro => {
-                const registroDate = new Date(registro.fecha);
-                const matchesMonth = registroDate.getFullYear() === currentDisplayDate.getFullYear() &&
-                                     registroDate.getMonth() === currentDisplayDate.getMonth();
-                const matchesCategory = !selectedCategory || registro.tipo === selectedCategory;
-                return matchesMonth && matchesCategory;
-            });
-
-            if (filteredRegistros.length === 0) {
-                registrosList.innerHTML = '<li class="text-gray-500 italic">No hay registros importantes para este mes y categoría.</li>';
-                return;
-            }
-
-            filteredRegistros.forEach(registro => {
-                const registroDateObj = new Date(registro.fecha);
-                const monthYear = `${registroDateObj.getFullYear()}-${String(registroDateObj.getMonth() + 1).padStart(2, '0')}`;
-
-                // If the month/year changes for the *filtered* records, add a new header
-                if (monthYear !== currentMonthYear) {
-                    currentMonthYear = monthYear;
-                    const monthHeader = document.createElement('h3');
-                    monthHeader.classList.add('month-header'); 
-                    const monthName = registroDateObj.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
-                    monthHeader.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1); 
-                    registrosList.appendChild(monthHeader);
-                }
-
-                const li = document.createElement('li');
-                li.classList.add('registro-item', 'bg-white', 'p-4', 'rounded-lg', 'shadow-md', 'flex', 'flex-col', 'gap-3', 'md:flex-row', 'md:items-start', 'md:justify-between');
-                li.dataset.id = registro.id;
-                li.dataset.filename = registro.nombre_archivo || '';
-                li.dataset.mimetype = registro.mime_type || '';
-
-                const contentDiv = document.createElement('div');
-                contentDiv.classList.add('flex-grow', 'w-full'); 
-
-                const headerInnerDiv = document.createElement('div');
-                headerInnerDiv.classList.add('flex', 'flex-col', 'md:flex-row', 'md:items-center', 'md:justify-between', 'gap-2', 'mb-2');
-
-                const titleSpan = document.createElement('span');
-                titleSpan.classList.add('registro-title', 'text-lg', 'font-bold', 'text-gray-800'); 
-                titleSpan.textContent = registro.titulo;
-
-                const dateAndTypeDiv = document.createElement('div');
-                dateAndTypeDiv.classList.add('flex', 'flex-row', 'gap-2', 'items-center'); 
-
-                const dateSpan = document.createElement('span');
-                dateSpan.classList.add('registro-date', 'text-sm', 'text-gray-600', 'bg-gray-100', 'px-2', 'py-1', 'rounded-full');
-                const dayFormatted = registroDateObj.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric' });
-                dateSpan.textContent = `Día: ${dayFormatted.charAt(0).toUpperCase() + dayFormatted.slice(1).replace('.', '')}`; 
-
-                const typeSpan = document.createElement('span');
-                typeSpan.classList.add('registro-type', 'text-xs', 'font-medium', 'text-indigo-700', 'bg-indigo-100', 'px-2', 'py-1', 'rounded-full');
-                typeSpan.textContent = registro.tipo || 'General';
-
-                dateAndTypeDiv.appendChild(dateSpan);
-                dateAndTypeDiv.appendChild(typeSpan);
-
-                headerInnerDiv.appendChild(titleSpan);
-                headerInnerDiv.appendChild(dateAndTypeDiv);
-
-                const descriptionP = document.createElement('p');
-                descriptionP.classList.add('registro-description', 'text-gray-700', 'text-sm', 'mt-2'); 
-                descriptionP.textContent = registro.descripcion || 'Sin descripción.';
-
-                contentDiv.appendChild(headerInnerDiv);
-                contentDiv.appendChild(descriptionP);
-
-                const rightSection = document.createElement('div');
-                rightSection.classList.add('flex', 'flex-col', 'items-end', 'gap-3', 'md:ml-4', 'mt-4', 'md:mt-0', 'w-full', 'md:w-auto'); 
-
-                const actionsDiv = document.createElement('div');
-                actionsDiv.classList.add('registro-actions', 'flex', 'gap-2', 'flex-wrap', 'justify-end', 'w-full'); 
-
-                const baseButtonClasses = 'px-3 py-1 rounded-md text-sm font-semibold flex items-center gap-1 transition-colors duration-200';
-
-                const deleteButton = document.createElement('button');
-                deleteButton.classList.add('bg-red-500', 'hover:bg-red-600', 'text-white', baseButtonClasses);
-                deleteButton.innerHTML = '<i class="fas fa-trash"></i> Eliminar';
-                deleteButton.title = 'Eliminar Registro';
-                deleteButton.addEventListener('click', () => deleteRegistro(registro.id));
-                actionsDiv.appendChild(deleteButton);
-
-                if (registro.imagen_base64) {
-                    const downloadButton = document.createElement('button');
-                    downloadButton.classList.add('bg-blue-500', 'hover:bg-blue-600', 'text-white', baseButtonClasses);
-                    downloadButton.innerHTML = '<i class="fas fa-download"></i> Descargar';
-                    downloadButton.title = 'Descargar Archivo/Imagen';
-                    downloadButton.addEventListener('click', () => downloadFile(registro.imagen_base64, registro.nombre_archivo, registro.mime_type));
-                    actionsDiv.appendChild(downloadButton);
-                }
-
-                const whatsappButton = document.createElement('button');
-                whatsappButton.classList.add('bg-green-500', 'hover:bg-green-600', 'text-white', baseButtonClasses);
-                whatsappButton.innerHTML = '<i class="fab fa-whatsapp"></i> WhatsApp';
-                whatsappButton.title = 'Compartir por WhatsApp';
-                whatsappButton.addEventListener('click', () => shareViaWhatsApp(registro.titulo, registro.descripcion));
-                actionsDiv.appendChild(whatsappButton);
-
-                rightSection.appendChild(actionsDiv);
-
-                if (registro.imagen_base64 && registro.mime_type) {
-                    const fileContainer = document.createElement('div');
-                    fileContainer.classList.add('registro-image-container', 'w-full', 'md:max-w-[150px]', 'mt-2', 'md:mt-0'); 
-                    if (registro.mime_type.startsWith('image/')) {
-                        const img = document.createElement('img');
-                        img.classList.add('registro-image', 'w-full', 'h-auto', 'object-cover'); 
-                        img.src = registro.imagen_base64;
-                        img.alt = 'Imagen adjunta al registro';
-                        fileContainer.appendChild(img);
-                    } else {
-                        const fileInfoP = document.createElement('p');
-                        fileInfoP.classList.add('text-xs', 'text-gray-500', 'text-center', 'break-words');
-                        fileInfoP.textContent = `Archivo: ${registro.nombre_archivo || 'Sin nombre'} (${registro.mime_type})`;
-                        const fileIcon = document.createElement('i');
-                        fileIcon.classList.add('fas', 'text-3xl', 'text-gray-400', 'mb-2');
-                        if (registro.mime_type.includes('pdf')) fileIcon.classList.add('fa-file-pdf');
-                        else if (registro.mime_type.includes('word') || registro.mime_type.includes('document')) fileIcon.classList.add('fa-file-word');
-                        else if (registro.mime_type.includes('text')) fileIcon.classList.add('fa-file-alt');
-                        else fileIcon.classList.add('fa-file'); 
-                        
-                        const iconContainer = document.createElement('div');
-                        iconContainer.classList.add('flex', 'justify-center', 'items-center', 'mb-2');
-                        iconContainer.appendChild(fileIcon);
-
-                        fileContainer.appendChild(iconContainer);
-                        fileContainer.appendChild(fileInfoP);
-                    }
-                    rightSection.appendChild(fileContainer);
-                }
-
-                li.appendChild(contentDiv);
-                li.appendChild(rightSection);
-                registrosList.appendChild(li);
-            });
-        }
-
-        async function deleteRegistro(registroId) {
-            const confirmAction = await showCustomConfirm('¿Estás seguro de que quieres eliminar este registro importante?');
-            if (confirmAction) {
-                try {
-                    const response = await fetch(`/api/registros_importantes/${registroId}`, {
-                        method: 'DELETE'
-                    });
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || 'Error al eliminar el registro.');
-                    }
-                    showCustomAlert('Registro eliminado con éxito.', 'Eliminación Exitosa');
-                    fetchAndRenderAllData(); // Recargar la lista
-                } catch (error) {
-                    console.error('Error al eliminar registro:', error);
-                    showCustomAlert(`No se pudo eliminar el registro: ${error.message}`, 'Error de Eliminación');
-                }
-            }
-        }
-
-        // --- Funcionalidad de Descarga de Archivo ---
-        function downloadFile(base64Data, filename, mimeType) {
-            if (!base64Data) {
-                showCustomAlert('No hay datos para descargar.', 'Error de Descarga');
-                return;
-            }
-            const link = document.createElement('a');
-            link.href = base64Data; 
-            link.download = filename || `documento_descargado.${mimeType ? mimeType.split('/')[1] : 'bin'}`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            showCustomAlert('Documento descargado con éxito.', 'Descarga Completa');
-        }
-
-        // --- Funcionalidad de Compartir por WhatsApp ---
-        function shareViaWhatsApp(title, description) {
-            const textToShare = `*Registro Importante:* ${title}\n\n${description}\n\n[Consulta tu agenda para más detalles]`;
-            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(textToShare)}`;
-            
-            const newWindow = window.open(whatsappUrl, '_blank');
-            if (!newWindow || newWindow.closed || typeof newWindow.closed=='undefined') {
-                window.location.href = whatsappUrl;
-            }
-        }
-
-
-        // --- Event Listeners ---
-        prevMonthButton.addEventListener('click', () => {
-            currentDisplayDate.setMonth(currentDisplayDate.getMonth() - 1);
-            updateMonthYearDisplay();
-            renderRegistros(); 
-        });
-
-        nextMonthButton.addEventListener('click', () => {
-            currentDisplayDate.setMonth(currentDisplayDate.getMonth() + 1);
-            updateMonthYearDisplay();
-            renderRegistros(); 
-        });
-
-        filterTipoSelect.addEventListener('change', () => {
-            renderRegistros(); 
-        });
-
+        // --- Add Registro ---
         addRegistroForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+
             const fecha = registroAddFecha.value;
             const titulo = registroAddTitulo.value.trim();
             const descripcion = registroAddDescripcion.value.trim();
-            const tipo = registroAddTipo.value;
+            const tipo = 'General'; // Siempre "General" según la nueva especificación
 
-            if (!fecha || !titulo) {
-                showCustomAlert('Fecha y Título son obligatorios.', 'Campos Obligatorios');
+            if (!titulo || !fecha) {
+                showCustomAlert('El título y la fecha son obligatorios.', 'Campos Obligatorios');
                 return;
             }
 
@@ -1086,14 +474,14 @@
                 const response = await fetch('/api/registros_importantes/add_from_task', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        fecha: fecha,
-                        titulo: titulo,
-                        descripcion: descripcion,
+                    body: JSON.stringify({ 
+                        fecha: fecha, 
+                        titulo: titulo, 
+                        descripcion: descripcion, 
                         tipo: tipo,
-                        imagen_base64: currentFileBase64, 
-                        nombre_archivo: currentFileName,    
-                        mime_type: currentMimeType          
+                        imagen_base64: capturedImageBase64,
+                        nombre_archivo: currentFileName,
+                        mime_type: currentMimeType
                     })
                 });
 
@@ -1104,11 +492,11 @@
                 showCustomAlert('Registro guardado con éxito.', 'Guardado Exitoso');
                 // Limpiar formulario
                 addRegistroForm.reset();
-                currentFileBase64 = null;
+                capturedImageBase64 = null;
                 currentFileName = null;
                 currentMimeType = null;
                 clearFilePreview();
-                registroAddTipo.value = 'General'; 
+                // Actualizar la lista de registros
                 fetchAndRenderAllData(); 
             } catch (error) {
                 console.error('Error al guardar el registro:', error);
@@ -1116,13 +504,81 @@
             }
         });
 
+        // --- Delete Registro ---
+        async function deleteRegistro(event) {
+            const registroId = event.target.dataset.id;
+            const confirmAction = await showCustomConfirm('¿Estás seguro de que quieres eliminar este registro?');
+            if (confirmAction) {
+                try {
+                    const response = await fetch(`/api/registros_importantes/${registroId}`, {
+                        method: 'DELETE'
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Error al eliminar el registro');
+                    }
+                    showCustomAlert('Registro eliminado exitosamente.', 'Eliminación Exitosa');
+                    fetchAndRenderAllData();
+                } catch (error) {
+                    console.error('Error al eliminar el registro:', error);
+                    showCustomAlert(`No se pudo eliminar el registro: ${error.message}`, 'Error de Eliminación');
+                }
+            }
+        }
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            updateMonthYearDisplay(); 
-            registroAddFecha.value = new Date().toISOString().substring(0, 10); // Set default date to today
-            // fetchTiposRegistro() se llama después del login
-            // fetchAndRenderAllData() se llama después del login
+        // --- Clear All Registros ---
+        clearAllRegistrosBtn.addEventListener('click', async () => {
+            const confirmAction = await showCustomConfirm('¿Estás seguro de que quieres borrar TODOS los registros? Esta acción es irreversible.');
+            if (confirmAction) {
+                try {
+                    // Primero, obtener todos los IDs de los registros para eliminarlos uno por uno.
+                    // Supabase DELETE sin filtros puede ser problemático si la tabla es grande.
+                    // Es más seguro iterar si la operación de borrar todos no está expuesta en una API específica.
+                    // Para simplificar aquí, se podría hacer una nueva API en Flask para borrar todos.
+                    // Por ahora, como no hay una API específica de "borrar todo" para registros, simularemos.
+                    // *NOTA: En una aplicación real, se preferiría una API de backend para "borrar todo" si es una operación frecuente.*
+                    
+                    // Simulación de "borrar todo" cliente-lado (menos eficiente pero funcional con API actual)
+                    const getAllResponse = await fetch('/api/registros_importantes');
+                    if (!getAllResponse.ok) {
+                        const errorData = await getAllResponse.json();
+                        throw new Error(errorData.error || 'Error al obtener registros para borrar.');
+                    }
+                    const allRegistros = await getAllResponse.json();
+                    
+                    let deletionSuccess = true;
+                    for (const registro of allRegistros) {
+                        const deleteResponse = await fetch(`/api/registros_importantes/${registro.id}`, {
+                            method: 'DELETE'
+                        });
+                        if (!deleteResponse.ok) {
+                            console.error(`Fallo al eliminar registro ${registro.id}`);
+                            deletionSuccess = false;
+                            // Continuar con los demás para intentar borrar tantos como sea posible
+                        }
+                    }
+
+                    if (deletionSuccess) {
+                        showCustomAlert('Todos los registros han sido borrados con éxito.', 'Borrado Completo');
+                    } else {
+                        showCustomAlert('Algunos registros no pudieron ser borrados. Consulta la consola.', 'Borrado Parcial');
+                    }
+                    fetchAndRenderAllData(); // Re-render to show empty list
+                } catch (error) {
+                    console.error('Error al borrar todos los registros:', error);
+                    showCustomAlert(`No se pudieron borrar todos los registros: ${error.message}`, 'Error de Borrado');
+                }
+            }
         });
+
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date();
+            registroAddFecha.value = formatFecha(today); // Set default date to today
+            fetchAndRenderAllData(); 
+        });
+
     </script>
 </body>
 </html>

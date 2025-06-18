@@ -209,7 +209,7 @@
     </div>
 
     <!-- Modal para Captura de Foto -->
-    <div id="cameraModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display:none;">
+    <div id="cameraModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]" style="display:none;">
         <div class="bg-white p-6 rounded-lg shadow-xl camera-modal-content">
             <h3 class="text-xl font-bold mb-4 text-center">Tomar Foto</h3>
             <video id="videoStream" class="camera-stream" autoplay playsinline></video>
@@ -234,7 +234,7 @@
     </div>
 
     <!-- Custom Alert/Confirm Modal HTML (GLOBAL) -->
-    <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display:none;">
+    <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10000]" style="display:none;">
         <div class="bg-white p-6 rounded-lg shadow-xl custom-modal-content">
             <h3 id="customModalTitle" class="text-xl font-bold mb-4 text-center"></h3>
             <p id="customModalMessage" class="mb-6 text-gray-700 text-center"></p>
@@ -296,6 +296,8 @@
 
         let currentStream;
         let capturedImageBase64 = null; // To store the Base64 image
+        let currentFileName = null; // Variable para almacenar el nombre del archivo
+        let currentMimeType = null; // Variable para almacenar el tipo MIME
         let currentRegistroPhotoPreviewElement = null; // To reference the <img> tag in the saveRegistro modal
 
         // --- NEW: Set to store completed routine IDs for the CURRENTLY SELECTED DAY (retrieved from backend) ---
@@ -839,7 +841,8 @@
         // --- Funciones de Modal y Confirmación ---
         function createModal(content) {
             const modalOverlay = document.createElement('div');
-            modalOverlay.classList.add('fixed', 'inset-0', 'bg-black', 'bg-opacity-50', 'flex', 'items-center', 'justify-center', 'z-50');
+            // MODIFICADO: z-index para modales generados dinámicamente
+            modalOverlay.classList.add('fixed', 'inset-0', 'bg-black', 'bg-opacity-50', 'flex', 'items-center', 'justify-center', 'z-[9998]'); 
 
             const modalContent = document.createElement('div');
             modalContent.classList.add('bg-white', 'p-6', 'rounded-lg', 'shadow-xl', 'max-w-md', 'mx-4', 'w-full');
@@ -851,7 +854,7 @@
                 if (e.target === modalOverlay) {
                     modalOverlay.remove();
                     // If the camera modal is open, ensure it's stopped when clicking outside
-                    if (modalOverlay.id === 'cameraModal') {
+                    if (modalOverlay.id === 'cameraModal') { // Note: This check might not be needed if cameraModal is static
                         stopCamera();
                         // Reset camera buttons state
                         capturePhotoButton.style.display = 'block';
@@ -909,6 +912,7 @@
 
         // Wrapper for showCustomModal to use as alert
         function showCustomAlert(message, title = 'Mensaje') {
+            // Utiliza un tipo diferente para que no se resuelva inmediatamente si no es un 'confirm'
             return showCustomModal(message, title, 'alert');
         }
 
@@ -976,6 +980,8 @@
                 context.drawImage(videoStream, 0, 0, photoCanvas.width, photoCanvas.height);
                 
                 capturedImageBase64 = photoCanvas.toDataURL('image/png');
+                currentFileName = `foto_calendario_${Date.now()}.png`; // Nombre de archivo genérico
+                currentMimeType = 'image/png'; // Tipo MIME fijo para PNG
                 
                 photoPreview.src = capturedImageBase64;
                 videoStream.style.display = 'none';
@@ -992,6 +998,8 @@
 
         retakePhotoButton.addEventListener('click', () => {
             capturedImageBase64 = null;
+            currentFileName = null; // Clear filename on retake
+            currentMimeType = null;  // Clear mime type on retake
             photoPreview.style.display = 'none';
             capturePhotoButton.style.display = 'block'; 
             retakePhotoButton.style.display = 'none';
@@ -1017,6 +1025,8 @@
             cameraModal.style.display = 'none';
             stopCamera();
             capturedImageBase64 = null;
+            currentFileName = null; // Clear filename on close
+            currentMimeType = null;  // Clear mime type on close
             if (currentRegistroPhotoPreviewElement) {
                 currentRegistroPhotoPreviewElement.src = '';
                 currentRegistroPhotoPreviewElement.style.display = 'none';
@@ -1222,6 +1232,8 @@
                 retakePhotoButton.style.display = 'none';
                 confirmPhotoButton.style.display = 'none';
                 capturedImageBase64 = null; // Clear any previous captured image
+                currentFileName = null; // Also clear filename
+                currentMimeType = null; // Also clear mime type
                 initCamera(); // Initialize camera
             });
 
@@ -1246,7 +1258,9 @@
                             titulo: titulo,
                             descripcion: descripcion,
                             tipo: tipo,
-                            imagen_base64: capturedImageBase64 // Pass the captured image
+                            imagen_base64: capturedImageBase64, // Pass the captured image
+                            nombre_archivo: currentFileName,     // Pass the filename
+                            mime_type: currentMimeType         // Pass the mime type
                         })
                     });
                     if (!response.ok) {
@@ -1256,6 +1270,8 @@
                     showCustomAlert('Registro guardado con éxito.', 'Guardado Exitoso'); 
                     modal.remove();
                     capturedImageBase64 = null; // Clear after successful save
+                    currentFileName = null;      // Clear filename after successful save
+                    currentMimeType = null;      // Clear mime type after successful save
                     currentRegistroPhotoPreviewElement = null; // Clear reference
                     stopCamera(); // Ensure camera is stopped if it was open
                 } catch (error) {
@@ -1267,6 +1283,8 @@
             document.getElementById('cancelRegistroBtn').addEventListener('click', () => {
                 modal.remove();
                 capturedImageBase64 = null; // Clear on cancel
+                currentFileName = null;      // Clear filename on cancel
+                currentMimeType = null;      // Clear mime type on cancel
                 currentRegistroPhotoPreviewElement = null; // Clear reference
                 stopCamera(); // Ensure camera is stopped
             });

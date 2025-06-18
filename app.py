@@ -14,7 +14,7 @@ app.secret_key = os.environ.get("FLASK_SECRET_KEY", "super_secreto_y_cambiar_en_
 # Render te permite configurar estas variables en su Dashboard.
 # Para desarrollo local, puedes configurarlas en tu entorno o usar un archivo .env.
 SUPABASE_URL = "https://ugpqqmcstqtywyrzfnjq.supabase.co" # EJEMPLO: "https://ugpqqmcstqtywyrzfnjq.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncHFxbWNzdHF0eXd5cnpmbmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3Mzk2ODgsImV4cCI6MjA2NTMxNTY4OH0.nh56rQQliOnX5AZzePaZv_RB05uRIlUbfQPkWJPvKcE" # EJEMPLO: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...""eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncHFxbWNzdHF0eXd5cnpmbmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3Mzk2ODgsImV4cCI6MjA2NTMxNTY4OH0.nh56rQQliOnX5AZzePaZv_RB05uRIlUbfQPkWJPkEc") # EJEMPLO: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncHFxbWNzdHF0eXd5cnpmbmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3Mzk2ODgsImV4cCI6MjA2NTMxNTY4OH0.nh56rQQliOnX5AZzePaZv_RB05uRIlUbfQPkWJPvKcE" # Asegúrate de que esta sea la clave completa y correcta de tu panel de Supabase.
 
 supabase: Client = None 
 
@@ -359,9 +359,8 @@ def aplazar_task(task_id):
         return jsonify({'error': f'Error de base de datos: {str(e)}'}), 500
 
 # --- RUTAS API para Registros Importantes (Adaptadas para Supabase) ---
-
+# Se elimina @login_required para hacerlas públicas, según la petición del usuario.
 @app.route('/api/registros_importantes/add_from_task', methods=['POST'])
-@login_required # Protegida
 def add_registro_from_task():
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
@@ -370,7 +369,7 @@ def add_registro_from_task():
     fecha = data.get('fecha')
     titulo = data.get('titulo')
     descripcion = data.get('descripcion')
-    tipo = data.get('tipo')
+    tipo = data.get('tipo') # Este será siempre "General" en el frontend nuevo
     imagen_base64 = data.get('imagen_base64') # Contiene la imagen o el archivo Base64
     nombre_archivo = data.get('nombre_archivo') # Nuevo: para guardar el nombre original del archivo
     mime_type = data.get('mime_type') # Nuevo: para guardar el tipo MIME del archivo
@@ -402,7 +401,6 @@ def add_registro_from_task():
         return jsonify({'error': f'Error al guardar registro importante: {str(e)}'}), 500
 
 @app.route('/api/registros_importantes', methods=['GET'])
-@login_required # Protegida
 def get_registros_importantes():
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
@@ -427,7 +425,6 @@ def get_registros_importantes():
         return jsonify({'error': f'Error al obtener registros importantes: {str(e)}'}), 500
 
 @app.route('/api/registros_importantes/dias_con_registros/<int:year>/<int:month>', methods=['GET'])
-@login_required # Protegida
 def get_dias_con_registros(year, month):
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
@@ -443,7 +440,6 @@ def get_dias_con_registros(year, month):
         return jsonify({'error': f'Error al obtener días con registros: {str(e)}'}), 500
 
 @app.route('/api/registros_importantes/<uuid:registro_id>', methods=['DELETE'])
-@login_required # Protegida
 def delete_registro_importante(registro_id):
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
@@ -457,7 +453,6 @@ def delete_registro_importante(registro_id):
         return jsonify({'error': f'Error al eliminar registro importante: {str(e)}'}), 500
 
 @app.route('/api/tipos_registro', methods=['GET'])
-@login_required # Protegida
 def get_tipos_registro():
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
@@ -476,7 +471,7 @@ def get_tipos_registro():
 
 # --- RUTAS API para Documentación ---
 @app.route('/api/documentacion', methods=['POST'])
-@login_required # Protegida
+@login_required # Protegida (asumimos que esta aún requiere login, según el app.py original)
 def add_documento():
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
@@ -785,17 +780,34 @@ def delete_item_lista_compra(item_id):
         return jsonify({'error': f'Error al eliminar ítem: {str(e)}'}), 500
 
 @app.route('/api/lista_compra/clear_all', methods=['DELETE'])
-def clear_all_items_lista_compra():
+def clear_all_shopping_list_items():
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
     try:
-        delete_response = supabase.from_('lista_compra').delete().execute() 
+        # La forma de borrar toda la tabla en Supabase sin WHERE
+        delete_response = supabase.from_('lista_compra').delete().neq('id', '00000000-0000-0000-0000-000000000000').execute()
+        # Nota: Supabase requiere un .eq() o similar para DELETE.
+        # Una forma común de borrar todo es usar .neq('columna', 'valor_que_no_existe')
+        # Otra opción es usar .delete().not.is('columna', 'null') si la columna nunca es null.
+        # O si tienes una PK autoincremental que sabes que siempre tendrá un valor.
+        # Para evitar el error 'DELETE requires a WHERE clause', estamos usando .neq('id', 'un_id_inexistente')
+        # Esto permite que la operación se realice sobre todos los registros.
         
-        return jsonify({'message': f'Lista de la compra borrada exitosamente. Se eliminaron {len(delete_response.data) if delete_response.data else 0} ítems.'}), 200
-    except Exception as e:
-        print(f"Error de base de datos al borrar toda la lista de la compra en Supabase: {e}")
-        return jsonify({'error': f'Error de base de datos: {str(e)}'}), 500
+        # Opcional: Si quieres ser más explícito y no te importa borrar la tabla entera (y recrearla si es necesario),
+        # podrías usar un truco como:
+        # delete_response = supabase.rpc('delete_all_from_table', {'table_name': 'lista_compra'}).execute()
+        # pero eso requeriría crear una función en tu base de datos Supabase.
+        # La solución .neq('id', 'inexistente') es la más sencilla para evitar el error de WHERE.
 
+        if delete_response.data is None: # Si no hay datos, pero la operación fue exitosa, message no suele estar.
+             return jsonify({'message': 'Lista de la compra borrada con éxito.'}), 200
+        else: # En caso de que Supabase devuelva algo en data pero la operación haya sido exitosa
+             return jsonify({'message': 'Lista de la compra borrada con éxito.', 'details': delete_response.data}), 200
+
+    except Exception as e:
+        print(f"Error de base de datos al borrar toda la lista de la compra en Supabase: {e.args[0]}")
+        # El error de Supabase viene en e.args[0]
+        return jsonify({'error': f"Error de base de datos: {e.args[0]}"}), 500
 # --- NUEVAS RUTAS API para Notas Rápidas ---
 @app.route('/api/notas', methods=['POST'])
 def add_nota_rapida():
@@ -949,6 +961,14 @@ def get_citas_for_month(year, month):
             cita_date = datetime.strptime(cita['fecha'], '%Y-%m-%d').date()
             diff_days = (cita_date - today).days
 
+            # Filtrar solo las citas que caen en el mes actual que se está consultando, o futuras
+            # La lógica original ya filtra por >= today.
+            # Para el calendario que quiere citas solo en ese mes, se puede filtrar en el front-end.
+            # Aquí, para "próximas" se devuelven todas las de hoy en adelante, para un badge de conteo más útil.
+            # Si el objetivo es solo para el mes en curso, el frontend debería aplicar un filtro adicional.
+            
+            # Para el uso en el index (mostrar próximas) es mejor todas las futuras.
+            # Para el calendario, donde se marcan días, el calendario.html filtra localmente.
             processed_citas.append({
                 'id': cita['id'],
                 'nombre': cita['nombre'],
@@ -978,14 +998,7 @@ def get_proximas_citas(year, month):
             cita_date = datetime.strptime(cita['fecha'], '%Y-%m-%d').date()
             diff_days = (cita_date - today).days
 
-            # Filtrar solo las citas que caen en el mes actual que se está consultando, o futuras
-            # La lógica original ya filtra por >= today.
-            # Para el calendario que quiere citas solo en ese mes, se puede filtrar en el front-end.
-            # Aquí, para "próximas" se devuelven todas las de hoy en adelante, para un badge de conteo más útil.
-            # Si el objetivo es solo para el mes en curso, el frontend debería aplicar un filtro adicional.
-            
             # Para el uso en el index (mostrar próximas) es mejor todas las futuras.
-            # Para el calendario, donde se marcan días, el calendario.html filtra localmente.
             processed_citas.append({
                 'id': cita['id'],
                 'nombre': cita['nombre'],
@@ -1098,4 +1111,3 @@ if __name__ == '__main__':
     # Puerto para la aplicación Flask (Render usará el puerto 10000 por defecto)
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
-

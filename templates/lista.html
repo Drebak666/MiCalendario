@@ -196,12 +196,15 @@
         async function clearAllItems() {
             if (confirm('¿Estás seguro de que quieres borrar TODA la lista de la compra? Esta acción no se puede deshacer.')) {
                 try {
+                    // MODIFICADO: Cambia la ruta a una que espera el backend
                     const response = await fetch('/api/lista_compra/clear_all', {
                         method: 'DELETE'
                     });
                     if (!response.ok) {
                         const errorData = await response.json();
-                        throw new Error(errorData.error || 'Error al borrar toda la lista.');
+                        // Manejar el caso donde el backend devuelve un error específico.
+                        const errorMessage = errorData.error || 'Error desconocido al borrar toda la lista.';
+                        throw new Error(errorMessage);
                     }
                     alert('Lista de la compra borrada con éxito.');
                     fetchShoppingList();
