@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alimentación - Mi Agenda</title>
+    <!-- Favicon para el icono del acceso directo en móvil -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/agenda_icon.png') }}">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" xintegrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==/" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        /* Estilos personalizados para la página de Alimentación */
+        .boton {
+            transition: all 0.2s ease-in-out;
+        }
+        .boton:hover {
+            transform: translateY(-2px);
+        }
+        .section-header {
+            background-color: #f0f0f0; /* Un gris claro para los encabezados de sección */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .form-container {
+            background-color: #f9fafb; /* Fondo ligeramente diferente para formularios */
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background-color: #fff;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease-in-out;
+        }
+        .list-item:hover {
+            transform: translateX(5px);
+        }
+        .list-item-content {
+            flex-grow: 1;
+        }
+        .list-item-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .input-group input, .input-group select, .input-group textarea {
+            border: 1px solid #ccc;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            width: 100%;
+        }
+        .modal-content {
+            max-height: 90vh; /* 90% del alto de la ventana */
+            overflow-y: auto; /* Habilita el scroll vertical si el contenido excede la altura */
+            padding-bottom: 1rem; /* Espacio extra en la parte inferior para que el contenido no se pegue al borde */
+        }
+
+        /* Responsive grid for weekly menu */
+        .weekly-menu-grid {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+        .day-meal-card {
+            background-color: #f0f9ff; /* Azul muy claro */
+            border: 1px solid #bfdbfe; /* Borde azul claro */
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .meal-entry {
+            background-color: #e0f2fe; /* Azul más claro */
+            border-left: 4px solid #38b2ac; /* Borde de color para diferenciar */
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.375rem;
+        }
+        .meal-entry .delete-meal-btn {
+            background-color: transparent;
+            border: none;
+            color: #dc2626; /* red-600 */
+            font-size: 0.9em;
+            cursor: pointer;
+        }
+        .meal-entry .delete-meal-btn:hover {
+            color: #b91c1c; /* red-700 */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans antialiased">
+    <div class="max-w-6xl mx-auto p-4 bg-white shadow-lg rounded-lg mt-6">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Sección de Alimentación</h1>
+
+        <!-- Pestañas de navegación -->
+        <div class="flex border-b border-gray-200 mb-6">
+            <button class="tab-button px-4 py-2 text-sm font-medium text-gray-700 border-b-2 border-transparent hover:border-blue-500 focus:outline-none active-tab" data-tab="ingredients">Ingredientes</button>
+            <button class="tab-button px-4 py-2 text-sm font-medium text-gray-700 border-b-2 border-transparent hover:border-blue-500 focus:outline-none" data-tab="recipes">Recetas</button>
+            <button class="tab-button px-4 py-2 text-sm font-medium text-gray-700 border-b-2 border-transparent hover:border-blue-500 focus:outline-none" data-tab="weekly-menu">Menú Semanal</button>
+        </div>
+
+        <!-- Contenido de las pestañas -->
+        <div id="ingredients" class="tab-content">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4 section-header">Mis Ingredientes</h2>
+            
+            <!-- Formulario para añadir Ingrediente -->
+            <div class="form-container">
+                <h3 class="text-xl font-medium text-gray-700 mb-4">Añadir Nuevo Ingrediente</h3>
+                <form id="ingredientForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="input-group">
+                        <label for="ingredientName" class="block text-sm font-medium text-gray-700">Nombre:</label>
+                        <input type="text" id="ingredientName" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    </div>
+                    <div class="input-group">
+                        <label for="ingredientSupermarket" class="block text-sm font-medium text-gray-700">Supermercado (opcional):</label>
+                        <input type="text" id="ingredientSupermarket" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    </div>
+                    <div class="input-group">
+                        <label for="ingredientPrice" class="block text-sm font-medium text-gray-700">Precio por Unidad (€):</label>
+                        <input type="number" id="ingredientPrice" step="0.01" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    </div>
+                    <div class="input-group">
+                        <label for="ingredientCalories" class="block text-sm font-medium text-gray-700">Calorías / 100g:</label>
+                        <input type="number" id="ingredientCalories" step="0.01" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    </div>
+                    <div class="input-group">
+                        <label for="ingredientProteins" class="block text-sm font-medium text-gray-700">Proteínas / 100g:</label>
+                        <input type="number" id="ingredientProteins" step="0.01" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    </div>
+                    <div class="input-group">
+                        <label for="ingredientCarbs" class="block text-sm font-medium text-gray-700">Carbohidratos / 100g:</label>
+                        <input type="number" id="ingredientCarbs" step="0.01" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    </div>
+                    <div class="input-group">
+                        <label for="ingredientFats" class="block text-sm font-medium text-gray-700">Grasas / 100g:</label>
+                        <input type="number" id="ingredientFats" step="0.01" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    </div>
+                    <div class="md:col-span-2 flex justify-end">
+                        <button type="submit" class="boton bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md">Añadir Ingrediente</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Lista de Ingredientes -->
+            <div class="bg-gray-50 p-4 rounded-lg shadow-inner">
+                <h3 class="text-xl font-medium text-gray-700 mb-4">Ingredientes Guardados</h3>
+                <ul id="ingredientsList" class="space-y-2">
+                    <!-- Ingredientes se cargarán aquí -->
+                </ul>
+            </div>
+        </div>
+
+        <div id="recipes" class="tab-content hidden">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4 section-header">Mis Recetas</h2>
+
+            <!-- Formulario para añadir Receta -->
+            <div class="form-container">
+                <h3 class="text-xl font-medium text-gray-700 mb-4">Añadir Nueva Receta</h3>
+                <form id="recipeForm">
+                    <div class="mb-4">
+                        <label for="recipeName" class="block text-sm font-medium text-gray-700">Nombre de la Receta:</label>
+                        <input type="text" id="recipeName" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="text-base font-medium text-gray-700 mb-2">Ingredientes de la Receta:</h4>
+                        <div class="flex space-x-2 mb-2">
+                            <select id="selectIngredient" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                                <!-- Opciones de ingredientes se cargarán aquí -->
+                            </select>
+                            <input type="number" id="ingredientQuantity" placeholder="Cantidad (g/ml)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                            <button type="button" id="addIngredientToRecipe" class="boton bg-purple-500 hover:bg-purple-700 text-white font-bold py-1 px-3 rounded-lg text-sm">Añadir</button>
+                        </div>
+                        <ul id="recipeIngredientsList" class="space-y-1 bg-white p-3 rounded-md border border-gray-200">
+                            <!-- Ingredientes añadidos a la receta se mostrarán aquí -->
+                        </ul>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div class="input-group">
+                            <label class="block text-sm font-medium text-gray-700">Costo Total (€):</label>
+                            <span id="recipeTotalCost" class="block text-lg font-semibold text-blue-700 mt-1">0.00</span>
+                        </div>
+                        <div class="input-group">
+                            <label class="block text-sm font-medium text-gray-700">Calorías Totales:</label>
+                            <span id="recipeTotalCalories" class="block text-lg font-semibold text-blue-700 mt-1">0.00</span>
+                        </div>
+                        <div class="input-group">
+                            <label class="block text-sm font-medium text-gray-700">Proteínas Totales (g):</label>
+                            <span id="recipeTotalProteins" class="block text-lg font-semibold text-blue-700 mt-1">0.00</span>
+                        </div>
+                        <div class="input-group">
+                            <label class="block text-sm font-medium text-gray-700">Carbohidratos Totales (g):</label>
+                            <span id="recipeTotalCarbs" class="block text-lg font-semibold text-blue-700 mt-1">0.00</span>
+                        </div>
+                        <div class="input-group">
+                            <label class="block text-sm font-medium text-gray-700">Grasas Totales (g):</label>
+                            <span id="recipeTotalFats" class="block text-lg font-semibold text-blue-700 mt-1">0.00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end">
+                        <button type="submit" class="boton bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md">Guardar Receta</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Lista de Recetas -->
+            <div class="bg-gray-50 p-4 rounded-lg shadow-inner">
+                <h3 class="text-xl font-medium text-gray-700 mb-4">Recetas Guardadas</h3>
+                <ul id="recipesList" class="space-y-2">
+                    <!-- Recetas se cargarán aquí -->
+                </ul>
+            </div>
+        </div>
+
+        <div id="weekly-menu" class="tab-content hidden">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4 section-header">Mi Menú Semanal</h2>
+
+            <div class="form-container mb-6">
+                <h3 class="text-xl font-medium text-gray-700 mb-4">Planificar Comidas</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="menuDay" class="block text-sm font-medium text-gray-700">Día de la Semana:</label>
+                        <select id="menuDay" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                            <option value="Lunes">Lunes</option>
+                            <option value="Martes">Martes</option>
+                            <option value="Miércoles">Miércoles</option>
+                            <option value="Jueves">Jueves</option>
+                            <option value="Viernes">Viernes</option>
+                            <option value="Sábado">Sábado</option>
+                            <option value="Domingo">Domingo</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="mealType" class="block text-sm font-medium text-gray-700">Tipo de Comida:</label>
+                        <select id="mealType" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                            <option value="Desayuno">Desayuno</option>
+                            <option value="Almuerzo">Almuerzo</option>
+                            <option value="Cena">Cena</option>
+                            <option value="Snack">Snack</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="selectRecipeForMenu" class="block text-sm font-medium text-gray-700">Seleccionar Receta:</label>
+                        <select id="selectRecipeForMenu" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                            <!-- Opciones de recetas se cargarán aquí -->
+                        </select>
+                    </div>
+                    <div class="md:col-span-2 flex justify-end space-x-2">
+                        <button type="button" id="addMealToMenu" class="boton bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md">Añadir Comida al Menú</button>
+                        <button type="button" id="saveWeeklyMenu" class="boton bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md">Guardar Menú Semanal</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visualización del Menú Semanal -->
+            <div class="bg-gray-50 p-4 rounded-lg shadow-inner">
+                <h3 class="text-xl font-medium text-gray-700 mb-4">Vista Previa del Menú Semanal</h3>
+                <div id="weeklyMenuDisplay" class="weekly-menu-grid">
+                    <!-- El menú semanal se renderizará aquí dinámicamente -->
+                </div>
+            </div>
+        </div>
+
+
+        <div class="navigation grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 p-2 mt-6">
+            <a href="/" class="boton flex flex-col items-center justify-center p-3 rounded-lg shadow hover:shadow-lg transition-shadow bg-blue-400 text-white">
+                <i class="fas fa-home text-2xl mb-1"></i>
+                <span>Volver al Inicio</span>
+            </a>
+            <a href="/calendario" class="boton flex flex-col items-center justify-center p-3 rounded-lg shadow hover:shadow-lg transition-shadow bg-green-400 text-white">
+                <i class="fas fa-calendar-alt text-2xl mb-1"></i>
+                <span>Calendario</span>
+            </a>
+            <a href="/documentacion" class="boton flex flex-col items-center justify-center p-3 rounded-lg shadow hover:shadow-lg transition-shadow bg-pink-400 text-white">
+                <i class="fas fa-folder-open text-2xl mb-1"></i>
+                <span>Documentos</span>
+            </a>
+            <a href="/gimnasio" class="boton flex flex-col items-center justify-center p-3 rounded-lg shadow hover:shadow-lg transition-shadow bg-red-400 text-white">
+                <i class="fas fa-dumbbell text-2xl mb-1"></i>
+                <span>Gimnasio</span>
+            </a>
+            <a href="/lista" class="boton flex flex-col items-center justify-center p-3 rounded-lg shadow hover:shadow-lg transition-shadow bg-orange-400 text-white">
+                <i class="fas fa-shopping-cart text-2xl mb-1"></i>
+                <span>Lista de Compra</span>
+            </a>
+            <a href="/citas" class="boton flex flex-col items-center justify-center p-3 rounded-lg shadow hover:shadow-lg transition-shadow bg-teal-400 text-white">
+                <i class="fas fa-calendar-check text-2xl mb-1"></i>
+                <span>Citas</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Custom Alert/Confirm Modal HTML (GLOBAL) -->
+    <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10000]" style="display:none;">
+        <div class="bg-white p-6 rounded-lg shadow-xl custom-modal-content">
+            <h3 id="customModalTitle" class="text-xl font-bold mb-4 text-center"></h3>
+            <p id="customModalMessage" class="mb-6 text-gray-700 text-center"></p>
+            <div class="flex justify-center space-x-4" id="customModalActions">
+                <!-- Buttons will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Global Helper Functions ---
+        // Function to show custom alert/confirm modal
+        function showCustomModal(message, title = 'Mensaje', type = 'alert') {
+            return new Promise((resolve) => {
+                const modalOverlay = document.getElementById('customModalOverlay');
+                const modalTitle = document.getElementById('customModalTitle');
+                const modalMessage = document.getElementById('customModalMessage');
+                const modalActions = document.getElementById('customModalActions');
+
+                modalTitle.textContent = title;
+                modalMessage.textContent = message;
+                modalActions.innerHTML = ''; // Clear previous buttons
+
+                if (type === 'alert') {
+                    const okButton = document.createElement('button');
+                    okButton.classList.add('bg-blue-500', 'hover:bg-blue-700', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded-full');
+                    okButton.textContent = 'Aceptar';
+                    okButton.addEventListener('click', () => {
+                        modalOverlay.style.display = 'none';
+                        resolve(true);
+                    });
+                    modalActions.appendChild(okButton);
+                } else if (type === 'confirm') {
+                    const yesButton = document.createElement('button');
+                    yesButton.classList.add('bg-green-500', 'hover:bg-green-700', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded-full');
+                    yesButton.textContent = 'Sí';
+                    yesButton.addEventListener('click', () => {
+                        modalOverlay.style.display = 'none';
+                        resolve(true);
+                    });
+                    const noButton = document.createElement('button');
+                    noButton.classList.add('bg-gray-500', 'hover:bg-gray-700', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded-full');
+                    noButton.textContent = 'No';
+                    noButton.addEventListener('click', () => {
+                        modalOverlay.style.display = 'none';
+                        resolve(false);
+                    });
+                    modalActions.appendChild(yesButton);
+                    modalActions.appendChild(noButton);
+                }
+
+                modalOverlay.style.display = 'flex';
+            });
+        }
+
+        // Wrapper for showCustomModal to use as alert
+        function showCustomAlert(message, title = 'Mensaje') {
+            return showCustomModal(message, title, 'alert');
+        }
+
+        // Wrapper for showCustomModal to use as confirm
+        async function showCustomConfirm(message, title = 'Confirmación') {
+            return await showCustomModal(message, title, 'confirm');
+        }
+
+        // --- Elementos HTML ---
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        // Ingredientes
+        const ingredientForm = document.getElementById('ingredientForm');
+        const ingredientNameInput = document.getElementById('ingredientName');
+        const ingredientSupermarketInput = document.getElementById('ingredientSupermarket');
+        const ingredientPriceInput = document.getElementById('ingredientPrice');
+        const ingredientCaloriesInput = document.getElementById('ingredientCalories');
+        const ingredientProteinsInput = document.getElementById('ingredientProteins');
+        const ingredientCarbsInput = document.getElementById('ingredientCarbs');
+        const ingredientFatsInput = document.getElementById('ingredientFats');
+        const ingredientsListDiv = document.getElementById('ingredientsList');
+
+        let allIngredients = []; // Para almacenar todos los ingredientes cargados
+
+        // Recetas
+        const recipeForm = document.getElementById('recipeForm');
+        const recipeNameInput = document.getElementById('recipeName');
+        const selectIngredient = document.getElementById('selectIngredient');
+        const ingredientQuantityInput = document.getElementById('ingredientQuantity');
+        const addIngredientToRecipeButton = document.getElementById('addIngredientToRecipe');
+        const recipeIngredientsListDiv = document.getElementById('recipeIngredientsList');
+        const recipeTotalCostSpan = document.getElementById('recipeTotalCost');
+        const recipeTotalCaloriesSpan = document.getElementById('recipeTotalCalories');
+        const recipeTotalProteinsSpan = document.getElementById('recipeTotalProteins');
+        const recipeTotalCarbsSpan = document.getElementById('recipeTotalCarbs');
+        const recipeTotalFatsSpan = document.getElementById('recipeTotalFats');
+        const recipesListDiv = document.getElementById('recipesList');
+
+        let currentRecipeIngredients = []; // Ingredientes para la receta que se está creando
+        let allRecipes = []; // Para almacenar todas las recetas cargadas
+
+        // Menú Semanal
+        const menuDaySelect = document.getElementById('menuDay');
+        const mealTypeSelect = document.getElementById('mealType');
+        const selectRecipeForMenu = document.getElementById('selectRecipeForMenu');
+        const addMealToMenuButton = document.getElementById('addMealToMenu');
+        const saveWeeklyMenuButton = document.getElementById('saveWeeklyMenu');
+        const weeklyMenuDisplayDiv = document.getElementById('weeklyMenuDisplay');
+
+        const WEEK_DAYS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+        let weeklyMenuData = {}; // Estructura para el menú semanal: { "Lunes": { "Desayuno": {recipeId, recipeName}, "Almuerzo": {...} }, ... }
+
+        // --- Funciones de Utilidad ---
+        function clearForm(form) {
+            form.reset();
+            if (form.id === 'recipeForm') {
+                currentRecipeIngredients = [];
+                renderRecipeIngredients();
+                updateRecipeNutritionalInfo();
+            }
+        }
+
+        function calculateNutritionalValue(amount, valuePer100g) {
+            return (amount / 100) * valuePer100g;
+        }
+
+        // --- Lógica de Pestañas ---
+        function activateTab(tabId) {
+            tabButtons.forEach(button => {
+                if (button.dataset.tab === tabId) {
+                    button.classList.add('active-tab', 'border-blue-500', 'text-blue-600');
+                } else {
+                    button.classList.remove('active-tab', 'border-blue-500', 'text-blue-600');
+                }
+            });
+
+            tabContents.forEach(content => {
+                if (content.id === tabId) {
+                    content.classList.remove('hidden');
+                } else {
+                    content.classList.add('hidden');
+                }
+            });
+
+            // Cargar datos al cambiar de pestaña
+            if (tabId === 'ingredients') {
+                fetchIngredients();
+            } else if (tabId === 'recipes') {
+                fetchIngredientsForRecipeSelection(); // Cargar ingredientes para el selector de recetas
+                fetchRecipes();
+            } else if (tabId === 'weekly-menu') {
+                fetchRecipesForMenuSelection(); // Cargar recetas para el selector de menú
+                fetchWeeklyMenu();
+            }
+        }
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                activateTab(button.dataset.tab);
+            });
+        });
+
+        // --- Funciones de Ingredientes ---
+        async function fetchIngredients() {
+            ingredientsListDiv.innerHTML = '<li class="text-gray-500 italic">Cargando ingredientes...</li>';
+            try {
+                const response = await fetch('/api/ingredients');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error al cargar ingredientes.');
+                }
+                allIngredients = await response.json();
+                renderIngredients();
+            } catch (error) {
+                console.error('Error fetching ingredients:', error);
+                showCustomAlert(`No se pudieron cargar los ingredientes: ${error.message}`, 'Error de Carga');
+                ingredientsListDiv.innerHTML = '<li class="text-red-500 italic">Error al cargar ingredientes.</li>';
+            }
+        }
+
+        function renderIngredients() {
+            ingredientsListDiv.innerHTML = '';
+            if (allIngredients.length === 0) {
+                ingredientsListDiv.innerHTML = '<li class="text-gray-500 italic">No hay ingredientes guardados.</li>';
+                return;
+            }
+            allIngredients.forEach(ingredient => {
+                const li = document.createElement('li');
+                li.classList.add('list-item');
+                li.innerHTML = `
+                    <div class="list-item-content">
+                        <p class="font-semibold text-gray-800">${ingredient.name} (${ingredient.supermarket || 'N/A'})</p>
+                        <p class="text-sm text-gray-600">
+                            Precio: ${ingredient.price_per_unit.toFixed(2)}€/unidad | 
+                            Cal: ${ingredient.calories_per_100g.toFixed(2)} | 
+                            Prot: ${ingredient.proteins_per_100g.toFixed(2)}g | 
+                            Carb: ${ingredient.carbs_per_100g.toFixed(2)}g | 
+                            Gras: ${ingredient.fats_per_100g.toFixed(2)}g
+                        </p>
+                    </div>
+                    <div class="list-item-actions">
+                        <button class="boton bg-red-500 hover:bg-red-700 text-white py-1 px-3 rounded-lg text-sm delete-ingredient-btn" data-ingredient-id="${ingredient.id}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                `;
+                ingredientsListDiv.appendChild(li);
+            });
+        }
+
+        // Event delegation for deleting ingredients
+        ingredientsListDiv.addEventListener('click', (event) => {
+            const deleteButton = event.target.closest('.delete-ingredient-btn');
+            if (deleteButton) {
+                const ingredientId = deleteButton.dataset.ingredientId;
+                if (ingredientId) {
+                    deleteIngredient(ingredientId);
+                } else {
+                    console.error("Error: ingredientId no encontrado en el botón de eliminar.", event.target);
+                    showCustomAlert("No se pudo obtener la ID del ingrediente para eliminar.", "Error");
+                }
+            }
+        });
+
+
+        ingredientForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newIngredient = {
+                name: ingredientNameInput.value.trim(),
+                supermarket: ingredientSupermarketInput.value.trim() || null,
+                price_per_unit: parseFloat(ingredientPriceInput.value),
+                calories_per_100g: parseFloat(ingredientCaloriesInput.value),
+                proteins_per_100g: parseFloat(ingredientProteinsInput.value),
+                carbs_per_100g: parseFloat(ingredientCarbsInput.value),
+                fats_per_100g: parseFloat(ingredientFatsInput.value)
+            };
+
+            if (Object.values(newIngredient).some(val => val === null || (typeof val === 'number' && isNaN(val)))) {
+                showCustomAlert('Por favor, completa todos los campos obligatorios y asegúrate de que los números son válidos.', 'Datos Incompletos');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/ingredients', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newIngredient)
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error al añadir ingrediente.');
+                }
+                await response.json(); // Get the new ingredient from response if needed
+                showCustomAlert('Ingrediente añadido con éxito.', 'Éxito');
+                clearForm(ingredientForm);
+                fetchIngredients(); // Recargar la lista
+            } catch (error) {
+                console.error('Error adding ingredient:', error);
+                showCustomAlert(`No se pudo añadir el ingrediente: ${error.message}`, 'Error');
+            }
+        });
+
+        async function deleteIngredient(id) {
+            const confirm = await showCustomConfirm('¿Estás seguro de que quieres eliminar este ingrediente?', 'Confirmar Eliminación');
+            if (!confirm) return;
+
+            try {
+                const response = await fetch(`/api/ingredients/${id}`, {
+                    method: 'DELETE'
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error al eliminar ingrediente.');
+                }
+                await response.json();
+                showCustomAlert('Ingrediente eliminado con éxito.', 'Éxito');
+                fetchIngredients(); // Recargar la lista
+            } catch (error) {
+                console.error('Error deleting ingredient:', error);
+                showCustomAlert(`No se pudo eliminar el ingrediente: ${error.message}`, 'Error');
+            }
+        }
+
+        // --- Funciones de Recetas ---
+        async function fetchIngredientsForRecipeSelection() {
+            // Re-fetch ingredients to ensure the dropdown is always up-to-date
+            await fetchIngredients(); 
+            selectIngredient.innerHTML = '<option value="">Selecciona un ingrediente</option>';
+            allIngredients.forEach(ingredient => {
+                const option = document.createElement('option');
+                option.value = ingredient.id;
+                option.textContent = ingredient.name;
+                selectIngredient.appendChild(option);
+            });
+        }
+
+        function renderRecipeIngredients() {
+            recipeIngredientsListDiv.innerHTML = '';
+            let totalCost = 0;
+            let totalCalories = 0;
+            let totalProteins = 0;
+            let totalCarbs = 0;
+            let totalFats = 0;
+
+            if (currentRecipeIngredients.length === 0) {
+                recipeIngredientsListDiv.innerHTML = '<li class="text-gray-500 italic">No hay ingredientes añadidos a la receta.</li>';
+                updateRecipeNutritionalInfo(0, 0, 0, 0, 0); // Reset totals
+                return;
+            }
+
+            currentRecipeIngredients.forEach((ing, index) => {
+                const ingredientData = allIngredients.find(i => i.id === ing.id);
+                if (ingredientData) {
+                    const li = document.createElement('li');
+                    li.classList.add('flex', 'justify-between', 'items-center', 'text-gray-700', 'border-b', 'border-gray-100', 'py-1');
+                    li.innerHTML = `
+                        <span>${ingredientData.name}: ${ing.quantity} ${ing.unit}</span>
+                        <button type="button" class="text-red-500 hover:text-red-700 text-sm" onclick="removeIngredientFromRecipe(${index})">
+                            <i class="fas fa-times-circle"></i>
+                        </button>
+                    `;
+                    recipeIngredientsListDiv.appendChild(li);
+
+                    // Calcular valores nutricionales y costo
+                    // Asumiendo price_per_unit es por unidad, y nutritional values por 100g/ml
+                    // Y que 'quantity' en `currentRecipeIngredients` es en gramos/ml
+                    const cost = (ing.quantity / 100) * ingredientData.price_per_unit; 
+                    totalCost += cost;
+                    totalCalories += calculateNutritionalValue(ing.quantity, ingredientData.calories_per_100g);
+                    totalProteins += calculateNutritionalValue(ing.quantity, ingredientData.proteins_per_100g);
+                    totalCarbs += calculateNutritionalValue(ing.quantity, ingredientData.carbs_per_100g);
+                    totalFats += calculateNutritionalValue(ing.quantity, ingredientData.fats_per_100g);
+                }
+            });
+            updateRecipeNutritionalInfo(totalCost, totalCalories, totalProteins, totalCarbs, totalFats);
+        }
+
+        function updateRecipeNutritionalInfo(cost = 0, calories = 0, proteins = 0, carbs = 0, fats = 0) {
+            recipeTotalCostSpan.textContent = cost.toFixed(2);
+            recipeTotalCaloriesSpan.textContent = calories.toFixed(2);
+            recipeTotalProteinsSpan.textContent = proteins.toFixed(2);
+            recipeTotalCarbsSpan.textContent = carbs.toFixed(2);
+            recipeTotalFatsSpan.textContent = fats.toFixed(2);
+        }
+
+        addIngredientToRecipeButton.addEventListener('click', () => {
+            const selectedId = selectIngredient.value;
+            const quantity = parseFloat(ingredientQuantityInput.value);
+
+            if (!selectedId || isNaN(quantity) || quantity <= 0) {
+                showCustomAlert('Por favor, selecciona un ingrediente y una cantidad válida.', 'Datos Incompletos');
+                return;
+            }
+
+            const ingredientData = allIngredients.find(i => i.id === selectedId);
+            if (!ingredientData) {
+                showCustomAlert('Ingrediente no encontrado.', 'Error');
+                return;
+            }
+
+            const unit = 'g/ml'; // Simplificación: asumiendo g/ml para cantidad
+
+            currentRecipeIngredients.push({
+                id: selectedId,
+                name: ingredientData.name, // Añadir nombre para facilitar el display
+                quantity: quantity,
+                unit: unit,
+                price_per_unit: ingredientData.price_per_unit, 
+                calories_per_100g: ingredientData.calories_per_100g,
+                proteins_per_100g: ingredientData.proteins_per_100g,
+                carbs_per_100g: ingredientData.carbs_per_100g,
+                fats_per_100g: ingredientData.fats_per_100g,
+            });
+            ingredientQuantityInput.value = ''; // Limpiar cantidad
+            renderRecipeIngredients();
+        });
+
+        function removeIngredientFromRecipe(index) {
+            currentRecipeIngredients.splice(index, 1);
+            renderRecipeIngredients();
+        }
+
+        async function fetchRecipes() {
+            recipesListDiv.innerHTML = '<li class="text-gray-500 italic">Cargando recetas...</li>';
+            try {
+                const response = await fetch('/api/recipes');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error al cargar recetas.');
+                }
+                allRecipes = await response.json();
+                renderRecipes();
+            } catch (error) {
+                console.error('Error fetching recipes:', error);
+                showCustomAlert(`No se pudieron cargar las recetas: ${error.message}`, 'Error de Carga');
+                recipesListDiv.innerHTML = '<li class="text-red-500 italic">Error al cargar recetas.</li>';
+            }
+        }
+
+        function renderRecipes() {
+            recipesListDiv.innerHTML = '';
+            if (allRecipes.length === 0) {
+                recipesListDiv.innerHTML = '<li class="text-gray-500 italic">No hay recetas guardadas.</li>';
+                return;
+            }
+            allRecipes.forEach(recipe => {
+                const li = document.createElement('li');
+                li.classList.add('list-item', 'flex-col', 'items-start'); // Ajustar para mostrar más detalles
+                li.innerHTML = `
+                    <div class="list-item-content w-full">
+                        <p class="font-bold text-lg text-gray-800">${recipe.name}</p>
+                        <p class="text-sm text-gray-600 mb-1">
+                            Costo: ${recipe.total_cost.toFixed(2)}€ | 
+                            Calorías: ${recipe.total_calories.toFixed(2)} | 
+                            Proteínas: ${recipe.total_proteins.toFixed(2)}g | 
+                            Carbs: ${recipe.total_carbs.toFixed(2)}g | 
+                            Grasas: ${recipe.total_fats.toFixed(2)}g
+                        </p>
+                        <p class="text-sm text-gray-700 italic">Ingredientes:</p>
+                        <ul class="list-disc list-inside text-xs text-gray-600 pl-4">
+                            ${recipe.ingredients.map(ing => `<li>${ing.name}: ${ing.quantity}${ing.unit}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div class="list-item-actions mt-2 md:mt-0">
+                        <button class="boton bg-red-500 hover:bg-red-700 text-white py-1 px-3 rounded-lg text-sm" onclick="deleteRecipe('${recipe.id}')">
+                            <i class="fas fa-trash-alt"></i> Eliminar
+                        </button>
+                    </div>
+                `;
+                recipesListDiv.appendChild(li);
+            });
+        }
+
+        recipeForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (currentRecipeIngredients.length === 0) {
+                showCustomAlert('Por favor, añade al menos un ingrediente a la receta.', 'Receta Incompleta');
+                return;
+            }
+
+            const newRecipe = {
+                name: recipeNameInput.value.trim(),
+                ingredients: currentRecipeIngredients.map(ing => ({
+                    id: ing.id,
+                    name: ing.name, // Guardar también el nombre para referencia
+                    quantity: ing.quantity,
+                    unit: ing.unit
+                })),
+                total_cost: parseFloat(recipeTotalCostSpan.textContent),
+                total_calories: parseFloat(recipeTotalCaloriesSpan.textContent),
+                total_proteins: parseFloat(recipeTotalProteinsSpan.textContent),
+                total_carbs: parseFloat(recipeTotalCarbsSpan.textContent),
+                total_fats: parseFloat(recipeTotalFatsSpan.textContent)
+            };
+
+            try {
+                const response = await fetch('/api/recipes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newRecipe)
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error al añadir receta.');
+                }
+                await response.json();
+                showCustomAlert('Receta guardada con éxito.', 'Éxito');
+                clearForm(recipeForm);
+                fetchRecipes(); // Recargar la lista
+            } catch (error) {
+                console.error('Error adding recipe:', error);
+                showCustomAlert(`No se pudo añadir la receta: ${error.message}`, 'Error');
+            }
+        });
+
+        async function deleteRecipe(id) {
+            const confirm = await showCustomConfirm('¿Estás seguro de que quieres eliminar esta receta? Esta acción no se puede deshacer.', 'Confirmar Eliminación');
+            if (!confirm) return;
+
+            try {
+                const response = await fetch(`/api/recipes/${id}`, {
+                    method: 'DELETE'
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error al eliminar receta.');
+                }
+                await response.json();
+                showCustomAlert('Receta eliminada con éxito.', 'Éxito');
+                fetchRecipes(); // Recargar la lista
+            } catch (error) {
+                console.error('Error deleting recipe:', error);
+                showCustomAlert(`No se pudo eliminar la receta: ${error.message}`, 'Error');
+            }
+        }
+
+        // --- Funciones de Menú Semanal ---
+        async function fetchRecipesForMenuSelection() {
+            // Re-fetch recipes to ensure the dropdown is always up-to-date
+            await fetchRecipes(); 
+            selectRecipeForMenu.innerHTML = '<option value="">Selecciona una receta</option>';
+            allRecipes.forEach(recipe => {
+                const option = document.createElement('option');
+                option.value = recipe.id;
+                option.textContent = recipe.name;
+                selectRecipeForMenu.appendChild(option);
+            });
+        }
+
+        async function fetchWeeklyMenu() {
+            weeklyMenuDisplayDiv.innerHTML = '<p class="text-gray-500 italic text-center">Cargando menú semanal...</p>';
+            try {
+                const response = await fetch('/api/weekly_menu');
+                if (!response.ok) {
+                    // Si no hay menú guardado, la API devolverá un 200 con un objeto vacío {}
+                    // o un error si la tabla weekly_menu no existe.
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error al cargar el menú semanal.');
+                }
+                const data = await response.json();
+                weeklyMenuData = data; // La API devuelve directamente el objeto del menú
+                renderWeeklyMenu();
+            } catch (error) {
+                console.error('Error fetching weekly menu:', error);
+                showCustomAlert(`No se pudo cargar el menú semanal: ${error.message}`, 'Error de Carga');
+                weeklyMenuDisplayDiv.innerHTML = '<p class="text-red-500 italic text-center">Error al cargar el menú semanal.</p>';
+            }
+        }
+
+        function renderWeeklyMenu() {
+            weeklyMenuDisplayDiv.innerHTML = ''; // Limpiar contenido anterior
+            if (Object.keys(weeklyMenuData).length === 0) {
+                weeklyMenuDisplayDiv.innerHTML = '<p class="text-gray-500 italic text-center">No hay menú semanal planificado. ¡Añade algunas comidas!</p>';
+                return;
+            }
+
+            WEEK_DAYS.forEach(day => {
+                const dayCard = document.createElement('div');
+                dayCard.classList.add('day-meal-card');
+                dayCard.innerHTML = `<h4 class="font-bold text-gray-800 mb-2">${day}</h4>`;
+                
+                const meals = weeklyMenuData[day] || {};
+                const mealTypes = ["Desayuno", "Almuerzo", "Cena", "Snack"];
+                
+                mealTypes.forEach(mealType => {
+                    const mealEntry = meals[mealType];
+                    if (mealEntry) {
+                        const mealDiv = document.createElement('div');
+                        mealDiv.classList.add('meal-entry');
+                        mealDiv.innerHTML = `
+                            <p class="text-sm font-medium text-gray-800">${mealType}:</p>
+                            <div class="flex justify-between items-center text-sm text-gray-700">
+                                <span>${mealEntry.recipeName}</span>
+                                <button type="button" class="delete-meal-btn" data-day="${day}" data-meal-type="${mealType}">
+                                    <i class="fas fa-times-circle"></i>
+                                </button>
+                            </div>
+                        `;
+                        dayCard.appendChild(mealDiv);
+                    }
+                });
+
+                if (!weeklyMenuData[day] || Object.keys(weeklyMenuData[day]).length === 0) {
+                    const noMealsDiv = document.createElement('div');
+                    noMealsDiv.classList.add('text-sm', 'text-gray-500', 'italic', 'p-2');
+                    noMealsDiv.textContent = 'Sin comidas planificadas.';
+                    dayCard.appendChild(noMealsDiv);
+                }
+
+                weeklyMenuDisplayDiv.appendChild(dayCard);
+            });
+
+            // Add event listeners for delete buttons AFTER rendering
+            weeklyMenuDisplayDiv.querySelectorAll('.delete-meal-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const day = e.target.dataset.day || e.target.closest('button').dataset.day;
+                    const mealType = e.target.dataset.mealType || e.target.closest('button').dataset.mealType;
+                    deleteMealFromMenu(day, mealType);
+                });
+            });
+        }
+
+        addMealToMenuButton.addEventListener('click', () => {
+            const day = menuDaySelect.value;
+            const mealType = mealTypeSelect.value;
+            const recipeId = selectRecipeForMenu.value;
+
+            if (!recipeId) {
+                showCustomAlert('Por favor, selecciona una receta para añadir al menú.', 'Selección Requerida');
+                return;
+            }
+
+            const selectedRecipe = allRecipes.find(r => r.id === recipeId);
+            if (!selectedRecipe) {
+                showCustomAlert('Receta no encontrada.', 'Error');
+                return;
+            }
+
+            if (!weeklyMenuData[day]) {
+                weeklyMenuData[day] = {};
+            }
+            weeklyMenuData[day][mealType] = {
+                recipeId: selectedRecipe.id,
+                recipeName: selectedRecipe.name,
+                // Puedes añadir más detalles de la receta aquí si los necesitas en el menú
+                // Por ejemplo: total_calories: selectedRecipe.total_calories, etc.
+            };
+            renderWeeklyMenu();
+            showCustomAlert(`"${selectedRecipe.name}" añadido a ${mealType} del ${day}. No olvides Guardar el Menú.`, 'Comida Añadida');
+        });
+
+        function deleteMealFromMenu(day, mealType) {
+            if (weeklyMenuData[day] && weeklyMenuData[day][mealType]) {
+                delete weeklyMenuData[day][mealType];
+                if (Object.keys(weeklyMenuData[day]).length === 0) {
+                    delete weeklyMenuData[day]; // Eliminar el día si no tiene comidas
+                }
+                renderWeeklyMenu();
+                showCustomAlert(`Comida eliminada de ${mealType} del ${day}. No olvides Guardar el Menú.`, 'Comida Eliminada');
+            }
+        }
+
+        saveWeeklyMenuButton.addEventListener('click', async () => {
+            const confirm = await showCustomConfirm('¿Estás seguro de que quieres guardar este menú semanal?', 'Confirmar Guardado');
+            if (!confirm) return;
+
+            try {
+                const response = await fetch('/api/weekly_menu', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ menu: weeklyMenuData }) // Enviar el objeto completo del menú
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error al guardar el menú semanal.');
+                }
+                await response.json();
+                showCustomAlert('Menú semanal guardado con éxito.', 'Éxito');
+                // Opcional: Recargar el menú para asegurar que los datos estén sincronizados
+                fetchWeeklyMenu(); 
+            } catch (error) {
+                console.error('Error saving weekly menu:', error);
+                showCustomAlert(`No se pudo guardar el menú semanal: ${error.message}`, 'Error');
+            }
+        });
+
+
+        // --- Inicialización ---
+        document.addEventListener('DOMContentLoaded', () => {
+            activateTab('ingredients'); // Activar la pestaña de ingredientes por defecto
+        });
+    </script>
+</body>
+</html>
