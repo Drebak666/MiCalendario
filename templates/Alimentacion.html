@@ -113,7 +113,22 @@
         <div id="ingredients" class="tab-content">
             <h2 class="text-2xl font-semibold text-gray-800 mb-4 section-header">Mis Ingredientes</h2>
             
-            <!-- Formulario para añadir Ingrediente -->
+            <!-- NUEVA SECCIÓN: Gestión de Supermercados -->
+            <div class="form-container mb-6">
+                <h3 class="text-xl font-medium text-gray-700 mb-4">Gestionar Supermercados</h3>
+                <form id="supermarketForm" class="flex gap-4 mb-4">
+                    <input type="text" id="supermarketNameInput" placeholder="Nombre del nuevo supermercado" required class="flex-grow mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    <button type="submit" class="boton bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg shadow-md">Añadir Supermercado</button>
+                </form>
+                <div class="bg-gray-50 p-3 rounded-lg shadow-inner">
+                    <h4 class="text-lg font-medium text-gray-700 mb-2">Supermercados guardados:</h4>
+                    <ul id="supermarketsList" class="space-y-1">
+                        <!-- Supermercados se cargarán aquí -->
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Formulario para añadir Ingrediente (MODIFICADO) -->
             <div class="form-container">
                 <h3 class="text-xl font-medium text-gray-700 mb-4">Añadir Nuevo Ingrediente</h3>
                 <form id="ingredientForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -123,7 +138,10 @@
                     </div>
                     <div class="input-group">
                         <label for="ingredientSupermarket" class="block text-sm font-medium text-gray-700">Supermercado (opcional):</label>
-                        <input type="text" id="ingredientSupermarket" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                        <select id="ingredientSupermarket" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                            <option value="">-- Selecciona un supermercado --</option>
+                            <!-- Opciones de supermercados se cargarán aquí -->
+                        </select>
                     </div>
                     <div class="input-group">
                         <label for="ingredientPrice" class="block text-sm font-medium text-gray-700">Precio por Unidad (€):</label>
@@ -376,7 +394,7 @@
         // Ingredientes
         const ingredientForm = document.getElementById('ingredientForm');
         const ingredientNameInput = document.getElementById('ingredientName');
-        const ingredientSupermarketInput = document.getElementById('ingredientSupermarket');
+        const ingredientSupermarketSelect = document.getElementById('ingredientSupermarket'); // CAMBIO A SELECT
         const ingredientPriceInput = document.getElementById('ingredientPrice');
         const ingredientCaloriesInput = document.getElementById('ingredientCalories');
         const ingredientProteinsInput = document.getElementById('ingredientProteins');
@@ -385,6 +403,12 @@
         const ingredientsListDiv = document.getElementById('ingredientsList');
 
         let allIngredients = []; // Para almacenar todos los ingredientes cargados
+
+        // NUEVOS ELEMENTOS: Supermercados
+        const supermarketForm = document.getElementById('supermarketForm');
+        const supermarketNameInput = document.getElementById('supermarketNameInput');
+        const supermarketsListDiv = document.getElementById('supermarketsList');
+        let allSupermarkets = []; // Para almacenar todos los supermercados cargados
 
         // Recetas
         const recipeForm = document.getElementById('recipeForm');
@@ -448,6 +472,7 @@
 
             // Cargar datos al cambiar de pestaña
             if (tabId === 'ingredients') {
+                fetchSupermarkets(); // Cargar supermercados cuando la pestaña de ingredientes esté activa
                 fetchIngredients();
             } else if (tabId === 'recipes') {
                 fetchIngredientsForRecipeSelection(); // Cargar ingredientes para el selector de recetas
@@ -463,6 +488,114 @@
                 activateTab(button.dataset.tab);
             });
         });
+
+        // --- NUEVAS FUNCIONES: Supermercados ---
+        async function fetchSupermarkets() {
+            supermarketsListDiv.innerHTML = '<li class="text-gray-500 italic">Cargando supermercados...</li>';
+            ingredientSupermarketSelect.innerHTML = '<option value="">-- Selecciona un supermercado --</option>'; // Clear existing options
+            try {
+                const response = await fetch('/api/supermarkets');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error al cargar supermercados.');
+                }
+                allSupermarkets = await response.json();
+                renderSupermarkets();
+                populateSupermarketDropdown();
+            } catch (error) {
+                console.error('Error fetching supermarkets:', error);
+                showCustomAlert(`No se pudieron cargar los supermercados: ${error.message}`, 'Error de Carga');
+                supermarketsListDiv.innerHTML = '<li class="text-red-500 italic">Error al cargar supermercados.</li>';
+            }
+        }
+
+        function renderSupermarkets() {
+            supermarketsListDiv.innerHTML = '';
+            if (allSupermarkets.length === 0) {
+                supermarketsListDiv.innerHTML = '<li class="text-gray-500 italic">No hay supermercados guardados.</li>';
+                return;
+            }
+            allSupermarkets.forEach(supermarket => {
+                const li = document.createElement('li');
+                li.classList.add('flex', 'justify-between', 'items-center', 'text-gray-700', 'border-b', 'border-gray-100', 'py-1');
+                li.innerHTML = `
+                    <span>${supermarket.name}</span>
+                    <button type="button" class="text-red-500 hover:text-red-700 text-sm delete-supermarket-btn" data-supermarket-id="${supermarket.id}">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
+                `;
+                supermarketsListDiv.appendChild(li);
+            });
+        }
+
+        function populateSupermarketDropdown() {
+            ingredientSupermarketSelect.innerHTML = '<option value="">-- Selecciona un supermercado --</option>';
+            allSupermarkets.forEach(supermarket => {
+                const option = document.createElement('option');
+                option.value = supermarket.name; // Almacenamos el nombre del supermercado
+                option.textContent = supermarket.name;
+                ingredientSupermarketSelect.appendChild(option);
+            });
+        }
+
+        supermarketForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newSupermarketName = supermarketNameInput.value.trim();
+            if (!newSupermarketName) {
+                showCustomAlert('El nombre del supermercado no puede estar vacío.', 'Campo Obligatorio');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/supermarkets', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: newSupermarketName })
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error al añadir supermercado.');
+                }
+                showCustomAlert('Supermercado añadido con éxito.', 'Éxito');
+                supermarketNameInput.value = '';
+                fetchSupermarkets(); // Recargar la lista y el dropdown
+            } catch (error) {
+                console.error('Error adding supermarket:', error);
+                showCustomAlert(`No se pudo añadir el supermercado: ${error.message}`, 'Error');
+            }
+        });
+
+        // Event delegation for deleting supermarkets
+        supermarketsListDiv.addEventListener('click', async (event) => {
+            const deleteButton = event.target.closest('.delete-supermarket-btn');
+            if (deleteButton) {
+                const supermarketId = deleteButton.dataset.supermarketId;
+                if (!supermarketId) {
+                    console.error("Error: supermarketId no encontrado en el botón de eliminar.");
+                    showCustomAlert("No se pudo obtener la ID del supermercado para eliminar.", "Error");
+                    return;
+                }
+
+                const confirm = await showCustomConfirm('¿Estás seguro de que quieres eliminar este supermercado? Esto no eliminará ingredientes ya asociados.', 'Confirmar Eliminación');
+                if (!confirm) return;
+
+                try {
+                    const response = await fetch(`/api/supermarkets/${supermarketId}`, {
+                        method: 'DELETE'
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Error al eliminar supermercado.');
+                    }
+                    showCustomAlert('Supermercado eliminado con éxito.', 'Éxito');
+                    fetchSupermarkets(); // Recargar la lista y el dropdown
+                } catch (error) {
+                    console.error('Error deleting supermarket:', error);
+                    showCustomAlert(`No se pudo eliminar el supermercado: ${error.message}`, 'Error');
+                }
+            }
+        });
+
 
         // --- Funciones de Ingredientes ---
         async function fetchIngredients() {
@@ -531,7 +664,8 @@
             e.preventDefault();
             const newIngredient = {
                 name: ingredientNameInput.value.trim(),
-                supermarket: ingredientSupermarketInput.value.trim() || null,
+                // Usar el valor seleccionado del desplegable
+                supermarket: ingredientSupermarketSelect.value.trim() || null, 
                 price_per_unit: parseFloat(ingredientPriceInput.value),
                 calories_per_100g: parseFloat(ingredientCaloriesInput.value),
                 proteins_per_100g: parseFloat(ingredientProteinsInput.value),
