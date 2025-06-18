@@ -91,7 +91,8 @@ def gimnasio():
 
 @app.route('/lista')
 def lista_compra():
-    return render_template('lista_compra.html')
+    # CORRECCIÓN: Asegurarse de que el nombre del template es 'lista.html'
+    return render_template('lista.html')
 
 @app.route('/citas')
 def citas():
@@ -560,7 +561,7 @@ def toggle_item_lista_compra_completado(item_id):
         if not update_response.data:
             return jsonify({'error': 'Ítem no encontrado o no se pudo actualizar.'}), 404
 
-        return jsonify({'id': str(item_id), 'completado': new_state}), 200
+        return jsonify({'id': str(item_id), 'comprado': new_state}), 200
     except Exception as e:
         print(f"Error al cambiar estado de ítem de lista de compra: {e}")
         return jsonify({'error': f'Error al actualizar ítem: {str(e)}'}), 500
@@ -721,6 +722,7 @@ def get_tipos_documento():
     except Exception as e:
         print(f"Error al obtener tipos de documento: {e}")
         return jsonify({'error': f'Error al obtener tipos de documento: {str(e)}'}), 500
+
 
 # --- NUEVAS API para Supermercados ---
 @app.route('/api/supermarkets', methods=['POST'])
@@ -962,7 +964,7 @@ def save_weekly_menu():
         print(f"Error al guardar menú semanal en Supabase: {e}")
         return jsonify({'error': f'Error al guardar menú semanal: {str(e)}'}), 500
 
-# --- Rutas API para Gimnasio (PLACEHOLDER) ---
+# --- API para Gimnasio (PLACEHOLDER) ---
 # Estas rutas son ejemplos y necesitarán ser completadas con la lógica de base de datos
 # real una vez que definas la estructura para los registros de gimnasio.
 
