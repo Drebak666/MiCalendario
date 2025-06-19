@@ -12,181 +12,192 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" xintegrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        /* Estilos generales para el cuerpo y la fuente */
+        /* Fuentes y estilos base para que coincidan con el resto de la app */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f0f2f5; /* Un gris claro para el fondo */
+            background-color: #f0f2f5; /* Un gris claro consistente con el fondo de la app */
             color: #333;
         }
 
-        /* Contenedor principal para centrar el contenido */
+        /* Contenedor principal responsive */
         .main-container {
-            max-width: 1000px;
+            max-width: 1000px; /* Ancho máximo para pantallas grandes */
             margin: 0 auto;
-            padding: 1.5rem;
+            padding: 1rem; /* Padding más compacto en móviles */
         }
 
-        /* Estilos para los títulos de sección */
+        /* Títulos de sección */
         .section-title {
-            font-size: 2.25rem; /* text-4xl */
-            font-weight: 700; /* font-bold */
-            color: #1a202c; /* gray-900 */
-            margin-bottom: 2rem;
+            font-size: 2rem; /* Más pequeño para móviles */
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 1.5rem; /* Margen reducido */
             text-align: center;
         }
-
-        /* Estilos para el contenedor del acordeón */
-        .accordion-item {
-            background-color: white;
-            border-radius: 0.75rem; /* rounded-xl */
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            margin-bottom: 1.5rem;
-            overflow: hidden; /* Para que el contenido se colapse limpiamente */
+        @media (min-width: 768px) { /* Ajuste para desktop */
+            .section-title {
+                font-size: 2.25rem;
+                margin-bottom: 2rem;
+            }
         }
 
-        /* Estilos para el encabezado del acordeón (el botón que se clickea) */
+        /* Acordeón: Estilos principales */
+        .accordion-item {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            margin-bottom: 1rem; /* Margen entre elementos */
+            overflow: hidden;
+        }
+
+        /* Encabezado del acordeón (el botón) */
         .accordion-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1.25rem 1.5rem;
-            background-color: #6366f1; /* indigo-500 */
+            padding: 1rem 1.25rem; /* Padding ajustado para móvil */
+            background-color: #4f46e5; /* indigo-600 - color principal de la app */
             color: white;
-            font-size: 1.5rem; /* text-2xl */
-            font-weight: 700; /* font-bold */
+            font-size: 1.25rem; /* text-xl para móvil */
+            font-weight: 700;
             cursor: pointer;
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             border-top-left-radius: 0.75rem;
             border-top-right-radius: 0.75rem;
             transition: background-color 0.2s ease-in-out;
         }
-
         .accordion-header:hover {
-            background-color: #4f46e5; /* indigo-600 */
+            background-color: #4338ca; /* indigo-700 */
+        }
+        @media (min-width: 768px) { /* Ajuste para desktop */
+            .accordion-header {
+                font-size: 1.5rem; /* text-2xl */
+                padding: 1.25rem 1.5rem;
+            }
         }
 
-        /* Estilos para el icono de flecha del acordeón */
+        /* Icono de flecha */
         .accordion-icon {
             transition: transform 0.3s ease-in-out;
         }
         .accordion-header.active .accordion-icon {
-            transform: rotate(90deg); /* Gira la flecha cuando está activo */
+            transform: rotate(90deg);
         }
 
-        /* Estilos para el contenido del acordeón */
+        /* Contenido del acordeón */
         .accordion-content {
-            padding: 1.5rem;
+            padding: 1.25rem; /* Padding ajustado */
             background-color: white;
             border-bottom-left-radius: 0.75rem;
             border-bottom-right-radius: 0.75rem;
-            display: none; /* Por defecto oculto */
-            animation: slideDown 0.3s ease-out forwards; /* Animación para desplegar */
+            display: none;
+            /* Usar max-height para una animación suave */
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+        }
+        .accordion-content.open {
+            max-height: 1000px; /* Suficientemente grande para el contenido */
+            padding: 1.5rem; /* Restaura el padding completo al abrir */
         }
 
-        /* Animación para desplegar el contenido */
-        @keyframes slideDown {
-            from {
-                max-height: 0;
-                opacity: 0;
-            }
-            to {
-                max-height: 1000px; /* Suficientemente grande para contener el contenido */
-                opacity: 1;
-            }
-        }
-
-        /* Animación para colapsar el contenido (se maneja con JS para evitar el recorte) */
-        .accordion-content.collapsing {
-            animation: slideUp 0.3s ease-out forwards;
-        }
-
-        @keyframes slideUp {
-            from {
-                max-height: 1000px; /* Suficientemente grande para contener el contenido */
-                opacity: 1;
-            }
-            to {
-                max-height: 0;
-                opacity: 0;
-            }
-        }
-
-        /* Estilos para formularios y entradas */
+        /* Formularios e inputs */
         .form-input {
             width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #d1d5db; /* gray-300 */
-            border-radius: 0.375rem; /* rounded-md */
+            padding: 0.65rem; /* Menos padding en inputs para móviles */
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
             box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
             transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         }
         .form-input:focus {
-            border-color: #6366f1; /* indigo-500 */
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); /* indigo-500 with opacity */
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
             outline: none;
         }
 
-        /* Estilos para botones de acción */
+        /* Botones de acción */
         .action-button {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 0.75rem 1.5rem;
+            padding: 0.65rem 1.25rem; /* Padding ajustado para móvil */
             font-weight: 600;
             border-radius: 0.5rem;
-            background-color: #4f46e5; /* indigo-600 */
+            background-color: #4f46e5;
             color: white;
             transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 100%; /* Por defecto al 100% en móvil */
         }
         .action-button:hover {
-            background-color: #4338ca; /* indigo-700 */
+            background-color: #4338ca;
             transform: translateY(-1px);
         }
         .action-button:active {
             transform: translateY(0);
             box-shadow: none;
         }
+        @media (min-width: 640px) { /* Ajuste para tablet/desktop */
+            .action-button {
+                width: auto; /* Ancho automático en pantallas más grandes */
+                padding: 0.75rem 1.5rem;
+            }
+        }
 
-        /* Estilos para elementos de lista y tarjetas */
+        /* Tarjetas de elementos (supermercado, ingrediente, receta) */
         .item-card {
             background-color: white;
-            border-radius: 0.75rem; /* rounded-xl */
+            border-radius: 0.75rem;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            padding: 1.25rem;
+            padding: 1rem; /* Padding más compacto */
             margin-bottom: 0.75rem;
             transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-            border: 1px solid #e2e8f0; /* gray-200 */
+            border: 1px solid #e2e8f0;
         }
         .item-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
         }
 
-        /* Estilos para botones de eliminar/icono */
+        /* Botones de eliminar */
         .delete-button {
             background-color: #ef4444; /* red-500 */
             color: white;
-            padding: 0.5rem 0.75rem;
+            padding: 0.4rem 0.6rem; /* Más pequeño para móviles */
             border-radius: 0.375rem;
             transition: background-color 0.2s ease-in-out;
+            font-size: 0.8rem; /* Tamaño de fuente más pequeño */
         }
         .delete-button:hover {
             background-color: #dc2626; /* red-600 */
         }
+        @media (min-width: 640px) {
+            .delete-button {
+                padding: 0.5rem 0.75rem;
+                font-size: 1rem;
+            }
+        }
 
-        /* Estilos para el menú semanal */
+        /* Menú Semanal Grid */
         .weekly-menu-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Columnas más flexibles */
+            gap: 0.75rem; /* Espacio reducido */
         }
+        @media (min-width: 768px) {
+             .weekly-menu-grid {
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                gap: 1rem;
+            }
+        }
+
         .day-card {
-            background-color: #e0f2fe; /* light blue for menu cards */
+            background-color: #e0f2fe; /* light blue */
             border-radius: 0.75rem;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            padding: 1.25rem;
-            min-height: 180px; /* Asegura un tamaño mínimo */
+            padding: 1rem; /* Padding ajustado */
+            min-height: 160px; /* Altura mínima ajustada */
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -195,23 +206,57 @@
         .day-title {
             font-weight: 700;
             color: #1e40af; /* dark blue */
-            margin-bottom: 0.75rem;
-            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem; /* Tamaño de fuente ajustado */
         }
         .meal-input {
             background-color: white;
             border: 1px solid #bfdbfe;
             border-radius: 0.375rem;
-            padding: 0.5rem;
-            margin-bottom: 0.5rem;
-            min-height: 2.5rem; /* Altura consistente */
+            padding: 0.4rem; /* Padding más compacto */
+            margin-bottom: 0.4rem;
+            min-height: 2.2rem; /* Altura consistente */
             display: flex;
             align-items: center;
+            font-size: 0.9rem; /* Tamaño de fuente más pequeño */
         }
         .meal-input:focus {
             border-color: #60a5fa;
             box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
             outline: none;
+        }
+
+        /* Estilos específicos para la lista de ingredientes seleccionados en Recetas */
+        #selectedIngredientsList {
+            background-color: #f9fafb; /* Ligeramente más oscuro que el fondo para distinción */
+            padding: 0.75rem; /* Padding ajustado */
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            min-height: 50px;
+        }
+        #selectedIngredientsList .flex {
+            padding: 0.5rem; /* Padding de los ítems individuales */
+            font-size: 0.9rem;
+        }
+
+        /* Responsive adjustments for ingredient/recipe stat boxes */
+        .grid.grid-cols-2.lg\:grid-cols-3.gap-4 {
+            grid-template-columns: 1fr; /* Una columna en móvil */
+        }
+        @media (min-width: 640px) { /* Dos columnas en sm */
+             .grid.grid-cols-2.lg\:grid-cols-3.gap-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (min-width: 1024px) { /* Tres columnas en lg */
+             .grid.grid-cols-2.lg\:grid-cols-3.gap-4 {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* Estilos para el modal de alerta/confirmación */
+        #customAlertModal .action-button {
+            width: auto; /* Ancho automático para los botones del modal */
         }
     </style>
 </head>
@@ -243,17 +288,17 @@
                 <i class="fas fa-chevron-right accordion-icon"></i>
             </div>
             <div id="supermercadosContent" class="accordion-content">
-                <div class="bg-white p-6 rounded-xl shadow-md mb-8">
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">Añadir Nuevo Supermercado</h2>
-                    <div class="flex flex-col sm:flex-row gap-4">
+                <div class="bg-white p-4 rounded-xl shadow-md mb-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-3">Añadir Nuevo Supermercado</h2>
+                    <div class="flex flex-col sm:flex-row gap-3">
                         <input type="text" id="supermarketName" placeholder="Nombre del Supermercado" class="form-input flex-grow">
                         <button id="addSupermarketBtn" class="action-button"><i class="fas fa-plus mr-2"></i> Añadir Supermercado</button>
                     </div>
                 </div>
 
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">Listado de Supermercados</h2>
-                    <div id="supermarketsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="bg-white p-4 rounded-xl shadow-md">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-3">Listado de Supermercados</h2>
+                    <div id="supermarketsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                         <!-- Los supermercados se cargarán aquí -->
                         <p class="text-gray-500 text-center col-span-full">Cargando supermercados...</p>
                     </div>
@@ -268,9 +313,9 @@
                 <i class="fas fa-chevron-right accordion-icon"></i>
             </div>
             <div id="ingredientesContent" class="accordion-content">
-                <div class="bg-white p-6 rounded-xl shadow-md mb-8">
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">Añadir Nuevo Ingrediente</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="bg-white p-4 rounded-xl shadow-md mb-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-3">Añadir Nuevo Ingrediente</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         <input type="text" id="ingredientName" placeholder="Nombre del Ingrediente" class="form-input">
                         <select id="ingredientSupermarket" class="form-input">
                             <option value="">Selecciona Supermercado</option>
@@ -285,9 +330,9 @@
                     <button id="addIngredientBtn" class="action-button w-full mt-4"><i class="fas fa-plus mr-2"></i> Añadir Ingrediente</button>
                 </div>
 
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">Listado de Ingredientes</h2>
-                    <div id="ingredientsList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-white p-4 rounded-xl shadow-md">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-3">Listado de Ingredientes</h2>
+                    <div id="ingredientsList" class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <!-- Los ingredientes se cargarán aquí -->
                         <p class="text-gray-500 text-center col-span-full">Cargando ingredientes...</p>
                     </div>
@@ -302,41 +347,41 @@
                 <i class="fas fa-chevron-right accordion-icon"></i>
             </div>
             <div id="recetasContent" class="accordion-content">
-                <div class="bg-white p-6 rounded-xl shadow-md mb-8">
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">Crear Nueva Receta</h2>
-                    <div class="grid grid-cols-1 gap-4 mb-4">
+                <div class="bg-white p-4 rounded-xl shadow-md mb-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-3">Crear Nueva Receta</h2>
+                    <div class="grid grid-cols-1 gap-3 mb-3">
                         <input type="text" id="recipeName" placeholder="Nombre de la Receta" class="form-input">
                         <textarea id="recipeDescription" placeholder="Descripción de la receta o preparación (opcional)" class="form-input resize-y"></textarea>
                     </div>
                     <div class="mb-4">
-                        <label for="recipeIngredientsSelect" class="block text-gray-700 font-semibold mb-2">Selecciona Ingredientes y Cantidades:</label>
+                        <label for="recipeIngredientsSelect" class="block text-gray-700 font-semibold mb-2 text-sm">Selecciona Ingredientes y Cantidades:</label>
                         <div class="flex flex-col sm:flex-row gap-2 mb-2">
                             <select id="recipeIngredientsSelect" class="form-input flex-grow">
                                 <option value="">Selecciona un ingrediente</option>
                                 <!-- Ingredientes se cargarán aquí -->
                             </select>
                             <input type="number" step="0.01" id="ingredientQuantity" placeholder="Cantidad (g/ml)" class="form-input w-full sm:w-32">
-                            <button id="addIngredientToRecipeBtn" class="action-button px-4 py-2 text-sm"><i class="fas fa-plus mr-1"></i> Añadir</button>
+                            <button id="addIngredientToRecipeBtn" class="action-button px-3 py-2 text-sm"><i class="fas fa-plus mr-1"></i> Añadir</button>
                         </div>
-                        <div id="selectedIngredientsList" class="bg-gray-50 p-3 rounded-md border border-gray-200 min-h-[50px]">
+                        <div id="selectedIngredientsList" class="bg-gray-50 p-3 rounded-md border border-gray-200 min-h-[50px] text-sm">
                             <!-- Ingredientes seleccionados para la receta se mostrarán aquí -->
                             <p class="text-gray-500 text-sm italic">Ningún ingrediente añadido aún.</p>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-4 text-sm font-semibold">
-                        <div class="p-3 bg-blue-50 rounded-md">Costo Total: <span id="totalRecipeCost" class="font-bold text-blue-800">0.00€</span></div>
-                        <div class="p-3 bg-green-50 rounded-md">Calorías Totales: <span id="totalRecipeCalories" class="font-bold text-green-800">0.00 kcal</span></div>
-                        <div class="p-3 bg-yellow-50 rounded-md">Proteínas Totales: <span id="totalRecipeProteins" class="font-bold text-yellow-800">0.00 g</span></div>
-                        <div class="p-3 bg-orange-50 rounded-md">Carbohidratos Totales: <span id="totalRecipeCarbs" class="font-bold text-orange-800">0.00 g</span></div>
-                        <div class="p-3 bg-red-50 rounded-md">Grasas Totales: <span id="totalRecipeFats" class="font-bold text-red-800">0.00 g</span></div>
+                    <div class="grid grid-cols-2 gap-2 mb-4 text-xs sm:text-sm font-semibold">
+                        <div class="p-2 bg-blue-50 rounded-md">Costo Total: <span id="totalRecipeCost" class="font-bold text-blue-800">0.00€</span></div>
+                        <div class="p-2 bg-green-50 rounded-md">Calorías Totales: <span id="totalRecipeCalories" class="font-bold text-green-800">0.00 kcal</span></div>
+                        <div class="p-2 bg-yellow-50 rounded-md">Proteínas Totales: <span id="totalRecipeProteins" class="font-bold text-yellow-800">0.00 g</span></div>
+                        <div class="p-2 bg-orange-50 rounded-md">Carbohidratos Totales: <span id="font-bold text-orange-800">0.00 g</span></div>
+                        <div class="p-2 bg-red-50 rounded-md">Grasas Totales: <span id="totalRecipeFats" class="font-bold text-red-800">0.00 g</span></div>
                     </div>
-                    <button id="createRecipeBtn" class="action-button w-full mt-4"><i class="fas fa-utensils mr-2"></i> Crear Receta</button>
+                    <button id="createRecipeBtn" class="action-button w-full mt-3"><i class="fas fa-utensils mr-2"></i> Crear Receta</button>
                 </div>
 
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">Listado de Recetas</h2>
-                    <div id="recipesList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-white p-4 rounded-xl shadow-md">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-3">Listado de Recetas</h2>
+                    <div id="recipesList" class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <!-- Las recetas se cargarán aquí -->
                         <p class="text-gray-500 text-center col-span-full">Cargando recetas...</p>
                     </div>
@@ -351,9 +396,9 @@
                 <i class="fas fa-chevron-right accordion-icon"></i>
             </div>
             <div id="menuSemanalContent" class="accordion-content">
-                <div class="bg-white p-6 rounded-xl shadow-md mb-8">
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-4 text-center">Planificador de Menú Semanal</h2>
-                    <div class="weekly-menu-grid mb-6">
+                <div class="bg-white p-4 rounded-xl shadow-md mb-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-3 text-center">Planificador de Menú Semanal</h2>
+                    <div class="weekly-menu-grid mb-4">
                         <!-- Días de la semana -->
                         <div class="day-card" data-day="Lunes">
                             <h3 class="day-title">Lunes</h3>
@@ -398,7 +443,7 @@
                             <input type="text" placeholder="Cena" class="meal-input" data-meal-type="cena">
                         </div>
                     </div>
-                    <button id="saveMenuBtn" class="action-button w-full"><i class="fas fa-save mr-2"></i> Guardar Menú Semanal</button>
+                    <button id="saveMenuBtn" class="action-button w-full mt-3"><i class="fas fa-save mr-2"></i> Guardar Menú Semanal</button>
                 </div>
             </div>
         </div>
@@ -462,28 +507,21 @@
 
                 // Si ya está abierto, lo cerramos
                 if (header.classList.contains('active')) {
-                    content.classList.add('collapsing');
-                    content.addEventListener('animationend', () => {
-                        content.style.display = 'none';
-                        content.classList.remove('collapsing');
-                    }, { once: true });
+                    content.classList.remove('open');
                     header.classList.remove('active');
                 } else {
                     // Cierra cualquier otro acordeón abierto
                     document.querySelectorAll('.accordion-header.active').forEach(openHeader => {
                         const openContent = document.getElementById(openHeader.dataset.target);
-                        const openIcon = openHeader.querySelector('.accordion-icon');
-                        
-                        openContent.classList.add('collapsing');
-                        openContent.addEventListener('animationend', () => {
-                            openContent.style.display = 'none';
-                            openContent.classList.remove('collapsing');
-                        }, { once: true });
+                        openContent.classList.remove('open');
                         openHeader.classList.remove('active');
                     });
 
                     // Abre el acordeón clicado
-                    content.style.display = 'block'; // Make it visible for animation
+                    content.style.display = 'block'; // Asegura que el contenido sea visible para la transición
+                    setTimeout(() => { // Pequeño retraso para que la transición de display:block tenga efecto
+                        content.classList.add('open');
+                    }, 10);
                     header.classList.add('active');
 
                     // Carga los datos al abrir el acordeón
@@ -984,7 +1022,7 @@
                         <p class="font-semibold mb-1">Ingredientes:</p>
                         ${ingredientsHtml}
                     </div>
-                    <div class="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-xs text-gray-600">
                         <p class="bg-blue-50 p-2 rounded-md">Costo: <span class="font-semibold">${recipe.total_cost.toFixed(2)}€</span></p>
                         <p class="bg-green-50 p-2 rounded-md">Calorías: <span class="font-semibold">${recipe.total_calories.toFixed(2)} kcal</span></p>
                         <p class="bg-yellow-50 p-2 rounded-md">Proteínas: <span class="font-semibold">${recipe.total_proteins.toFixed(2)} g</span></p>

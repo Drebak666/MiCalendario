@@ -94,10 +94,17 @@
             margin-bottom: 8px;
             border-radius: 5px;
             display: flex;
+            flex-direction: column; /* Cambiado a columna para mejor responsive */
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start; /* Alineado a la izquierda */
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             position: relative;
+        }
+        @media (min-width: 640px) { /* Para pantallas más grandes, volver a fila */
+            .cita-item {
+                flex-direction: row;
+                align-items: center;
+            }
         }
         .cita-item.completada {
             background-color: #f0f4c3; /* Un verde claro para citas completadas */
@@ -106,36 +113,88 @@
         .cita-item .entry-text {
             font-weight: bold;
             color: #333;
+            margin-bottom: 5px; /* Espacio entre el texto y la información en móvil */
         }
         .cita-item .cita-info {
             font-size: 0.9em;
             color: #555;
-            margin-top: 5px;
         }
         .cita-item .dias-restantes {
             font-weight: bold;
             color: #007bff;
-            margin-left: 10px;
+            margin-top: 5px; /* Espacio para móvil */
+            margin-left: 0; /* Reiniciar margen izquierdo en móvil */
+        }
+        @media (min-width: 640px) {
+            .cita-item .dias-restantes {
+                margin-top: 0;
+                margin-left: 10px; /* Margen para pantallas más grandes */
+            }
         }
         .cita-item.completada .dias-restantes {
              color: #888;
         }
-        /* Los estilos quick-action-buttons se manejarán principalmente con Tailwind */
-        /* .quick-action-buttons {
-            display: flex;
-            gap: 10px;
-            margin-left: auto;
-        }
-        .quick-action-buttons .boton {
-            padding: 8px 12px;
-            font-size: 0.9em;
-        } */
 
         /* NUEVO: Estilo para contenido de modal con scroll */
         .scrollable-modal-content {
             max-height: 90vh; /* 90% del alto de la ventana */
             overflow-y: auto; /* Habilita el scroll vertical si el contenido excede la altura */
             padding-bottom: 1rem; /* Espacio extra en la parte inferior para que el contenido no se pegue al borde */
+        }
+
+        /* Estilos para la sección de requisitos */
+        .requisitos-toggle-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #00acc1; /* Color similar al borde de la cita */
+            font-size: 1.2rem;
+            padding: 5px;
+            border-radius: 50%;
+            transition: all 0.2s ease-in-out;
+            margin-left: auto; /* Alinea a la derecha dentro de cita-actions */
+        }
+        .requisitos-toggle-btn:hover {
+            background-color: #b2ebf2; /* Light hover effect */
+        }
+        .requisitos-container {
+            width: 100%;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #b2ebf2; /* Light dashed border */
+        }
+        .requisitos-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #4a5568;
+        }
+        .requisitos-item input[type="checkbox"] {
+            margin-right: 8px;
+            transform: scale(1.2);
+            accent-color: #00acc1; /* Color del checkbox */
+        }
+        .requisitos-item.checked span {
+            text-decoration: line-through;
+            color: #888;
+        }
+
+        /* Asegurar que los botones de acción de cita estén juntos a la derecha */
+        .cita-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px; /* Espacio para móvil */
+            width: 100%; /* Ocupar todo el ancho en móvil */
+            justify-content: flex-end; /* Alineación a la derecha */
+        }
+        @media (min-width: 640px) {
+            .cita-actions {
+                margin-top: 0;
+                width: auto;
+                margin-left: auto; /* Mover a la derecha en pantallas grandes */
+            }
         }
     </style>
 </head>
@@ -317,6 +376,19 @@
                 <label for="quickCitaHoraInput" class="block text-gray-700 text-sm font-bold mb-2">Hora (opcional):</label>
                 <input type="time" id="quickCitaHoraInput" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
             </div>
+
+            <!-- NUEVO: Sección de requisitos para el modal de cita rápida -->
+            <div class="mb-4 p-3 bg-blue-100 rounded-md">
+                <label for="quickCitaRequisitoInput" class="block text-gray-700 text-sm font-bold mb-2">Requisitos para la Cita (uno a uno):</label>
+                <div class="flex gap-2 mb-2">
+                    <input type="text" id="quickCitaRequisitoInput" placeholder="Ej. DNI, informes médicos" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <button type="button" id="quickAddRequisitoBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-all duration-200">Añadir</button>
+                </div>
+                <ul id="quickRequisitosListDisplay" class="list-disc list-inside text-gray-800 text-sm">
+                    <!-- Requisitos added dynamically here -->
+                </ul>
+            </div>
+
             <div class="flex justify-center space-x-4">
                 <button id="saveQuickCitaBtn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full">Guardar Cita</button>
                 <button id="cancelQuickCitaBtn" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-full">Cancelar</button>
@@ -387,6 +459,11 @@
         const quickCitaTextDisplay = document.getElementById('quickCitaTextDisplay');
         const quickCitaFechaInput = document.getElementById('quickCitaFechaInput');
         const quickCitaHoraInput = document.getElementById('quickCitaHoraInput');
+        const quickCitaRequisitoInput = document.getElementById('quickCitaRequisitoInput'); // NEW
+        const quickAddRequisitoBtn = document.getElementById('quickAddRequisitoBtn'); // NEW
+        const quickRequisitosListDisplay = document.getElementById('quickRequisitosListDisplay'); // NEW
+        let currentQuickCitaRequisitos = []; // NEW: Array to hold requirements for quick cita
+
         const saveQuickCitaBtn = document.getElementById('saveQuickCitaBtn');
         const cancelQuickCitaBtn = document.getElementById('cancelQuickCitaBtn');
 
@@ -401,6 +478,57 @@
         function displayFechaActual() {
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             fechaActualDisplay.textContent = fechaActual.toLocaleDateString('es-ES', options);
+        }
+
+        // Function to render requirements list (for add form and display)
+        function renderRequisitosList(requisitosArray, displayElement, isEditable = true, citaId = null) {
+            displayElement.innerHTML = '';
+            if (requisitosArray && requisitosArray.length > 0) {
+                requisitosArray.forEach((req, index) => {
+                    const li = document.createElement('li');
+                    li.classList.add('requisitos-item');
+                    if (req.checked) {
+                        li.classList.add('checked');
+                    }
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.checked = req.checked;
+                    checkbox.disabled = !isEditable; // Disable checkbox if not editable
+
+                    if (isEditable && citaId) { // Only add listener if editable and citaId exists (for main list)
+                        checkbox.addEventListener('change', () => toggleRequisitoCompletado(citaId, index, req.text));
+                    } else if (isEditable && !citaId) { // For the add/edit modals before saving to DB
+                         checkbox.addEventListener('change', () => {
+                            req.checked = checkbox.checked;
+                            li.classList.toggle('checked', req.checked);
+                        });
+                    }
+
+                    const span = document.createElement('span');
+                    span.textContent = req.text;
+
+                    li.appendChild(checkbox);
+                    li.appendChild(span);
+
+                    if (isEditable && !citaId) { // Add remove button only for add/edit forms
+                        const removeBtn = document.createElement('button');
+                        removeBtn.innerHTML = '<i class="fas fa-times text-red-500 hover:text-red-700 ml-2"></i>';
+                        removeBtn.classList.add('ml-auto', 'text-sm');
+                        removeBtn.onclick = () => {
+                            // Check which list to modify (quickCitaRequisitos for this context)
+                            if (displayElement === quickRequisitosListDisplay) {
+                                currentQuickCitaRequisitos.splice(index, 1);
+                                renderRequisitosList(currentQuickCitaRequisitos, displayElement, isEditable, citaId);
+                            }
+                        };
+                        li.appendChild(removeBtn);
+                    }
+                    displayElement.appendChild(li);
+                });
+            } else {
+                displayElement.innerHTML = '<li class="text-gray-500 italic">No hay requisitos.</li>';
+            }
         }
 
         async function fetchCombinedAgenda() {
@@ -463,6 +591,7 @@
             const currentMonth = fechaActual.getMonth() + 1; // 1-indexed
             const currentYear = fechaActual.getFullYear();
             try {
+                // Modificado: Ahora se obtiene el campo 'recordatorio' también
                 const citasResponse = await fetch(`/api/citas/proximas/${currentYear}/${currentMonth}`);
                 if (!citasResponse.ok) {
                     const errorText = await citasResponse.text();
@@ -568,6 +697,20 @@
                 diasRestantesTextFirst = 'Pasada'; 
             }
 
+            // Check for requirements and parse them
+            let requisitosFirst = [];
+            let hasRequirementsFirst = false;
+            if (firstCita.recordatorio) {
+                try {
+                    requisitosFirst = JSON.parse(firstCita.recordatorio);
+                    hasRequirementsFirst = requisitosFirst.length > 0;
+                } catch (e) {
+                    console.error('Error parsing recordatorio JSON for first cita:', e, 'Raw data:', firstCita.recordatorio);
+                    requisitosFirst = []; // Fallback to empty array if parsing fails
+                }
+            }
+
+
             liFirst.innerHTML = `
                 <div class="flex-grow">
                     <span class="entry-text">${firstCita.nombre}</span>
@@ -576,8 +719,35 @@
                     </div>
                 </div>
                 <div class="dias-restantes text-sm text-blue-600 font-semibold">${diasRestantesTextFirst}</div>
+                <div class="cita-actions flex items-center">
+                    ${hasRequirementsFirst ? `
+                        <button class="requisitos-toggle-btn" data-id="${firstCita.id}" aria-expanded="false" title="Ver Requisitos">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                    ` : ''}
+                </div>
+                <div id="requisitos-${firstCita.id}" class="requisitos-container hidden">
+                    <!-- Requirements will be rendered here by JS -->
+                </div>
             `;
             upcomingCitasList.appendChild(liFirst);
+
+            // Add event listener for requirements toggle button
+            if (hasRequirementsFirst) {
+                const toggleBtn = liFirst.querySelector('.requisitos-toggle-btn');
+                const requisitosContainer = liFirst.querySelector(`#requisitos-${firstCita.id}`);
+                toggleBtn.addEventListener('click', () => {
+                    const isExpanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+                    toggleBtn.setAttribute('aria-expanded', !isExpanded);
+                    requisitosContainer.classList.toggle('hidden', isExpanded);
+                    if (!isExpanded) {
+                        renderRequisitosList(requisitosFirst, requisitosContainer, true, firstCita.id); // Render with interactivity
+                    } else {
+                        requisitosContainer.innerHTML = ''; // Clear on collapse
+                    }
+                });
+            }
+
 
             // Si hay más citas, preparar el resto y el botón
             if (citas.length > 1) {
@@ -606,6 +776,19 @@
                         diasRestantesText = 'Pasada'; 
                     }
 
+                    // Check for requirements for remaining citas
+                    let requisitos = [];
+                    let hasRequirements = false;
+                    if (cita.recordatorio) {
+                        try {
+                            requisitos = JSON.parse(cita.recordatorio);
+                            hasRequirements = requisitos.length > 0;
+                        } catch (e) {
+                            console.error('Error parsing recordatorio JSON for cita:', e, 'Raw data:', cita.recordatorio);
+                            requisitos = [];
+                        }
+                    }
+
                     li.innerHTML = `
                         <div class="flex-grow">
                             <span class="entry-text">${cita.nombre}</span>
@@ -614,8 +797,34 @@
                             </div>
                         </div>
                         <div class="dias-restantes text-sm text-blue-600 font-semibold">${diasRestantesText}</div>
+                        <div class="cita-actions flex items-center">
+                            ${hasRequirements ? `
+                                <button class="requisitos-toggle-btn" data-id="${cita.id}" aria-expanded="false" title="Ver Requisitos">
+                                    <i class="fas fa-paperclip"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                        <div id="requisitos-${cita.id}" class="requisitos-container hidden">
+                            <!-- Requirements will be rendered here by JS -->
+                        </div>
                     `;
                     moreCitasContainer.appendChild(li);
+
+                    // Add event listener for requirements toggle button for remaining citas
+                    if (hasRequirements) {
+                        const toggleBtn = li.querySelector('.requisitos-toggle-btn');
+                        const requisitosContainer = li.querySelector(`#requisitos-${cita.id}`);
+                        toggleBtn.addEventListener('click', () => {
+                            const isExpanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+                            toggleBtn.setAttribute('aria-expanded', !isExpanded);
+                            requisitosContainer.classList.toggle('hidden', isExpanded);
+                            if (!isExpanded) {
+                                renderRequisitosList(requisitos, requisitosContainer, true, cita.id); // Render with interactivity
+                            } else {
+                                requisitosContainer.innerHTML = ''; // Clear on collapse
+                            }
+                        });
+                    }
                 });
             }
             toggleCitasButton.onclick = () => { 
@@ -913,7 +1122,7 @@
 
             const parentItem = targetElement.closest('.task-item') || targetElement.closest('.routine-item');
             
-            const todayDateString = formatFecha(fechaActual);
+            const todayDateString = formatFecha(fechaActual); 
             const isRoutineItem = itemId.startsWith('routine-'); 
 
             if ((parentItem && parentItem.classList.contains('task-item') && parentItem.classList.contains('completed-item')) ||
@@ -1216,6 +1425,26 @@
             return await showCustomModal(message, title, 'confirm');
         }
 
+        // NEW: Function to toggle individual requirement checkbox (copied from citas.html)
+        async function toggleRequisitoCompletado(citaId, requisitoIndex, requisitoText) {
+            try {
+                const response = await fetch(`/api/citas/${citaId}/toggle_requisito_completado`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ index: requisitoIndex })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error desconocido al actualizar el requisito.');
+                }
+                fetchCombinedAgenda(); // Re-fetch to update all UI (including the checkbox state)
+            } catch (error) {
+                console.error('Error al cambiar estado del requisito:', error);
+                showCustomAlert(`No se pudo actualizar el requisito "${requisitoText}". Error: ${error.message}`, 'Error de Actualización');
+            }
+        }
+
 
         async function deleteRoutine(event) {
             const routineId = event.currentTarget.dataset.id; 
@@ -1380,12 +1609,13 @@
                 }
 
                 try {
+                    // Modificado: Se envía un recordatorio vacío para el formulario principal
                     const response = await fetch('/api/citas', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ nombre: text, fecha: citaFecha, hora: hora || null }),
+                        body: JSON.stringify({ nombre: text, fecha: citaFecha, hora: hora || null, recordatorio: "[]" }),
                     });
 
                     if (!response.ok) {
@@ -1563,8 +1793,24 @@
             quickCitaFechaInput.value = formatFecha(fechaActual); 
             quickCitaFechaInput.min = formatFecha(fechaActual); 
             quickCitaHoraInput.value = entryTimeInput.value.trim(); 
+            
+            // Reset requirements for quick cita modal
+            currentQuickCitaRequisitos = [];
+            renderRequisitosList(currentQuickCitaRequisitos, quickRequisitosListDisplay, false); // Render as editable in modal
+
             quickCitaModal.style.display = 'flex';
         });
+
+        // NEW: Add requirement for quick cita modal
+        quickAddRequisitoBtn.addEventListener('click', () => {
+            const reqText = quickCitaRequisitoInput.value.trim();
+            if (reqText) {
+                currentQuickCitaRequisitos.push({ text: reqText, checked: false });
+                quickCitaRequisitoInput.value = '';
+                renderRequisitosList(currentQuickCitaRequisitos, quickRequisitosListDisplay, false); 
+            }
+        });
+
 
         saveQuickCitaBtn.addEventListener('click', async () => {
             const citaText = entryTextInput.value.trim(); 
@@ -1580,7 +1826,12 @@
                 const response = await fetch('/api/citas', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nombre: citaText, fecha: citaFecha, hora: citaHora || null })
+                    body: JSON.stringify({ 
+                        nombre: citaText, 
+                        fecha: citaFecha, 
+                        hora: citaHora || null,
+                        recordatorio: JSON.stringify(currentQuickCitaRequisitos) // Send requirements as JSON string
+                    })
                 });
                 if (!response.ok) {
                     let errorMessage = `HTTP error! status: ${response.status}`;
@@ -1604,15 +1855,22 @@
                 quickCitaModal.style.display = 'none'; 
                 entryTextInput.value = ''; 
                 entryTimeInput.value = ''; 
+                currentQuickCitaRequisitos = []; // Clear requirements after saving
+                renderRequisitosList(currentQuickCitaRequisitos, quickRequisitosListDisplay, false); // Clear display
+
+                fetchCombinedAgenda(); // Re-fetch to update upcoming citas on main page
             } catch (error) {
                 console.error('Error al guardar la cita rápida:', error);
                 showCustomAlert(`No se pudo guardar la cita rápida: ${error.message}`, 'Error al Guardar Cita');
             }
-            window.location.href = '/citas'; 
+            // No redirigir inmediatamente, permitir al usuario ver el mensaje de éxito y luego decidir.
+            // window.location.href = '/citas'; // Esto se puede activar si se desea redirigir
         });
 
         cancelQuickCitaBtn.addEventListener('click', () => {
             quickCitaModal.style.display = 'none';
+            currentQuickCitaRequisitos = []; // Clear requirements on cancel
+            renderRequisitosList(currentQuickCitaRequisitos, quickRequisitosListDisplay, false); // Clear display
         });
 
         // --- Lógica de la Cámara ---
@@ -1689,7 +1947,7 @@
                 photoPreview.style.display = 'block';
                 capturePhotoButton.style.display = 'none';
                 retakePhotoButton.style.display = 'block';
-                confirmPhotoButton.style.display = 'none';
+                confirmPhotoButton.style.display = 'block'; // Ensure confirm button is shown
                 cameraStatus.textContent = 'Foto capturada. Confirma o repite.';
                 stopCamera();
                 console.log("DEBUG: Estado de botones y stream actualizados después de capturar.");
