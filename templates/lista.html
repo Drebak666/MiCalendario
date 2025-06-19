@@ -139,7 +139,7 @@
 
     </style>
 </head>
-<body class="bg-blue-50 font-sans leading-normal tracking-normal min-h-screen flex flex-col pb-24"> <!-- Added pb-24 to body for footer space -->
+<body class="bg-blue-50 font-sans leading-normal tracking-normal min-h-screen flex flex-col pb-40"> <!-- Increased pb- to ensure space for footer -->
 
     <div class="flex-grow flex items-center justify-center p-4">
         <div class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl m-4 mx-auto max-w-lg w-full transform transition-all duration-300 hover:scale-[1.01]">
@@ -186,37 +186,37 @@
     </div>
 
     <!-- Common Navigation Bar - Moved to bottom and restyled -->
-    <nav class="fixed bottom-0 left-0 w-full z-50 bg-gradient-to-r from-teal-500 to-emerald-600 p-2 shadow-lg">
-        <div class="container mx-auto grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 place-items-center">
-            <a href="/alimentacion" class="relative text-center w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-2 rounded-lg transition-colors duration-200 shadow-md">
+    <nav class="w-full bg-transparent p-4 mt-8"> <!-- Removed gradient, added padding -->
+        <div class="container mx-auto grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 place-items-center"> <!-- Increased gap -->
+            <a href="/alimentacion" class="relative text-center w-full text-white font-semibold py-3 px-2 rounded-lg transition-all duration-200 bg-blue-600 hover:opacity-90 shadow-md">
                 <i class="fas fa-apple-alt block text-xl mb-1"></i> 
                 <span class="text-xs">Alimentación</span>
             </a>
-            <a href="/gimnasio" class="relative text-center w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-2 rounded-lg transition-colors duration-200 shadow-md">
+            <a href="/gimnasio" class="relative text-center w-full text-white font-semibold py-3 px-2 rounded-lg transition-all duration-200 bg-green-600 hover:opacity-90 shadow-md">
                 <i class="fas fa-dumbbell block text-xl mb-1"></i> 
                 <span class="text-xs">Gimnasio</span>
             </a>
-            <a href="/lista" class="relative text-center w-full bg-teal-700 hover:bg-teal-800 text-white font-semibold py-3 px-2 rounded-lg transition-colors duration-200 shadow-md">
+            <a href="/lista" class="relative text-center w-full text-white font-semibold py-3 px-2 rounded-lg transition-all duration-200 bg-teal-700 hover:opacity-90 shadow-md">
                 <i class="fas fa-shopping-cart block text-xl mb-1"></i> 
                 <span class="text-xs">Lista</span>
             </a>
-            <a href="/citas" class="relative text-center w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-2 rounded-lg transition-colors duration-200 shadow-md">
+            <a href="/citas" class="relative text-center w-full text-white font-semibold py-3 px-2 rounded-lg transition-all duration-200 bg-indigo-600 hover:opacity-90 shadow-md">
                 <i class="fas fa-calendar-check block text-xl mb-1"></i> 
                 <span class="text-xs">Citas</span>
             </a>
-            <a href="/notas" class="relative text-center w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-3 px-2 rounded-lg transition-colors duration-200 shadow-md">
+            <a href="/notas" class="relative text-center w-full text-white font-semibold py-3 px-2 rounded-lg transition-all duration-200 bg-yellow-600 hover:opacity-90 shadow-md">
                 <i class="fas fa-clipboard block text-xl mb-1"></i> 
                 <span class="text-xs">Notas</span>
             </a>
-            <a href="/documentacion" class="relative text-center w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-2 rounded-lg transition-colors duration-200 shadow-md">
+            <a href="/documentacion" class="relative text-center w-full text-white font-semibold py-3 px-2 rounded-lg transition-all duration-200 bg-purple-600 hover:opacity-90 shadow-md">
                 <i class="fas fa-file-alt block text-xl mb-1"></i> 
                 <span class="text-xs">Docs</span>
             </a>
-            <a href="/registros_importantes" class="relative text-center w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-2 rounded-lg transition-colors duration-200 shadow-md">
+            <a href="/registros_importantes" class="relative text-center w-full text-white font-semibold py-3 px-2 rounded-lg transition-all duration-200 bg-orange-600 hover:opacity-90 shadow-md">
                 <i class="fas fa-star block text-xl mb-1"></i> 
                 <span class="text-xs">Registros</span>
             </a>
-            <a href="/calendario" class="relative text-center w-full bg-pink-600 hover:bg-pink-700 text-white font-semibold py-3 px-2 rounded-lg transition-colors duration-200 shadow-md">
+            <a href="/calendario" class="relative text-center w-full text-white font-semibold py-3 px-2 rounded-lg transition-all duration-200 bg-pink-600 hover:opacity-90 shadow-md">
                 <i class="fas fa-calendar-alt block text-xl mb-1"></i> 
                 <span class="text-xs">Calendario</span>
             </a>
