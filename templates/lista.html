@@ -8,8 +8,8 @@
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/agenda_icon.png') }}">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome para iconos -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" xintegrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Font Awesome para iconos (integrity attribute removed for broader compatibility) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         /* Custom styles for count badges - kept for potential future use or consistency with other pages */
         .button-count, .button-nav-count {
@@ -381,7 +381,7 @@
                 // Only render the "Add to Ingredients" button if the item name is not empty
                 if (item.item && item.item.trim() !== '') {
                     addIngredientButtonHtml = `
-                        <button class="p-3 rounded-full bg-purple-200 text-purple-700 hover:bg-purple-300 btn-transition" data-item="${item.item}" data-list-item-id="${item.id}" title="Añadir a Ingredientes (Lidl)">
+                        <button class="add-ingredient p-3 rounded-full bg-purple-200 text-purple-700 hover:bg-purple-300 btn-transition" data-item="${item.item}" data-list-item-id="${item.id}" title="Añadir a Ingredientes (Lidl)">
                             <i class="fas fa-seedling text-lg"></i> 
                         </button>
                     `;
@@ -394,11 +394,11 @@
                         <span class="text-gray-600 text-sm ml-0 sm:ml-4 whitespace-nowrap font-bold">${itemPrice > 0 ? itemPrice.toFixed(2) + '€' : 'Precio N/D'}</span>
                     </div>
                     <div class="flex items-center gap-2 ml-4 mt-2 sm:mt-0">
-                        <button class="p-3 rounded-full ${item.comprada ? 'bg-emerald-200 text-emerald-700 hover:bg-emerald-300' : 'bg-blue-200 text-blue-700 hover:bg-blue-300'} btn-transition" data-id="${item.id}" title="${item.comprada ? 'Marcar como Pendiente' : 'Marcar como Comprado'}">
+                        <button class="toggle-bought p-3 rounded-full ${item.comprada ? 'bg-emerald-200 text-emerald-700 hover:bg-emerald-300' : 'bg-blue-200 text-blue-700 hover:bg-blue-300'} btn-transition" data-id="${item.id}" title="${item.comprada ? 'Marcar como Pendiente' : 'Marcar como Comprado'}">
                             <i class="${item.comprada ? 'fas fa-undo text-lg' : 'fas fa-check text-lg'}"></i>
                         </button>
                         ${addIngredientButtonHtml}
-                        <button class="p-3 rounded-full bg-red-200 text-red-700 hover:bg-red-300 btn-transition" data-id="${item.id}" title="Eliminar Ítem">
+                        <button class="delete-item p-3 rounded-full bg-red-200 text-red-700 hover:bg-red-300 btn-transition" data-id="${item.id}" title="Eliminar Ítem">
                             <i class="fas fa-times text-lg"></i>
                         </button>
                     </div>
