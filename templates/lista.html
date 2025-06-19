@@ -62,7 +62,8 @@
 
         .custom-modal-content {
             background: white;
-            padding: 24px;
+            /* Changed padding from fixed px to responsive Tailwind classes */
+            @apply p-4 sm:p-6; /* Adjusted padding for better mobile responsiveness */
             border-radius: 12px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
             text-align: center;
@@ -138,42 +139,7 @@
 
     </style>
 </head>
-<body class="bg-blue-50 font-sans leading-normal tracking-normal min-h-screen flex flex-col">
-
-    <!-- Common Navigation Bar -->
-    <nav class="bg-gradient-to-r from-teal-500 to-emerald-600 p-4 text-white shadow-lg relative z-10">
-        <div class="container mx-auto flex justify-between items-center">
-            <div class="text-2xl font-bold">
-                <a href="/">Mi Agenda</a>
-            </div>
-            <div class="flex items-center space-x-4">
-                <a href="/alimentacion" class="relative hover:text-teal-200 transition-colors duration-200 p-2 rounded-md">
-                    <i class="fas fa-apple-alt"></i> Alimentación
-                </a>
-                <a href="/gimnasio" class="relative hover:text-teal-200 transition-colors duration-200 p-2 rounded-md">
-                    <i class="fas fa-dumbbell"></i> Gimnasio
-                </a>
-                <a href="/lista" class="relative hover:text-teal-200 transition-colors duration-200 p-2 rounded-md bg-teal-700">
-                    <i class="fas fa-shopping-cart"></i> Lista
-                </a>
-                <a href="/citas" class="relative hover:text-teal-200 transition-colors duration-200 p-2 rounded-md">
-                    <i class="fas fa-calendar-check"></i> Citas
-                </a>
-                <a href="/notas" class="relative hover:text-teal-200 transition-colors duration-200 p-2 rounded-md">
-                    <i class="fas fa-clipboard"></i> Notas
-                </a>
-                <a href="/documentacion" class="relative hover:text-teal-200 transition-colors duration-200 p-2 rounded-md">
-                    <i class="fas fa-file-alt"></i> Docs
-                </a>
-                <a href="/registros_importantes" class="relative hover:text-teal-200 transition-colors duration-200 p-2 rounded-md">
-                    <i class="fas fa-star"></i> Registros
-                </a>
-                <a href="/calendario" class="relative hover:text-teal-200 transition-colors duration-200 p-2 rounded-md">
-                    <i class="fas fa-calendar-alt"></i> Calendario
-                </a>
-            </div>
-        </div>
-    </nav>
+<body class="bg-blue-50 font-sans leading-normal tracking-normal min-h-screen flex flex-col pb-24"> <!-- Added pb-24 to body for footer space -->
 
     <div class="flex-grow flex items-center justify-center p-4">
         <div class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl m-4 mx-auto max-w-lg w-full transform transition-all duration-300 hover:scale-[1.01]">
@@ -218,6 +184,44 @@
             </div>
         </div>
     </div>
+
+    <!-- Common Navigation Bar - Moved to bottom and restyled -->
+    <nav class="fixed bottom-0 left-0 w-full z-50 bg-gradient-to-r from-teal-500 to-emerald-600 p-2 shadow-lg">
+        <div class="container mx-auto grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 place-items-center">
+            <a href="/alimentacion" class="relative text-center w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-2 rounded-lg transition-colors duration-200 shadow-md">
+                <i class="fas fa-apple-alt block text-xl mb-1"></i> 
+                <span class="text-xs">Alimentación</span>
+            </a>
+            <a href="/gimnasio" class="relative text-center w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-2 rounded-lg transition-colors duration-200 shadow-md">
+                <i class="fas fa-dumbbell block text-xl mb-1"></i> 
+                <span class="text-xs">Gimnasio</span>
+            </a>
+            <a href="/lista" class="relative text-center w-full bg-teal-700 hover:bg-teal-800 text-white font-semibold py-3 px-2 rounded-lg transition-colors duration-200 shadow-md">
+                <i class="fas fa-shopping-cart block text-xl mb-1"></i> 
+                <span class="text-xs">Lista</span>
+            </a>
+            <a href="/citas" class="relative text-center w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-2 rounded-lg transition-colors duration-200 shadow-md">
+                <i class="fas fa-calendar-check block text-xl mb-1"></i> 
+                <span class="text-xs">Citas</span>
+            </a>
+            <a href="/notas" class="relative text-center w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-3 px-2 rounded-lg transition-colors duration-200 shadow-md">
+                <i class="fas fa-clipboard block text-xl mb-1"></i> 
+                <span class="text-xs">Notas</span>
+            </a>
+            <a href="/documentacion" class="relative text-center w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-2 rounded-lg transition-colors duration-200 shadow-md">
+                <i class="fas fa-file-alt block text-xl mb-1"></i> 
+                <span class="text-xs">Docs</span>
+            </a>
+            <a href="/registros_importantes" class="relative text-center w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-2 rounded-lg transition-colors duration-200 shadow-md">
+                <i class="fas fa-star block text-xl mb-1"></i> 
+                <span class="text-xs">Registros</span>
+            </a>
+            <a href="/calendario" class="relative text-center w-full bg-pink-600 hover:bg-pink-700 text-white font-semibold py-3 px-2 rounded-lg transition-colors duration-200 shadow-md">
+                <i class="fas fa-calendar-alt block text-xl mb-1"></i> 
+                <span class="text-xs">Calendario</span>
+            </a>
+        </div>
+    </nav>
 
     <script>
         // Get references to DOM elements
@@ -352,7 +356,8 @@
 
             items.forEach(item => {
                 const listItemCard = document.createElement('div');
-                listItemCard.classList.add('flex', 'items-center', 'justify-between', 'bg-white', 'p-4', 'rounded-lg', 'shadow-md', 'transition-all', 'duration-200', 'ease-in-out', 'border', 'border-gray-200');
+                // Adjusted item card to stack vertically on small screens, horizontal on larger
+                listItemCard.classList.add('flex', 'flex-col', 'sm:flex-row', 'items-start', 'sm:items-center', 'justify-between', 'bg-white', 'p-4', 'rounded-lg', 'shadow-md', 'transition-all', 'duration-200', 'ease-in-out', 'border', 'border-gray-200');
                 if (item.comprada) { 
                     listItemCard.classList.add('opacity-70', 'bg-emerald-50', 'border-emerald-200');
                 }
@@ -389,11 +394,11 @@
 
 
                 listItemCard.innerHTML = `
-                    <div class="flex-grow flex flex-col sm:flex-row sm:items-center">
+                    <div class="flex-grow flex flex-col sm:flex-row sm:items-center w-full sm:w-auto mb-2 sm:mb-0">
                         <span class="text-gray-900 font-medium text-lg flex-grow ${item.comprada ? 'line-through text-gray-500' : ''}">${ingredientIconHtml}${item.item}</span>
                         <span class="text-gray-600 text-sm ml-0 sm:ml-4 whitespace-nowrap font-bold">${itemPrice > 0 ? itemPrice.toFixed(2) + '€' : 'Precio N/D'}</span>
                     </div>
-                    <div class="flex items-center gap-2 ml-4 mt-2 sm:mt-0">
+                    <div class="flex items-center justify-end gap-2 w-full sm:w-auto">
                         <button class="toggle-bought p-3 rounded-full ${item.comprada ? 'bg-emerald-200 text-emerald-700 hover:bg-emerald-300' : 'bg-blue-200 text-blue-700 hover:bg-blue-300'} btn-transition" data-id="${item.id}" title="${item.comprada ? 'Marcar como Pendiente' : 'Marcar como Comprado'}">
                             <i class="${item.comprada ? 'fas fa-undo text-lg' : 'fas fa-check text-lg'}"></i>
                         </button>
@@ -623,7 +628,7 @@
                         showCustomAlert('Ítem de la lista actualizado con el ingrediente.', 'Vínculo Exitoso');
                     }
 
-                    // Refresh ingredient cache and re-render shopping list to show price/icon
+                    // Refrescar la caché de ingredientes y volver a renderizar la lista de la compra para mostrar precio/icono
                     await fetchAllIngredients(); 
                     fetchShoppingList(); 
                 } catch (error) {
