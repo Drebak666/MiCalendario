@@ -692,149 +692,251 @@
             }
         }
 
-        function renderIngredients(ingredients) {
-            ingredientsListDiv.innerHTML = '';
-            if (ingredients.length === 0) {
-                ingredientsListDiv.innerHTML = '<p class="text-gray-500 text-center col-span-full">No hay ingredientes registrados aún.</p>';
-                return;
-            }
-            ingredients.forEach(ingredient => {
-                const ingredientCard = document.createElement('div');
-                ingredientCard.className = 'item-card flex flex-col sm:flex-row justify-between items-start sm:items-center';
-                ingredientCard.innerHTML = `
-                    <div class="flex-grow">
-                        <h3 class="text-lg font-semibold text-gray-800">${ingredient.name}</h3>
-                        <p class="text-sm text-gray-600">Supermercado: ${ingredient.supermarket || 'N/A'}</p>
-                        <p class="text-sm text-gray-600">Precio/unidad: ${ingredient.price_per_unit ? ingredient.price_per_unit.toFixed(2) + '€' : 'N/A'}</p>
-                        <p class="text-xs text-gray-500">
-                            Cal: ${ingredient.calories_per_100g ? ingredient.calories_per_100g.toFixed(2) : 'N/A'} | 
-                            Pro: ${ingredient.proteins_per_100g ? ingredient.proteins_per_100g.toFixed(2) : 'N/A'} | 
-                            Carb: ${ingredient.carbs_per_100g ? ingredient.carbs_per_100g.toFixed(2) : 'N/A'} | 
-                            Gra: ${ingredient.fats_per_100g ? ingredient.fats_per_100g.toFixed(2) : 'N/A'} (por 100g)
-                        </p>
-                    </div>
-                    <button class="delete-button delete-ingredient-btn mt-3 sm:mt-0" data-id="${ingredient.id}">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                `;
-                ingredientsListDiv.appendChild(ingredientCard);
+      function renderIngredients(ingredients) {
+    // Si no hay ingredientes, muestra un mensaje
+    if (ingredients.length === 0) {
+        ingredientsListDiv.innerHTML = '<p class="text-gray-500 text-center col-span-full">No hay ingredientes registrados aún.</p>';
+        return;
+    }
+
+    // Crea un DocumentFragment para una inserción más eficiente en el DOM
+    const fragment = document.createDocumentFragment();
+
+    ingredients.forEach(ingredient => {
+        const ingredientCard = document.createElement('div');
+        ingredientCard.className = 'item-card flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 rounded-lg shadow-sm mb-2'; // Añadidas clases de Tailwind para estilo
+        ingredientCard.innerHTML = `
+            <div class="flex-grow">
+                <h3 class="text-lg font-semibold text-gray-800">${ingredient.name}</h3>
+                <p class="text-sm text-gray-600">Supermercado: ${ingredient.supermarket || 'N/A'}</p>
+                <p class="text-sm text-gray-600">Precio/unidad: ${ingredient.price_per_unit != null && !isNaN(ingredient.price_per_unit) ? ingredient.price_per_unit.toFixed(2) + '€' : 'N/A'}</p>
+                <p class="text-xs text-gray-500">
+                    Cal: ${ingredient.calories_per_100g != null && !isNaN(ingredient.calories_per_100g) ? ingredient.calories_per_100g.toFixed(2) : 'N/A'} |
+                    Pro: ${ingredient.proteins_per_100g != null && !isNaN(ingredient.proteins_per_100g) ? ingredient.proteins_per_100g.toFixed(2) : 'N/A'} |
+                    Carb: ${ingredient.carbs_per_100g != null && !isNaN(ingredient.carbs_per_100g) ? ingredient.carbs_per_100g.toFixed(2) : 'N/A'} |
+                    Gra: ${ingredient.fats_per_100g != null && !isNaN(ingredient.fats_per_100g) ? ingredient.fats_per_100g.toFixed(2) : 'N/A'} (por 100g)
+                </p>
+            </div>
+            <div class="flex gap-2 mt-3 sm:mt-0">
+                <button class="edit-button bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-sm" data-id="${ingredient.id}">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="delete-button delete-ingredient-btn bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-sm" data-id="${ingredient.id}">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+        fragment.appendChild(ingredientCard);
+    });
+
+    // Limpia el contenido actual y añade el nuevo fragmento
+    ingredientsListDiv.innerHTML = '';
+    ingredientsListDiv.appendChild(fragment);
+
+    // Vuelve a añadir los listeners después de renderizar
+    addIngredientDeleteListeners();
+    addIngredientEditListeners(); // Función nueva para los listeners de edición
+}
+
+/**
+ * Carga los datos de un ingrediente específico en el formulario para su edición.
+ * @param {string} id - El ID del ingrediente a cargar.
+ */
+async function cargarDatosIngredienteParaEditar(id) {
+    try {
+        const response = await fetch(`/api/ingredients/${id}`);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'No se pudo obtener el ingrediente');
+        }
+        const ingredient = await response.json();
+
+        // Rellenar el formulario con los datos del ingrediente
+        ingredientNameInput.value = ingredient.name || '';
+        ingredientSupermarketSelect.value = ingredient.supermarket || '';
+        ingredientPriceInput.value = ingredient.price_per_unit || '';
+        ingredientCaloriesInput.value = ingredient.calories_per_100g || '';
+        ingredientProteinsInput.value = ingredient.proteins_per_100g || '';
+        ingredientCarbsInput.value = ingredient.carbs_per_100g || '';
+        ingredientFatsInput.value = ingredient.fats_per_100g || '';
+
+        // Modificar el botón de añadir para que actúe como "Guardar Cambios"
+        addIngredientBtn.dataset.editingId = ingredient.id; // Guarda el ID en el dataset del botón
+        addIngredientBtn.innerHTML = '<i class="fas fa-save mr-2"></i> Guardar Cambios';
+    } catch (error) {
+        console.error('Error cargando ingrediente para edición:', error);
+        // Asumiendo que showCustomAlert existe en tu código
+        showCustomAlert(`Error cargando ingrediente: ${error.message}`, 'Error');
+    }
+}
+
+/**
+ * Añade un nuevo ingrediente o actualiza uno existente.
+ */
+async function addIngredient() {
+    const editingId = addIngredientBtn.dataset.editingId; // Obtiene el ID si estamos editando
+
+    const name = ingredientNameInput.value.trim();
+    const supermarket = ingredientSupermarketSelect.value;
+    const price_per_unit = parseFloat(ingredientPriceInput.value);
+    const calories_per_100g = parseFloat(ingredientCaloriesInput.value) || 0;
+    const proteins_per_100g = parseFloat(ingredientProteinsInput.value) || 0;
+    const carbs_per_100g = parseFloat(ingredientCarbsInput.value) || 0;
+    const fats_per_100g = parseFloat(ingredientFatsInput.value) || 0;
+
+    if (!name || !supermarket || isNaN(price_per_unit)) {
+        showCustomAlert('El nombre del ingrediente, el supermercado y el precio por unidad son obligatorios.', 'Campos Obligatorios');
+        return;
+    }
+
+    const ingredientData = {
+        name, supermarket, price_per_unit, calories_per_100g, proteins_per_100g, carbs_per_100g, fats_per_100g
+    };
+
+    try {
+        let response;
+        let method;
+        let url;
+        let successMessage;
+
+        if (editingId) {
+            // Estamos en modo edición (PUT/PATCH)
+            method = 'PUT'; // O 'PATCH' si tu API lo prefiere para actualizaciones parciales
+            url = `/api/ingredients/${editingId}`;
+            successMessage = 'Ingrediente actualizado con éxito.';
+        } else {
+            // Estamos en modo añadir (POST)
+            method = 'POST';
+            url = '/api/ingredients';
+            successMessage = 'Ingrediente añadido con éxito.';
+        }
+
+        response = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(ingredientData)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `Error al ${editingId ? 'actualizar' : 'añadir'} ingrediente.`);
+        }
+
+        showCustomAlert(successMessage, 'Éxito');
+        clearIngredientForm(); // Limpiar el formulario y resetear el botón
+        fetchIngredients(); // Asumiendo que esta función refresca la lista principal de ingredientes
+        fetchAllIngredientsForRecipes(); // Para actualizar el selector de ingredientes en Recetas
+    } catch (error) {
+        console.error(`Error al ${editingId ? 'actualizar' : 'añadir'} ingrediente:`, error);
+        showCustomAlert(`Error al ${editingId ? 'actualizar' : 'añadir'} ingrediente: ${error.message}`, 'Error');
+    }
+}
+
+/**
+ * Elimina un ingrediente de la base de datos.
+ * @param {string} ingredientId - El ID del ingrediente a eliminar.
+ */
+async function deleteIngredient(ingredientId) {
+    showCustomAlert('¿Estás seguro de que quieres eliminar este ingrediente? Esto también lo eliminará de cualquier receta donde se use.', 'Confirmar Eliminación', 'confirm', async () => {
+        try {
+            const response = await fetch(`/api/ingredients/${ingredientId}`, {
+                method: 'DELETE'
             });
-            addIngredientDeleteListeners();
-        }
-
-        async function addIngredient() {
-            const name = ingredientNameInput.value.trim();
-            const supermarket = ingredientSupermarketSelect.value;
-            const price_per_unit = parseFloat(ingredientPriceInput.value);
-            const calories_per_100g = parseFloat(ingredientCaloriesInput.value) || 0;
-            const proteins_per_100g = parseFloat(ingredientProteinsInput.value) || 0;
-            const carbs_per_100g = parseFloat(ingredientCarbsInput.value) || 0;
-            const fats_per_100g = parseFloat(ingredientFatsInput.value) || 0;
-
-            if (!name || !supermarket || isNaN(price_per_unit)) {
-                showCustomAlert('El nombre del ingrediente, el supermercado y el precio por unidad son obligatorios.', 'Campos Obligatorios');
-                return;
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Error al eliminar ingrediente.');
             }
-
-            try {
-                const response = await fetch('/api/ingredients', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name, supermarket, price_per_unit, calories_per_100g, proteins_per_100g, carbs_per_100g, fats_per_100g
-                    })
-                });
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Error al añadir ingrediente.');
-                }
-                showCustomAlert('Ingrediente añadido con éxito.', 'Éxito');
-                // Limpiar campos
-                ingredientNameInput.value = '';
-                ingredientSupermarketSelect.value = '';
-                ingredientPriceInput.value = '';
-                ingredientCaloriesInput.value = '';
-                ingredientProteinsInput.value = '';
-                ingredientCarbsInput.value = '';
-                ingredientFatsInput.value = '';
-                fetchIngredients();
-                fetchAllIngredientsForRecipes(); // Para actualizar el selector de ingredientes en Recetas
-            } catch (error) {
-                console.error('Error adding ingredient:', error);
-                showCustomAlert(`Error al añadir ingrediente: ${error.message}`, 'Error');
-            }
+            showCustomAlert('Ingrediente eliminado con éxito.', 'Éxito');
+            fetchIngredients(); // Refresca la lista de ingredientes
+            fetchAllIngredientsForRecipes(); // Actualiza el selector de ingredientes en Recetas
+            fetchRecipes(); // Recargar recetas para reflejar el cambio si el ingrediente se usaba
+        } catch (error) {
+            console.error('Error deleting ingredient:', error);
+            showCustomAlert(`Error al eliminar ingrediente: ${error.message}`, 'Error');
         }
+    });
+}
 
-        async function deleteIngredient(ingredientId) {
-            showCustomAlert('¿Estás seguro de que quieres eliminar este ingrediente? Esto también lo eliminará de cualquier receta donde se use.', 'Confirmar Eliminación', 'confirm', async () => {
-                try {
-                    const response = await fetch(`/api/ingredients/${ingredientId}`, {
-                        method: 'DELETE'
-                    });
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || 'Error al eliminar ingrediente.');
-                    }
-                    showCustomAlert('Ingrediente eliminado con éxito.', 'Éxito');
-                    fetchIngredients();
-                    fetchAllIngredientsForRecipes(); // Para actualizar el selector de ingredientes en Recetas
-                    fetchRecipes(); // Recargar recetas para reflejar el cambio si el ingrediente se usaba
-                } catch (error) {
-                    console.error('Error deleting ingredient:', error);
-                    showCustomAlert(`Error al eliminar ingrediente: ${error.message}`, 'Error');
-                }
-            });
+/**
+ * Limpia el formulario de ingredientes y resetea el botón de "Guardar Cambios" a "Añadir Ingrediente".
+ */
+function clearIngredientForm() {
+    ingredientNameInput.value = '';
+    ingredientSupermarketSelect.value = '';
+    ingredientPriceInput.value = '';
+    ingredientCaloriesInput.value = '';
+    ingredientProteinsInput.value = '';
+    ingredientCarbsInput.value = '';
+    ingredientFatsInput.value = '';
+
+    // Resetea el botón de Añadir/Guardar
+    delete addIngredientBtn.dataset.editingId; // Elimina el ID de edición
+    addIngredientBtn.innerHTML = '<i class="fas fa-plus mr-2"></i> Añadir Ingrediente'; // Resetea el texto del botón
+}
+
+/**
+ * Añade los listeners de clic para los botones de eliminar ingrediente.
+ */
+function addIngredientDeleteListeners() {
+    document.querySelectorAll('.delete-ingredient-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const id = e.currentTarget.dataset.id;
+            deleteIngredient(id);
+        });
+    });
+}
+
+/**
+ * Añade los listeners de clic para los botones de editar ingrediente.
+ */
+function addIngredientEditListeners() {
+    document.querySelectorAll('.edit-button').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const ingredientId = btn.getAttribute('data-id');
+            cargarDatosIngredienteParaEditar(ingredientId);
+        });
+    });
+}
+
+// --- Listeners de Eventos Iniciales de Ingredientes ---
+// Este listener se mantiene siempre y llama a addIngredient, que ahora maneja añadir y editar
+addIngredientBtn.addEventListener('click', addIngredient);
+
+
+// --- Funciones de Recetas ---
+
+/**
+ * Carga todos los ingredientes disponibles para el selector de recetas.
+ */
+async function fetchAllIngredientsForRecipes() {
+    try {
+        const response = await fetch('/api/ingredients');
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Error al cargar ingredientes para recetas: ${response.status} - ${errorText}`);
         }
+        allAvailableIngredients = await response.json();
+        recipeIngredientsSelect.innerHTML = '<option value="">Selecciona un ingrediente</option>'; // Limpiar antes de rellenar
+        allAvailableIngredients.forEach(ing => {
+            const option = document.createElement('option');
+            option.value = ing.id;
+            option.textContent = ing.name;
+            recipeIngredientsSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error fetching all ingredients for recipes:', error);
+        showCustomAlert(`Error al cargar ingredientes para recetas: ${error.message}`, 'Error de Carga');
+    }
+}
 
-        function addIngredientDeleteListeners() {
-            document.querySelectorAll('.delete-ingredient-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const id = e.currentTarget.dataset.id;
-                    deleteIngredient(id);
-                });
-            });
-        }
-
-        addIngredientBtn.addEventListener('click', addIngredient);
-
-        // --- Recetas ---
-        const recipeNameInput = document.getElementById('recipeName');
-        const recipeDescriptionInput = document.getElementById('recipeDescription');
-        const recipeIngredientsSelect = document.getElementById('recipeIngredientsSelect');
-        const ingredientQuantityInput = document.getElementById('ingredientQuantity');
-        const addIngredientToRecipeBtn = document.getElementById('addIngredientToRecipeBtn');
-        const selectedIngredientsListDiv = document.getElementById('selectedIngredientsList');
-        const totalRecipeCostSpan = document.getElementById('totalRecipeCost');
-        const totalRecipeCaloriesSpan = document.getElementById('totalRecipeCalories');
-        const totalRecipeProteinsSpan = document.getElementById('totalRecipeProteins');
-        const totalRecipeCarbsSpan = document.getElementById('totalRecipeCarbs');
-        const totalRecipeFatsSpan = document.getElementById('totalRecipeFats');
-        const createRecipeBtn = document.getElementById('createRecipeBtn');
-        const recipesListDiv = document.getElementById('recipesList');
-
-        let allAvailableIngredients = []; // Para almacenar todos los ingredientes disponibles
-        let currentRecipeIngredients = []; // Para almacenar los ingredientes que se están añadiendo a la receta actual
-
-        async function fetchAllIngredientsForRecipes() {
-            try {
-                const response = await fetch('/api/ingredients');
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Error al cargar ingredientes para recetas: ${response.status} - ${errorText}`);
-                }
-                allAvailableIngredients = await response.json();
-                recipeIngredientsSelect.innerHTML = '<option value="">Selecciona un ingrediente</option>';
-                allAvailableIngredients.forEach(ing => {
-                    const option = document.createElement('option');
-                    option.value = ing.id;
-                    option.textContent = ing.name;
-                    recipeIngredientsSelect.appendChild(option);
-                });
-            } catch (error) {
-                console.error('Error fetching all ingredients for recipes:', error);
-                showCustomAlert(`Error al cargar ingredientes para recetas: ${error.message}`, 'Error de Carga');
-            }
-        }
+// --- Inicialización (Llama a estas funciones cuando la página carga) ---
+// Asegúrate de que estas funciones existan en tu código.
+// Por ejemplo:
+// document.addEventListener('DOMContentLoaded', () => {
+//     fetchIngredients(); // Cargar la lista inicial de ingredientes
+//     fetchAllIngredientsForRecipes(); // Cargar ingredientes para el selector de recetas
+//     fetchRecipes(); // Si tienes una función para cargar las recetas al inicio
+// });
 
         function addIngredientToCurrentRecipe() {
             const ingredientId = recipeIngredientsSelect.value;

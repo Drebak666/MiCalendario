@@ -3,172 +3,476 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Lista de la Compra</title>
+    <!-- Favicon para el icono del acceso directo en móvil -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/agenda_icon.png') }}">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" xintegrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-</head>
-<body>
-    <div class="list-section">
-        <h2 class="list-title-header">Lista de la Compra</h2>
+    <style>
+        /* Custom styles for count badges - kept for potential future use or consistency with other pages */
+        .button-count, .button-nav-count {
+            position: absolute;
+            top: 0;
+            right: 0;
+            transform: translate(50%, -50%);
+            background-color: #ef4444; /* Tailwind Red */
+            color: white;
+            border-radius: 9999px;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            min-width: 1.5rem;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .button-nav-count {
+            top: 8px;
+            right: 8px;
+            transform: none;
+        }
         
-        <!-- Formulario para añadir ítems: arriba, como entrada principal -->
-        <form id="addItemForm" class="form-group add-item-form-layout">
-            <input type="text" id="itemInput" placeholder="Añadir nuevo ítem (o varios separados por espacio)..." required>
-            <button type="submit" class="boton"><i class="fas fa-plus"></i> Añadir</button>
-        </form>
+        /* General button transition for a smoother feel */
+        .btn-transition {
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-transition:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
 
-        <!-- Nueva sección para la fecha y el botón de borrar, actuando como encabezado para los ítems -->
-        <div class="list-sub-header">
-            <div class="current-date-display-card" id="currentDateDisplay"></div> <!-- Recuadro para la fecha -->
-            <button type="button" class="boton btn-eliminar clear-list-button" id="clearListButton">
-                <i class="fas fa-trash-alt"></i> Borrar toda la lista
-            </button>
+        /* Specific styles for custom modal for better integration */
+        .custom-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none; /* Hidden by default */
+        }
+
+        .custom-modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            animation: fadeInScale 0.3s ease-out forwards;
+            position: relative;
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .custom-modal-title {
+            font-size: 1.75rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 0.75rem;
+        }
+
+        .custom-modal-message {
+            font-size: 1.125rem;
+            color: #555;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .custom-modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .custom-modal-actions button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .custom-modal-actions button.confirm-button {
+            background-color: #3B82F6; /* blue-600 */
+            color: white;
+        }
+
+        .custom-modal-actions button.confirm-button:hover {
+            background-color: #2563EB; /* blue-700 */
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .custom-modal-actions button.cancel-button {
+            background-color: #6B7280; /* gray-500 */
+            color: white;
+        }
+
+        .custom-modal-actions button.cancel-button:hover {
+            background-color: #4B5563; /* gray-700 */
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+    </style>
+</head>
+<body class="bg-blue-50 font-sans leading-normal tracking-normal min-h-screen flex flex-col">
+
+    <!-- Common Navigation Bar -->
+    <nav class="bg-gradient-to-r from-teal-500 to-emerald-600 p-4 text-white shadow-lg relative z-10">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="text-2xl font-bold">
+                <a href="/">Mi Agenda</a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="/alimentacion" class="relative hover:text-teal-200 transition-colors duration-200 p-2 rounded-md">
+                    <i class="fas fa-apple-alt"></i> Alimentación
+                </a>
+                <a href="/gimnasio" class="relative hover:text-teal-200 transition-colors duration-200 p-2 rounded-md">
+                    <i class="fas fa-dumbbell"></i> Gimnasio
+                </a>
+                <a href="/lista" class="relative hover:text-teal-200 transition-colors duration-200 p-2 rounded-md bg-teal-700">
+                    <i class="fas fa-shopping-cart"></i> Lista
+                </a>
+                <a href="/citas" class="relative hover:text-teal-200 transition-colors duration-200 p-2 rounded-md">
+                    <i class="fas fa-calendar-check"></i> Citas
+                </a>
+                <a href="/notas" class="relative hover:text-teal-200 transition-colors duration-200 p-2 rounded-md">
+                    <i class="fas fa-clipboard"></i> Notas
+                </a>
+                <a href="/documentacion" class="relative hover:text-teal-200 transition-colors duration-200 p-2 rounded-md">
+                    <i class="fas fa-file-alt"></i> Docs
+                </a>
+                <a href="/registros_importantes" class="relative hover:text-teal-200 transition-colors duration-200 p-2 rounded-md">
+                    <i class="fas fa-star"></i> Registros
+                </a>
+                <a href="/calendario" class="relative hover:text-teal-200 transition-colors duration-200 p-2 rounded-md">
+                    <i class="fas fa-calendar-alt"></i> Calendario
+                </a>
+            </div>
         </div>
+    </nav>
 
-        <ul id="shoppingListItems">
-            <li class="mensaje-info">Cargando ítems...</li>
-        </ul>
+    <div class="flex-grow flex items-center justify-center p-4">
+        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl m-4 mx-auto max-w-lg w-full transform transition-all duration-300 hover:scale-[1.01]">
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-800 mb-7 text-center drop-shadow-sm">Lista de la Compra</h2>
+            
+            <!-- Formulario para añadir ítems -->
+            <form id="addItemForm" class="flex flex-col sm:flex-row gap-4 mb-6">
+                <input type="text" id="itemInput" placeholder="Añadir nuevo ítem (o varios separados por espacio)..." required
+                       class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-4 focus:ring-teal-200 text-gray-800 shadow-sm transition-all duration-200">
+                <button type="submit" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-6 rounded-lg flex-shrink-0 flex items-center justify-center btn-transition shadow-lg">
+                    <i class="fas fa-plus mr-2"></i> Añadir
+                </button>
+            </form>
+
+            <!-- Nueva sección para la fecha y el botón de borrar -->
+            <div class="flex flex-col sm:flex-row justify-between items-center bg-gray-50 p-4 rounded-lg mb-5 shadow-inner">
+                <span id="currentDateDisplay" class="text-lg font-semibold text-gray-700 mb-2 sm:mb-0"></span>
+                <button id="clearListButton" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-5 rounded-full shadow-md btn-transition">
+                    <i class="fas fa-trash-alt mr-2"></i> Borrar toda la lista
+                </button>
+            </div>
+
+            <!-- Contenedor para los ítems de la lista -->
+            <div id="shoppingListItems" class="space-y-4">
+                <!-- Los ítems se cargarán aquí dinámicamente -->
+            </div>
+
+            <!-- Display for total price -->
+            <div id="totalPriceDisplay" class="mt-8 p-5 bg-teal-100 text-teal-800 font-bold text-xl rounded-lg text-center shadow-md hidden">
+                Total estimado: <span id="totalPriceValue">0.00</span>€
+            </div>
+        </div>
     </div>
 
-    <div class="navigation">
-        <a href="/" class="boton"><i class="fas fa-home"></i> Volver al Inicio</a>
-        <a href="/calendario" class="boton"><i class="fas fa-calendar-alt"></i> Calendario</a>
-        <a href="/registros_importantes" class="boton"><i class="fas fa-file-alt"></i> Registros Importantes</a>
-        <a href="/alimentacion" class="boton"><i class="fas fa-utensils"></i> Alimentación</a>
-        <a href="/documentos" class="boton"><i class="fas fa-folder-open"></i> Documentos</a>
-        <a href="/gimnasio" class="boton"><i class="fas fa-dumbbell"></i> Gimnasio</a>
+    <!-- Custom Modal Overlay -->
+    <div id="customModalOverlay" class="custom-modal-overlay">
+        <div class="custom-modal-content">
+            <h3 id="customModalTitle" class="custom-modal-title"></h3>
+            <p id="customModalMessage" class="custom-modal-message"></p>
+            <div id="customModalActions" class="custom-modal-actions">
+                <!-- Buttons will be injected here -->
+            </div>
+        </div>
     </div>
 
     <script>
+        // Get references to DOM elements
         const itemInput = document.getElementById('itemInput');
-        const shoppingListItems = document.getElementById('shoppingListItems');
         const addItemForm = document.getElementById('addItemForm');
-        const currentDateDisplay = document.getElementById('currentDateDisplay');
+        const shoppingListItemsDiv = document.getElementById('shoppingListItems');
         const clearListButton = document.getElementById('clearListButton');
+        const currentDateDisplay = document.getElementById('currentDateDisplay');
+        const totalPriceDisplay = document.getElementById('totalPriceDisplay');
+        const totalPriceValue = document.getElementById('totalPriceValue');
 
-        // Función para mostrar la fecha actual
+        // --- Custom Modal Functions (Copied for consistency) ---
+        // Function to show a custom modal (alert or confirm)
+        function showCustomModal(message, title = 'Mensaje', type = 'alert') {
+            return new Promise((resolve) => {
+                const modalOverlay = document.getElementById('customModalOverlay');
+                const modalTitle = document.getElementById('customModalTitle');
+                const modalMessage = document.getElementById('customModalMessage');
+                const modalActions = document.getElementById('customModalActions');
+
+                modalTitle.textContent = title;
+                modalMessage.textContent = message;
+                modalActions.innerHTML = ''; // Clear previous buttons
+
+                if (type === 'alert') {
+                    const okButton = document.createElement('button');
+                    okButton.classList.add('confirm-button');
+                    okButton.textContent = 'OK';
+                    okButton.addEventListener('click', () => {
+                        modalOverlay.style.display = 'none';
+                        resolve(true);
+                    });
+                    modalActions.appendChild(okButton);
+                } else if (type === 'confirm') {
+                    const yesButton = document.createElement('button');
+                    yesButton.classList.add('confirm-button');
+                    yesButton.textContent = 'Sí';
+                    yesButton.addEventListener('click', () => {
+                        modalOverlay.style.display = 'none';
+                        resolve(true);
+                    });
+                    const noButton = document.createElement('button');
+                    noButton.classList.add('cancel-button');
+                    noButton.textContent = 'No';
+                    noButton.addEventListener('click', () => {
+                        modalOverlay.style.display = 'none';
+                        resolve(false);
+                    });
+                    modalActions.appendChild(yesButton);
+                    modalActions.appendChild(noButton);
+                }
+
+                modalOverlay.style.display = 'flex';
+            });
+        }
+
+        // Helper function for custom alerts
+        function showCustomAlert(message, title = 'Mensaje') {
+            return showCustomModal(message, title, 'alert');
+        }
+
+        // Helper function for custom confirms
+        async function showCustomConfirm(message, title = 'Confirmación') {
+            return await showCustomModal(message, title, 'confirm');
+        }
+        // --- End Custom Modal Functions ---
+
+        // Function to format date
+        function formatFecha(date) {
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+            const dd = String(date.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        // Function to display current date
         function displayCurrentDate() {
             const today = new Date();
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            currentDateDisplay.textContent = `Lista de la Compra para hoy: ${today.toLocaleDateString('es-ES', options)}`;
+            currentDateDisplay.textContent = `Hoy: ${today.toLocaleDateString('es-ES', options)}`;
         }
 
+        // --- Fetching and Rendering Shopping List ---
+        let allIngredients = []; // Cache for all ingredients
+
+        // Fetches all ingredients from the API
+        async function fetchAllIngredients() {
+            try {
+                const response = await fetch('/api/ingredients');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error al obtener ingredientes.');
+                }
+                allIngredients = await response.json();
+            } catch (error) {
+                console.error('Error al cargar todos los ingredientes:', error);
+                // No alert here, as it might be normal if there are no ingredients.
+            }
+        }
+
+        // Fetches and renders the shopping list
         async function fetchShoppingList() {
-            shoppingListItems.innerHTML = '<li class="mensaje-info">Cargando ítems...</li>';
+            // Ensure ingredients are loaded before loading the shopping list
+            if (allIngredients.length === 0) {
+                await fetchAllIngredients(); 
+            }
+
             try {
                 const response = await fetch('/api/lista_compra');
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(errorData.error || 'Error desconocido al obtener la lista de la compra');
+                    throw new Error(errorData.error || 'Error desconocido al cargar la lista.');
                 }
                 const items = await response.json();
                 renderShoppingList(items);
             } catch (error) {
                 console.error('Error al cargar la lista de la compra:', error);
-                shoppingListItems.innerHTML = `<li class="mensaje-info">No se pudo cargar la lista de la compra. Error: ${error.message}</li>`;
+                showCustomAlert(`No se pudo cargar la lista de la compra: ${error.message}`, 'Error de Carga');
             }
         }
 
+        // Renders the shopping list items
         function renderShoppingList(items) {
-            shoppingListItems.innerHTML = '';
+            shoppingListItemsDiv.innerHTML = '';
+            let totalPrice = 0;
+
             if (items.length === 0) {
-                shoppingListItems.innerHTML = '<li class="mensaje-info">La lista de la compra está vacía.</li>';
+                shoppingListItemsDiv.innerHTML = '<p class="text-center text-gray-500 mt-4 p-4 bg-gray-50 rounded-lg shadow-inner">La lista de la compra está vacía. ¡Añade tus primeros ítems!</p>';
+                totalPriceDisplay.classList.add('hidden');
                 return;
             }
 
             items.forEach(item => {
-                const li = document.createElement('li');
-                li.classList.add('task-item'); // Reutilizamos estilos de tareas para ítems
-                if (item.comprado) {
-                    li.classList.add('completada');
+                const listItemCard = document.createElement('div');
+                listItemCard.classList.add('flex', 'items-center', 'justify-between', 'bg-white', 'p-4', 'rounded-lg', 'shadow-md', 'transition-all', 'duration-200', 'ease-in-out', 'border', 'border-gray-200');
+                if (item.comprada) { 
+                    listItemCard.classList.add('opacity-70', 'bg-emerald-50', 'border-emerald-200');
                 }
-                li.dataset.id = item.id;
 
-                const textSpan = document.createElement('span');
-                textSpan.classList.add('entry-text'); // Reutilizamos estilo de texto
-                textSpan.textContent = item.item;
-                if (item.comprado) {
-                    textSpan.classList.add('completada');
+                let itemPrice = 0;
+                let ingredientIconHtml = '';
+                let addIngredientButtonHtml = ''; // Variable for the "Add to Ingredients" button
+
+                // If ingredient_id is present in the list item, use its associated name and price
+                if (item.ingredient_id && item.ingredient_name) {
+                    itemPrice = item.price_per_unit || 0; 
+                    ingredientIconHtml = `<i class="fas fa-seedling text-emerald-600 mr-2" title="Asociado a ingrediente: ${item.ingredient_name}"></i>`;
+                } else {
+                    // Fallback: Try to find a matching ingredient by name from the allIngredients cache
+                    const matchingIngredient = allIngredients.find(ing => ing.name.toLowerCase() === item.item.toLowerCase());
+                    if (matchingIngredient) {
+                        itemPrice = matchingIngredient.price_per_unit;
+                        ingredientIconHtml = `<i class="fas fa-seedling text-emerald-600 mr-2" title="Posible ingrediente: ${matchingIngredient.name}"></i>`;
+                    }
                 }
-                li.appendChild(textSpan);
+                
+                if (!item.comprada) { 
+                    totalPrice += itemPrice;
+                }
 
-                const actionsDiv = document.createElement('div');
-                actionsDiv.classList.add('entry-actions'); // Reutilizamos estilos de acciones
+                // Only render the "Add to Ingredients" button if the item name is not empty
+                if (item.item && item.item.trim() !== '') {
+                    addIngredientButtonHtml = `
+                        <button class="p-3 rounded-full bg-purple-200 text-purple-700 hover:bg-purple-300 btn-transition" data-item="${item.item}" data-list-item-id="${item.id}" title="Añadir a Ingredientes (Lidl)">
+                            <i class="fas fa-seedling text-lg"></i> 
+                        </button>
+                    `;
+                }
 
-                const toggleButton = document.createElement('button');
-                toggleButton.classList.add('btn-completar');
-                toggleButton.dataset.id = item.id;
-                toggleButton.textContent = item.comprado ? 'Desmarcar' : 'Marcar';
-                if (item.comprado) toggleButton.classList.add('completada');
-                toggleButton.addEventListener('click', toggleComprado);
-                actionsDiv.appendChild(toggleButton);
 
-                const deleteButton = document.createElement('button');
-                deleteButton.classList.add('btn-eliminar');
-                deleteButton.dataset.id = item.id;
-                deleteButton.textContent = 'Eliminar';
-                deleteButton.addEventListener('click', deleteItem);
-                actionsDiv.appendChild(deleteButton);
+                listItemCard.innerHTML = `
+                    <div class="flex-grow flex flex-col sm:flex-row sm:items-center">
+                        <span class="text-gray-900 font-medium text-lg flex-grow ${item.comprada ? 'line-through text-gray-500' : ''}">${ingredientIconHtml}${item.item}</span>
+                        <span class="text-gray-600 text-sm ml-0 sm:ml-4 whitespace-nowrap font-bold">${itemPrice > 0 ? itemPrice.toFixed(2) + '€' : 'Precio N/D'}</span>
+                    </div>
+                    <div class="flex items-center gap-2 ml-4 mt-2 sm:mt-0">
+                        <button class="p-3 rounded-full ${item.comprada ? 'bg-emerald-200 text-emerald-700 hover:bg-emerald-300' : 'bg-blue-200 text-blue-700 hover:bg-blue-300'} btn-transition" data-id="${item.id}" title="${item.comprada ? 'Marcar como Pendiente' : 'Marcar como Comprado'}">
+                            <i class="${item.comprada ? 'fas fa-undo text-lg' : 'fas fa-check text-lg'}"></i>
+                        </button>
+                        ${addIngredientButtonHtml}
+                        <button class="p-3 rounded-full bg-red-200 text-red-700 hover:bg-red-300 btn-transition" data-id="${item.id}" title="Eliminar Ítem">
+                            <i class="fas fa-times text-lg"></i>
+                        </button>
+                    </div>
+                `;
+                shoppingListItemsDiv.appendChild(listItemCard);
+            });
 
-                li.appendChild(actionsDiv);
-                shoppingListItems.appendChild(li);
+            totalPriceValue.textContent = totalPrice.toFixed(2);
+            totalPriceDisplay.classList.remove('hidden');
+
+            // Add event listeners for new buttons
+            document.querySelectorAll('.toggle-bought').forEach(button => {
+                button.addEventListener('click', toggleItemComprada);
+            });
+            // NOTE: Listeners for add-ingredient will only be added if the button exists
+            document.querySelectorAll('.add-ingredient').forEach(button => {
+                button.addEventListener('click', addAsIngredient);
+            });
+            document.querySelectorAll('.delete-item').forEach(button => {
+                button.addEventListener('click', deleteItem);
             });
         }
 
-        /**
-         * Parsea la cadena de entrada de la lista de la compra, manejando frases con "de".
-         * @param {string} inputString La cadena de texto del input.
-         * @returns {string[]} Un array de ítems parseados.
-         */
-        function parseShoppingListInput(inputString) {
-            const items = [];
-            
-            // Primero, divide por comas para manejar elementos separados explícitamente.
-            // Elimina los espacios en blanco alrededor de las comas.
-            const commaSeparatedParts = inputString.split(',').map(part => part.trim());
-
-            // Expresión regular para capturar frases "adhesivas" como "X de Y" o palabras individuales.
-            // Busca:
-            // a) Una o más palabras (incluyendo acentos) seguidas de un espacio,
-            //    y luego una de las preposiciones/artículos ("de", "del", "de la", "de los", "de las"),
-            //    seguido de un espacio y otra palabra. Ejemplo: "pechuga de pollo".
-            // b) O cualquier secuencia de caracteres no espaciados (para palabras individuales).
-            // La bandera 'i' es para ignorar mayúsculas/minúsculas. 'g' para todas las coincidencias.
-            const smartSplitRegex = /\b(?:[\w\u00C0-\u017F]+\s+(?:de|del|de la|de los|de las)\s+[\w\u00C0-\u017F]+|\S+)\b/gi;
-
-            commaSeparatedParts.forEach(part => {
-                // Usa `match` para extraer los tokens basados en la expresión regular inteligente.
-                const tokens = part.match(smartSplitRegex);
-                if (tokens) {
-                    tokens.forEach(token => {
-                        const trimmedToken = token.trim();
-                        if (trimmedToken) {
-                            items.push(trimmedToken);
-                        }
-                    });
-                }
-            });
-
-            return items;
-        }
-
+        // --- Event Handlers ---
 
         addItemForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const rawInput = itemInput.value.trim();
-            if (!rawInput) return;
-
-            // MODIFICADO: Usar la nueva función de parseo inteligente
-            const itemsToAdd = parseShoppingListInput(rawInput);
-
-            if (itemsToAdd.length === 0) {
-                alert('Por favor, introduce al menos un ítem.');
+            const rawInput = itemInput.value.trim(); // Get value without leading/trailing spaces
+            
+            // Validate if the full input is empty after trimming
+            if (!rawInput) {
+                showCustomAlert('Por favor, introduce al menos un ítem válido.', 'Entrada Vacía');
                 return;
             }
 
-            let allItemsAddedSuccessfully = true;
-            for (const item of itemsToAdd) {
-                try {
+            // Improved parsing logic to handle "de:"
+            const words = rawInput.split(' ');
+            let itemsToAdd = [];
+            let currentPhrase = [];
+
+            for (let i = 0; i < words.length; i++) {
+                const word = words[i].trim();
+                if (word === '') continue; // Skip empty words resulting from multiple spaces
+
+                // If we find "de" and it's not the first word and there's a next word,
+                // assume it's part of a compound item (e.g., "pan de molde")
+                if (word.toLowerCase() === 'de' && currentPhrase.length > 0 && (i + 1) < words.length) {
+                    currentPhrase.push(word); // Add "de"
+                    currentPhrase.push(words[++i].trim()); // Add the next word and advance index
+                } else {
+                    // If we already have a built phrase, add it to itemsToAdd and reset
+                    if (currentPhrase.length > 0) {
+                        itemsToAdd.push(currentPhrase.join(' '));
+                        currentPhrase = [];
+                    }
+                    currentPhrase.push(word); // Start a new phrase
+                }
+            }
+            // Add any remaining phrase at the end
+            if (currentPhrase.length > 0) {
+                itemsToAdd.push(currentPhrase.join(' '));
+            }
+
+            // Filter out any items that might be empty after parsing
+            itemsToAdd = itemsToAdd.filter(item => item.trim().length > 0);
+
+            // If after filtering there are no valid items, alert
+            if (itemsToAdd.length === 0) {
+                showCustomAlert('Por favor, introduce al menos un ítem válido.', 'Entrada Vacía');
+                return;
+            }
+
+            try {
+                for (const item of itemsToAdd) {
                     const response = await fetch('/api/lista_compra', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -176,63 +480,63 @@
                     });
                     if (!response.ok) {
                         const errorData = await response.json();
-                        throw new Error(errorData.error || `Error al añadir "${item}"`);
+                        throw new Error(errorData.error || 'Error desconocido al añadir ítem.');
                     }
-                    console.log(`Ítem "${item}" añadido con éxito.`);
-                } catch (error) {
-                    console.error(`Error al añadir ítem "${item}":`, error);
-                    alert(`No se pudo añadir "${item}" a la lista: ${error.message}`);
-                    allItemsAddedSuccessfully = false;
                 }
-            }
-
-            itemInput.value = '';
-            fetchShoppingList();
-
-            if (allItemsAddedSuccessfully && itemsToAdd.length > 1) {
-                alert('Ítems añadidos a la lista con éxito.');
+                itemInput.value = '';
+                showCustomAlert('Ítem(s) añadido(s) con éxito.', 'Éxito');
+                fetchShoppingList(); 
+            } catch (error) {
+                console.error('Error al añadir ítem a la lista:', error);
+                showCustomAlert(`No se pudo añadir el ítem: ${error.message}`, 'Error');
             }
         });
 
-        async function toggleComprado(event) {
-            const itemId = event.target.dataset.id;
+        // Toggles the "comprada" status of a list item
+        async function toggleItemComprada(e) {
+            const itemId = e.currentTarget.dataset.id;
             try {
-                const response = await fetch(`/api/lista_compra/${itemId}/toggle_comprado`, {
+                const response = await fetch(`/api/lista_compra/${itemId}/toggle_comprada`, { 
                     method: 'PATCH'
                 });
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(errorData.error || 'Error al actualizar el ítem');
+                    throw new Error(errorData.error || 'Error desconocido al cambiar estado.');
                 }
+                showCustomAlert('Estado del ítem actualizado.', 'Actualización Exitosa');
                 fetchShoppingList();
             } catch (error) {
-                console.error('Error al marcar ítem:', error);
-                alert(`No se pudo actualizar el ítem: ${error.message}`);
+                console.error('Error al cambiar estado del ítem:', error);
+                showCustomAlert(`No se pudo actualizar el estado: ${error.message}`, 'Error');
             }
         }
 
-        async function deleteItem(event) {
-            const itemId = event.target.dataset.id;
-            if (confirm('¿Estás seguro de que quieres eliminar este ítem?')) {
+        // Deletes a list item
+        async function deleteItem(e) {
+            const itemId = e.currentTarget.dataset.id;
+            const confirmDelete = await showCustomConfirm('¿Estás seguro de que quieres eliminar este ítem?', 'Confirmar Eliminación');
+            if (confirmDelete) {
                 try {
                     const response = await fetch(`/api/lista_compra/${itemId}`, {
                         method: 'DELETE'
                     });
                     if (!response.ok) {
                         const errorData = await response.json();
-                        throw new Error(errorData.error || 'Error al eliminar el ítem');
+                        throw new Error(errorData.error || 'Error desconocido al eliminar ítem.');
                     }
+                    showCustomAlert('Ítem eliminado con éxito.', 'Eliminación Exitosa');
                     fetchShoppingList();
                 } catch (error) {
                     console.error('Error al eliminar ítem:', error);
-                    alert(`No se pudo eliminar el ítem: ${error.message}`);
+                    showCustomAlert(`No se pudo eliminar el ítem: ${error.message}`, 'Error');
                 }
             }
         }
 
-        // Nueva función para borrar todos los ítems de la lista
+        // New function to clear all items from the list
         async function clearAllItems() {
-            if (confirm('¿Estás seguro de que quieres borrar TODA la lista de la compra? Esta acción no se puede deshacer.')) {
+            const confirmClear = await showCustomConfirm('¿Estás seguro de que quieres borrar TODA la lista de la compra? Esta acción no se puede deshacer.', 'Confirmar Borrado Total');
+            if (confirmClear) {
                 try {
                     const response = await fetch('/api/lista_compra/clear_all', {
                         method: 'DELETE'
@@ -242,18 +546,104 @@
                         const errorMessage = errorData.error || 'Error desconocido al borrar toda la lista.';
                         throw new Error(errorMessage);
                     }
-                    alert('Lista de la compra borrada con éxito.');
+                    showCustomAlert('Lista de la compra borrada con éxito.', 'Lista Borrada');
                     fetchShoppingList();
                 } catch (error) {
                     console.error('Error al borrar la lista completa:', error);
-                    alert(`No se pudo borrar la lista completa: ${error.message}`);
+                    showCustomAlert(`No se pudo borrar la lista completa: ${error.message}`, 'Error al Borrar');
                 }
             }
         }
 
+        // Adds an item as an ingredient
+        async function addAsIngredient(e) {
+            // Ensure e.currentTarget is not null before accessing its properties
+            if (!e || !e.currentTarget) {
+                console.error("Error: Event or target element null/undefined in addAsIngredient.");
+                showCustomAlert("Error interno: No se pudo identificar el ítem para añadir como ingrediente.", "Error");
+                return;
+            }
+
+            const itemName = e.currentTarget.dataset.item;
+            const listItemId = e.currentTarget.dataset.listItemId; // Get the list item ID
+
+            // Validate if the ingredient name is empty (this was already there and is correct)
+            if (!itemName || itemName.trim() === '') {
+                showCustomAlert("El nombre del ingrediente no puede estar vacío. Por favor, edita el ítem en la lista o elimínalo si es un error.", "Error: Nombre Obligatorio");
+                return; 
+            }
+
+            const confirmAdd = await showCustomConfirm(`¿Quieres añadir "${itemName}" a tus ingredientes con Lidl como supermercado por defecto?`, 'Añadir Ingrediente');
+            
+            if (confirmAdd) {
+                const payload = {
+                    name: itemName,
+                    supermarket: 'Lidl', 
+                    price_per_unit: 0.00, 
+                    calories_per_100g: 0, 
+                    proteins_per_100g: 0, 
+                    carbs_per_100g: 0, 
+                    fats_per_100g: 0 
+                };
+
+                try {
+                    const response = await fetch('/api/ingredients', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    // Supabase will return 200 OK for existing, 201 Created for new
+                    if (!response.ok && response.status !== 200 && response.status !== 201) { 
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Error desconocido al añadir ingrediente.');
+                    }
+                    
+                    const result = await response.json();
+                    let ingredientId = result.id; // Get the ingredient ID (new or existing)
+
+                    if (result.existing) {
+                        showCustomAlert(`"${itemName}" ya existía en tus ingredientes.`, 'Ingrediente Existente');
+                    } else {
+                        showCustomAlert(`"${itemName}" añadido a tus ingredientes.`, 'Ingrediente Añadido');
+                    }
+
+                    // After adding/confirming the ingredient, update the shopping list item with ingredient_id
+                    if (ingredientId && listItemId) { 
+                        const updateResponse = await fetch(`/api/lista_compra/${listItemId}`, { 
+                            method: 'PATCH', 
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ ingredient_id: ingredientId })
+                        });
+
+                        if (!updateResponse.ok) {
+                            const errorData = await updateResponse.json();
+                            throw new Error(errorData.error || 'Error desconocido al vincular ingrediente con ítem de lista.');
+                        }
+                        showCustomAlert('Ítem de la lista actualizado con el ingrediente.', 'Vínculo Exitoso');
+                    }
+
+                    // Refresh ingredient cache and re-render shopping list to show price/icon
+                    await fetchAllIngredients(); 
+                    fetchShoppingList(); 
+                } catch (error) {
+                    console.error('Error al añadir como ingrediente:', error);
+                    let errorMessage = `No se pudo añadir "${itemName}" como ingrediente: ${error.message}`;
+                    if (error.message.includes("A supermarket with that name already exists") || error.message.includes("Supermarket not found")) {
+                        errorMessage = `Error: El supermercado "Lidl" no existe en la base de datos o hay un problema con él. Por favor, asegúrate de que "Lidl" está registrado en la sección de alimentación.`;
+                    }
+                    showCustomAlert(errorMessage, 'Error');
+                }
+            }
+        }
+
+
         document.addEventListener('DOMContentLoaded', () => {
             displayCurrentDate();
-            fetchShoppingList();
+            // Load all ingredients initially, then load and render the shopping list
+            fetchAllIngredients().then(() => {
+                fetchShoppingList();
+            });
             clearListButton.addEventListener('click', clearAllItems);
         });
     </script>
