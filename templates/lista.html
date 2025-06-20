@@ -369,6 +369,13 @@
                 return;
             }
 
+            // Sort items: completed items go to the end
+            items.sort((a, b) => {
+                if (a.comprada && !b.comprada) return 1; // a is completed, b is not, a goes after b
+                if (!a.comprada && b.comprada) return -1; // a is not completed, b is, a goes before b
+                return 0; // maintain original order for items with same completion status
+            });
+
             items.forEach(item => {
                 const listItemCard = document.createElement('div');
                 // Adjusted item card to stack vertically on small screens, horizontal on larger
@@ -380,17 +387,26 @@
                 let itemPrice = 0;
                 let ingredientIconHtml = '';
                 let addIngredientButtonHtml = ''; // Variable for the "Add to Ingredients" button
+                let standardQuantityDisplay = ''; // New variable for standard quantity
 
                 // If ingredient_id is present in the list item, use its associated name and price
                 if (item.ingredient_id && item.ingredient_name) {
+                    // The backend now provides `cantidad_estandar` and `unidad_medida` directly in the item
                     itemPrice = item.price_per_unit || 0; 
                     ingredientIconHtml = `<i class="fas fa-seedling text-emerald-600 mr-2" title="Asociado a ingrediente: ${item.ingredient_name}"></i>`;
+                    // Display standard quantity if available
+                    if (item.cantidad_estandar && item.unidad_medida) {
+                        standardQuantityDisplay = `(${item.cantidad_estandar} ${item.unidad_medida})`;
+                    }
                 } else {
                     // Fallback: Try to find a matching ingredient by name from the allIngredients cache
                     const matchingIngredient = allIngredients.find(ing => ing.name.toLowerCase() === item.item.toLowerCase());
                     if (matchingIngredient) {
                         itemPrice = matchingIngredient.price_per_unit;
                         ingredientIconHtml = `<i class="fas fa-seedling text-emerald-600 mr-2" title="Posible ingrediente: ${matchingIngredient.name}"></i>`;
+                        if (matchingIngredient.cantidad_estandar && matchingIngredient.unidad_medida) {
+                            standardQuantityDisplay = `(${matchingIngredient.cantidad_estandar} ${matchingIngredient.unidad_medida})`;
+                        }
                     }
                 }
                 
@@ -398,8 +414,8 @@
                     totalPrice += itemPrice;
                 }
 
-                // Only render the "Add to Ingredients" button if the item name is not empty
-                if (item.item && item.item.trim() !== '') {
+                // Only render the "Add to Ingredients" button if the item name is not empty and not already linked
+                if (item.item && item.item.trim() !== '' && !item.ingredient_id) {
                     addIngredientButtonHtml = `
                         <button class="add-ingredient p-3 rounded-full bg-purple-200 text-purple-700 hover:bg-purple-300 btn-transition" data-item="${item.item}" data-list-item-id="${item.id}" title="Añadir a Ingredientes (Lidl)">
                             <i class="fas fa-seedling text-lg"></i> 
@@ -410,7 +426,7 @@
 
                 listItemCard.innerHTML = `
                     <div class="flex-grow flex flex-col sm:flex-row sm:items-center w-full sm:w-auto mb-2 sm:mb-0">
-                        <span class="text-gray-900 font-medium text-lg flex-grow ${item.comprada ? 'line-through text-gray-500' : ''}">${ingredientIconHtml}${item.item}</span>
+                        <span class="text-gray-900 font-medium text-lg flex-grow ${item.comprada ? 'line-through text-gray-500' : ''}">${ingredientIconHtml}${item.item} ${standardQuantityDisplay}</span>
                         <span class="text-gray-600 text-sm ml-0 sm:ml-4 whitespace-nowrap font-bold">${itemPrice > 0 ? itemPrice.toFixed(2) + '€' : 'Precio N/D'}</span>
                     </div>
                     <div class="flex items-center justify-end gap-2 w-full sm:w-auto">
@@ -659,12 +675,14 @@
             if (confirmAdd) {
                 const payload = {
                     name: itemName,
-                    supermarket: 'Lidl', 
+                    supermarket: 'Lidl', // Assuming Lidl is your default supermarket for new ingredients
                     price_per_unit: 0.00, 
                     calories_per_100g: 0, 
                     proteins_per_100g: 0, 
                     carbs_per_100g: 0, 
-                    fats_per_100g: 0 
+                    fats_per_100g: 0,
+                    cantidad_estandar: 0.0, // Default to 0.0, user can change later
+                    unidad_medida: '' // Default to empty, user can change later
                 };
 
                 try {
