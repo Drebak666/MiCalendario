@@ -6,9 +6,11 @@ from flask import Flask, render_template, request, jsonify, g, session
 from functools import wraps
 import uuid # Import the uuid module
 import calendar # Necessary for calendar.monthrange, although not explicitly in the user's provided version, I add it for consistency if any function needs it.
+from flask_cors import CORS # IMPORTANTE: Importa Flask-CORS
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "super_secreto_y_cambiar_en_produccion") # Secret key for sessions
+CORS(app) # IMPORTANTE: Habilita CORS para toda la aplicación Flask
 
 # --- Supabase Configuration ---
 # Es CRUCIAL usar variables de entorno para las credenciales en producción.
@@ -17,7 +19,7 @@ app.secret_key = os.environ.get("FLASK_SECRET_KEY", "super_secreto_y_cambiar_en_
 SUPABASE_URL = "https://ugpqqmcstqtywyrzfnjq.supabase.co" # EXAMPLE: "https://ugpqqmcstqtywyrzfnjq.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncHFxbWNzdHF0eXd5cnpmbmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3Mzk2ODgsImV4cCI6MjA2NTMxNTY4OH0.nh56rQQliOnX5AZzePaZv_RB05uRIlUbfQPkWJPvKcE" # Asegúrate de que esta sea la clave completa y correcta de tu panel de Supabase.
 
-supabase: Client = None 
+supabase: Client = None
 
 if not SUPABASE_URL or not SUPABASE_KEY:
     print("[ERROR] Fallo crítico: Las variables de entorno SUPABASE_URL y SUPABASE_KEY no están configuradas.")
@@ -603,6 +605,7 @@ def add_rutina():
     data = request.json
     nombre = data.get('nombre')
     hora = data.get('hora')
+    hora_fin = data.get('hora_fin') # NUEVO: Obtener hora_fin
     dias = data.get('dias')
 
     if not nombre or not dias:
@@ -615,17 +618,26 @@ def add_rutina():
         try:
             datetime.strptime(hora, '%H:%M')
         except ValueError:
-            return jsonify({'error': 'Formato de hora inválido. Usar HH:MM'}), 400
-
+            return jsonify({'error': 'Formato de hora inválido para la hora de inicio. Usar HH:MM'}), 400
+    
+    if hora_fin: # NUEVO: Validar hora_fin
+        try:
+            datetime.strptime(hora_fin, '%H:%M')
+        except ValueError:
+            return jsonify({'error': 'Formato de hora inválido para la hora de fin. Usar HH:MM'}), 400
+    
     hora_para_db = hora if hora else None
+    hora_fin_para_db = hora_fin if hora_fin else None # NUEVO: Preparar hora_fin para la DB
 
     try:
         dias_semana_json = json.dumps(dias)
-        insert_data = {'nombre': nombre, 'hora': hora_para_db, 'dias_semana': dias_semana_json}
+        # NUEVO: Incluir hora_fin en los datos a insertar
+        insert_data = {'nombre': nombre, 'hora': hora_para_db, 'hora_fin': hora_fin_para_db, 'dias_semana': dias_semana_json}
         response = supabase.from_('rutina').insert(insert_data).execute()
         new_rutina = response.data[0]
 
-        return jsonify({'id': new_rutina['id'], 'nombre': new_rutina['nombre'], 'hora': new_rutina['hora'], 'dias': dias}), 201
+        # NUEVO: Devolver hora_fin en la respuesta
+        return jsonify({'id': new_rutina['id'], 'nombre': new_rutina['nombre'], 'hora': new_rutina['hora'], 'hora_fin': new_rutina.get('hora_fin'), 'dias': dias}), 201
     except Exception as e:
         print(f"Error al añadir rutina a Supabase: {e}")
         return jsonify({'error': f'Error al añadir rutina: {str(e)}'}), 500
@@ -635,7 +647,8 @@ def get_rutinas():
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
     try:
-        response = supabase.from_('rutina').select('id,nombre,hora,dias_semana').order('id', desc=True).execute()
+        # NUEVO: Seleccionar hora_fin también
+        response = supabase.from_('rutina').select('id,nombre,hora,hora_fin,dias_semana').order('id', desc=True).execute()
         rutinas = response.data
         
         rutinas_list = []
@@ -655,6 +668,7 @@ def get_rutinas():
                 'id': rutina['id'],
                 'nombre': rutina['nombre'],
                 'hora': rutina['hora'],
+                'hora_fin': rutina.get('hora_fin'), # NUEVO: Incluir hora_fin en la respuesta
                 'dias': dias_semana_list
             })
         return jsonify(rutinas_list)
@@ -715,8 +729,8 @@ def toggle_rutina_completada_dia(rutina_id):
         print(f"Error al cambiar el estado de la rutina por día: {e}")
         return jsonify({'error': f'Error al actualizar el estado de la rutina: {str(e)}'}), 500
 
-# --- API Routes for Shopping List (Adapted for Supabase) ---
 
+# --- API Routes for Lists (Adapted for Supabase) ---
 @app.route('/api/lista_compra', methods=['GET'])
 def get_lista_compra():
     if supabase is None:
@@ -903,6 +917,7 @@ def delete_nota_rapida(note_id):
     except Exception as e:
         print(f"Error al eliminar nota rápida de Supabase: {e}")
         return jsonify({'error': f'Error al eliminar nota: {str(e)}'}), 500
+
 
 # --- NEW API Routes for Citas ---
 @app.route('/api/citas', methods=['POST'])
@@ -1178,7 +1193,7 @@ def toggle_requisito_completado(cita_id):
         return jsonify({'message': 'Estado del requisito actualizado exitosamente.', 'id': str(cita_id), 'index': requisito_index, 'new_state': requisitos[requisito_index]['checked']}), 200
     except Exception as e:
         print(f"Error al alternar el estado del requisito en Supabase: {e}")
-        return jsonify({'error': f'Error al actualizar el requisito: {str(e)}'}), 500
+        return jsonify({'error': f'Error al actualizar requisito: {str(e)}'}), 500
 
 
 @app.route('/api/citas/<uuid:cita_id>', methods=['DELETE'])
