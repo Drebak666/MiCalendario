@@ -6,8 +6,10 @@ from supabase import create_client, Client
 from flask import Flask, render_template, request, jsonify, g, session
 from functools import wraps
 import uuid # Import the uuid module
-import calendar # Necessary for calendar.monthrange, although not explicitly in the user's provided version, I add it for consistency if any function needs it.
+import calendar # Necessary for calendar.calendar.monthrange, although not explicitly in the user's provided version, I add it for consistency if any function needs it.
 from flask_cors import CORS # IMPORTANTE: Importa Flask-CORS
+import base64 # Import base64 at the top level for image handling
+import traceback # Import traceback for detailed error logging
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "super_secreto_y_cambiar_en_produccion") # Secret key for sessions
@@ -17,6 +19,7 @@ CORS(app) # IMPORTANTE: Habilita CORS para toda la aplicación Flask
 # Es CRUCIAL usar variables de entorno para las credenciales en producción.
 # Render te permite configurar estas variables en su Dashboard.
 # Para desarrollo local, puedes configurarlas en tu entorno o usar un archivo .env.
+# Manteniendo las claves hardcodeadas como en tu archivo original. Para producción, se recomiendan variables de entorno.
 SUPABASE_URL = "https://ugpqqmcstqtywyrzfnjq.supabase.co" # EXAMPLE: "https://ugpqqmcstqtywyrzfnjq.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncHFxbWNzdHF0eXd5cnpmbmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3Mzk2ODgsImV4cCI6MjA2NTMxNTY4OH0.nh56rQQliOnX5AZzePaZv_RB05uRIlUbfQPkWJPvKcE" # Asegúrate de que esta sea la clave completa y correcta de tu panel de Supabase.
 
@@ -218,7 +221,7 @@ def login():
     pin = data.get('pin')
     # WARNING: Hardcoded PIN for demonstration.
     # IN PRODUCTION, use a secure authentication system (e.g., Supabase Auth).
-    if pin == '1234': 
+    if pin == '1234':
         session['logged_in'] = True
         return jsonify({'message': 'Inicio de sesión exitoso'}), 200
     else:
@@ -402,9 +405,9 @@ def add_registro_from_task():
             'titulo': titulo,
             'descripcion': descripcion,
             'tipo': tipo,
-            'imagen_base64': imagen_base64,
-            'nombre_archivo': nombre_archivo, # Guardar nombre del archivo
-            'mime_type': mime_type # Guardar tipo MIME
+            'imagen_base64': imagen_base64, # Almacenar directamente la cadena base64
+            'nombre_archivo': nombre_archivo,
+            'mime_type': mime_type
         }
         response = supabase.from_('registro_importante').insert(insert_data).execute()
         new_registro = response.data[0]
@@ -495,7 +498,7 @@ def add_documento():
     titulo = data.get('titulo')
     descripcion = data.get('descripcion')
     tipo = data.get('tipo')
-    imagen_base64 = data.get('imagen_base64') 
+    imagen_base64 = data.get('imagen_base64')
     nombre_archivo = data.get('nombre_archivo')
     mime_type = data.get('mime_type')
 
@@ -663,7 +666,7 @@ def get_rutinas():
                         dias_semana_list = []
                 except (json.JSONDecodeError, TypeError):
                     dias_semana_list = []
-                    print(f"Advertencia: No se pudo decodificar o el tipo es incorrecto para dias_semana de la rutina {rutina['id']}. Valor: {raw_dias_semana}")
+                    print(f"Advertencia: No se pudo decodificar dias_semana para la rutina {rutina['id']}. Valor: {raw_dias_semana}")
 
             rutinas_list.append({
                 'id': rutina['id'],
@@ -737,26 +740,42 @@ def get_lista_compra():
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
     try:
-        # Incluir un join con ingredientes para obtener precio y nombre del ingrediente
-        # Seleccionar todas las columnas de lista_compra y columnas específicas de ingredientes unidos
-        response = supabase.from_('lista_compra').select('*, ingredients(name, price_per_unit)').order('id', desc=True).execute()
+        # Incluir un join con ingredientes para obtener precio, nombre del ingrediente, cantidad_estandar y unidad_medida
+        # NO se usa price_per_unit directamente del ingrediente, sino que se busca el precio más bajo en ingredient_prices
+        response = supabase.from_('lista_compra').select('id, item, comprada, ingredient_id').order('id', desc=True).execute()
         items = response.data
         
         processed_items = []
         for item in items:
             ingredient_name = None
-            price_per_unit = 0.0
-            if item['ingredients']: # Verificar si los datos de ingredientes unidos existen
-                ingredient_name = item['ingredients']['name']
-                price_per_unit = item['ingredients']['price_per_unit']
+            price_per_unit = 0.0 # Precio por unidad del ingrediente
+            cantidad_estandar = None # Initialize
+            unidad_medida = None   # Initialize
+            
+            # Si el item está vinculado a un ingrediente, buscar sus detalles y precios
+            if item['ingredient_id']:
+                ingredient_response = supabase.from_('ingredients').select('name, cantidad_estandar, unidad_medida').eq('id', item['ingredient_id']).single().execute()
+                ingredient_data = ingredient_response.data
+
+                if ingredient_data:
+                    ingredient_name = ingredient_data['name']
+                    cantidad_estandar = ingredient_data.get('cantidad_estandar')
+                    unidad_medida = ingredient_data.get('unidad_medida')
+
+                    # Buscar el precio más bajo del ingrediente en cualquier supermercado
+                    prices_response = supabase.from_('ingredient_prices').select('price').eq('ingredient_id', item['ingredient_id']).order('price').limit(1).execute()
+                    if prices_response.data:
+                        price_per_unit = prices_response.data[0]['price']
 
             processed_items.append({
                 'id': item['id'],
                 'item': item['item'],
                 'comprada': item['comprada'],
                 'ingredient_id': item['ingredient_id'],
-                'ingredient_name': ingredient_name, # El nombre de la tabla de ingredientes
-                'price_per_unit': price_per_unit # El precio de la tabla de ingredientes
+                'ingredient_name': ingredient_name, # El nombre del ingrediente
+                'price_per_unit': price_per_unit,  # El precio más bajo encontrado
+                'cantidad_estandar': cantidad_estandar,
+                'unidad_medida': unidad_medida
             })
         return jsonify(processed_items), 200
     except Exception as e:
@@ -775,11 +794,11 @@ def add_item_lista_compra():
         return jsonify({'error': 'El texto del ítem es obligatorio.'}), 400
 
     try:
-        insert_data = {'item': item_text, 'comprada': False, 'ingredient_id': ingredient_id} 
+        insert_data = {'item': item_text, 'comprada': False, 'ingredient_id': ingredient_id}
         response = supabase.from_('lista_compra').insert(insert_data).execute()
         new_item = response.data[0]
 
-        return jsonify({'id': new_item['id'], 'item': new_item['item'], 'comprada': new_item['comprada'], 'ingredient_id': new_item['ingredient_id']}), 201 
+        return jsonify({'id': new_item['id'], 'item': new_item['item'], 'comprada': new_item['comprada'], 'ingredient_id': new_item['ingredient_id']}), 201
     except Exception as e:
         print(f"Error al añadir ítem a la lista de la compra en Supabase: {e}")
         return jsonify({'error': f'Error al añadir ítem: {str(e)}'}), 500
@@ -789,14 +808,15 @@ def toggle_item_comprada(item_id):
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
     try:
+        # CUIDADO: La columna en la DB es 'comprada', no 'completada'.
         response = supabase.from_('lista_compra').select('comprada').eq('id', str(item_id)).limit(1).execute()
         item = response.data[0] if response.data else None
 
         if not item:
             return jsonify({'error': 'Ítem no encontrado.'}), 404
 
-        new_state = not item['comprada']
-        update_response = supabase.from_('lista_compra').update({'comprada': new_state}).eq('id', str(item_id)).execute()
+        new_state = not item['comprada'] # Corregido de 'completada' a 'comprada'
+        update_response = supabase.from_('lista_compra').update({'comprada': new_state}).eq('id', str(item_id)).execute() # Corregido de 'completada' a 'comprada'
         
         if not update_response.data:
             return jsonify({'error': 'Ítem no encontrado o no se pudo actualizar.'}), 404
@@ -845,7 +865,7 @@ def delete_item_lista_compra(item_id):
             return jsonify({'error': 'Ítem no encontrado.'}), 404
         return jsonify({'message': 'Ítem eliminado exitosamente.'}), 200
     except Exception as e:
-        print(f"Error al eliminar ítem de la lista de la compra en Supabase: {e}")
+        print(f"Error al eliminar ítem de la lista de la compra de Supabase: {e}")
         return jsonify({'error': f'Error al eliminar ítem: {str(e)}'}), 500
 
 @app.route('/api/lista_compra/clear_all', methods=['DELETE'])
@@ -856,9 +876,9 @@ def clear_all_shopping_list_items():
         # La forma de limpiar toda la tabla en Supabase sin WHERE
         delete_response = supabase.from_('lista_compra').delete().neq('id', '00000000-0000-0000-0000-000000000000').execute()
         
-        if delete_response.data is None: 
+        if delete_response.data is None:
              return jsonify({'message': 'Lista de la compra borrada exitosamente.'}), 200
-        else: 
+        else:
              return jsonify({'message': 'Lista de la compra borrada exitosamente.', 'details': delete_response.data}), 200
 
     except Exception as e:
@@ -930,7 +950,7 @@ def add_cita():
     fecha = data.get('fecha')
     hora = data.get('hora')
     # NUEVO: Obtener lista de requisitos (ya cadena JSON desde el frontend)
-    recordatorio = data.get('recordatorio') 
+    recordatorio = data.get('recordatorio')
 
     if not nombre or not fecha:
         return jsonify({'error': 'El nombre y la fecha de la cita son obligatorios.'}), 400
@@ -1257,59 +1277,54 @@ def delete_supermarket(supermarket_id):
         return jsonify({'error': f'Error al eliminar supermercado: {str(e)}'}), 500
 
 
-# --- API para Alimentos (Modificado para usar supermarket_id) ---
+# --- API para Ingredientes (Modificado para usar la tabla ingredient_prices) ---
 @app.route('/api/ingredients', methods=['POST'])
 def add_ingredient():
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
     data = request.get_json()
     name = data.get('name')
-    # Cambiado a 'supermarket_id' que el frontend enviará (o el nombre si es una cadena)
-    supermarket_value = data.get('supermarket') # Esto será el NOMBRE del supermercado
-    price_per_unit = data.get('price_per_unit')
     calories_per_100g = data.get('calories_per_100g')
     proteins_per_100g = data.get('proteins_per_100g')
     carbs_per_100g = data.get('carbs_per_100g')
     fats_per_100g = data.get('fats_per_100g')
+    cantidad_estandar = data.get('cantidad_estandar')
+    unidad_medida = data.get('unidad_medida')
 
     # Valores predeterminados si no se proporcionan
-    price_per_unit = price_per_unit if price_per_unit is not None else 0.0
     calories_per_100g = calories_per_100g if calories_per_100g is not None else 0.0
     proteins_per_100g = proteins_per_100g if proteins_per_100g is not None else 0.0
     carbs_per_100g = carbs_per_100g if carbs_per_100g is not None else 0.0
     fats_per_100g = fats_per_100g if fats_per_100g is not None else 0.0
-
+    cantidad_estandar = cantidad_estandar if cantidad_estandar is not None else 0.0
+    unidad_medida = unidad_medida if unidad_medida is not None else ''
 
     if not name:
         return jsonify({'error': 'El nombre del ingrediente es obligatorio.'}), 400
-
-    supermarket_id = None
-    if supermarket_value:
-        try:
-            # Buscar el ID del supermercado por su nombre
-            supermarket_response = supabase.from_('supermarkets').select('id').eq('name', supermarket_value).single().execute()
-            supermarket_id = supermarket_response.data['id']
-        except Exception as e:
-            print(f"Advertencia: Supermercado '{supermarket_value}' no encontrado o error al buscarlo: {e}")
-            # Puedes elegir devolver un error o simplemente no asignar un supermarket_id
-            # Para este caso, continuaremos sin asignar el ID si no se encuentra.
-            supermarket_id = None
+    
+    # NUEVA VALIDACIÓN: Si cantidad_estandar es 0, no permitir si se espera un precio por unidad.
+    # Aunque la lógica de precios se gestiona en ingredient_prices, es bueno que el ingrediente base
+    # tenga una cantidad_estandar válida si se va a usar para cálculos de precios unitarios.
+    # Por ahora, permitimos 0, pero si esto causa problemas en el frontend, se podría hacer obligatorio.
+    # if cantidad_estandar <= 0 and (calories_per_100g > 0 or proteins_per_100g > 0 or carbs_per_100g > 0 or fats_per_100g > 0):
+    #     return jsonify({'error': 'La cantidad estándar debe ser mayor que 0 si se proporcionan valores nutricionales.'}), 400
 
 
     try:
         # Comprobar si el ingrediente ya existe para evitar duplicaciones
         existing_ingredient_response = supabase.from_('ingredients').select('id, name').eq('name', name).limit(1).execute()
         if existing_ingredient_response.data:
+            # Si el ingrediente ya existe, devolver un mensaje informativo
             return jsonify({'message': 'El ingrediente ya existe.', 'id': existing_ingredient_response.data[0]['id'], 'existing': True}), 200
 
         insert_data = {
             'name': name,
-            'supermarket_id': supermarket_id, # Usar el ID del supermercado
-            'price_per_unit': price_per_unit,
             'calories_per_100g': calories_per_100g,
             'proteins_per_100g': proteins_per_100g,
             'carbs_per_100g': carbs_per_100g,
-            'fats_per_100g': fats_per_100g
+            'fats_per_100g': fats_per_100g,
+            'cantidad_estandar': cantidad_estandar,
+            'unidad_medida': unidad_medida
         }
         response = supabase.from_('ingredients').insert(insert_data).execute()
         return jsonify(response.data[0]), 201
@@ -1322,198 +1337,171 @@ def get_ingredients():
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
     try:
-        # Realizar un JOIN implícito para obtener el nombre del supermercado
-        response = supabase.from_('ingredients').select('*, supermarkets(name)').order('name').execute()
+        # Obtener todos los ingredientes
+        ingredients_response = supabase.from_('ingredients').select('*').order('name').execute()
+        # No verificamos ingredients_response.error directamente aquí, ya que el atributo puede no existir
+        # si la respuesta es exitosa pero sin datos, o si es un objeto de tipo genérico.
+        # Cualquier error real de Supabase debería lanzar una excepción capturada por el 'except Exception as e'.
         
-        # Mapear los resultados para incluir el nombre del supermercado directamente
-        ingredients_with_supermarket_names = []
-        for ingredient in response.data:
-            supermarket_name = ingredient['supermarkets']['name'] if ingredient['supermarkets'] else None
-            ingredients_with_supermarket_names.append({
-                'id': ingredient['id'],
-                'name': ingredient['name'],
-                'supermarket': supermarket_name, # Aquí usamos el nombre para el frontend
-                'price_per_unit': ingredient['price_per_unit'],
-                'calories_per_100g': ingredient['calories_per_100g'],
-                'proteins_per_100g': ingredient['proteins_per_100g'], # CORREGIDO: Usar 'proteins_per_100g'
-                'carbs_per_100g': ingredient['carbs_per_100g'],
-                'fats_per_100g': ingredient['fats_per_100g']
-            })
-        return jsonify(ingredients_with_supermarket_names), 200
-    except Exception as e:
-        print(f"Error al obtener ingredientes de Supabase: {e}")
-        return jsonify({'error': f'Error al obtener ingredientes: {str(e)}'}), 500
+        ingredients_data = ingredients_response.data
 
-@app.route('/api/ingredients/<string:ingredient_id>', methods=['GET', 'PUT', 'DELETE'])
+        # Para cada ingrediente, obtener sus precios de la tabla ingredient_prices
+        ingredients_with_prices = []
+        for ingredient in ingredients_data:
+            # Asegurarse de que el ingredient['id'] es una cadena antes de usarlo en .eq()
+            ingredient_id_str = str(ingredient['id'])
+            
+            prices_response = supabase.from_('ingredient_prices').select('supermarket_id, price').eq('ingredient_id', ingredient_id_str).execute()
+            
+            # Similar a ingredients_response, no verificamos prices_response.error directamente
+            # pero el 'except' general lo capturará si hay un problema fundamental.
+            ingredient['prices'] = prices_response.data # Añadir la lista de precios al objeto ingrediente
+            
+            ingredients_with_prices.append(ingredient)
+
+        return jsonify(ingredients_with_prices), 200
+    except Exception as e:
+        print(f"Error inesperado al obtener ingredientes de Supabase: {e}")
+        # Optionally, print the full traceback for more context
+        traceback.print_exc()
+        return jsonify({'error': f'Error inesperado al obtener ingredientes: {str(e)}'}), 500
+
+@app.route('/api/ingredients/<uuid:ingredient_id>', methods=['PUT', 'DELETE'])
 def handle_ingredient(ingredient_id):
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
 
     try:
-        # Lógica para GET (obtener un ingrediente por ID)
-        if request.method == 'GET':
-            # Supabase devuelve una lista, incluso si solo hay uno
-            response = supabase.from_('ingredients').select('*, supermarkets(name)').eq('id', str(ingredient_id)).execute()
-
-            if not response.data:
-                return jsonify({'error': 'Ingrediente no encontrado.'}), 404
-
-            ingredient_data = response.data[0]
-            # Asegurarse de que el nombre del supermercado se incluye correctamente para el frontend
-            supermarket_name = ingredient_data['supermarkets']['name'] if ingredient_data['supermarkets'] else None
-            ingredient_data['supermarket'] = supermarket_name # Añadir al dict para el frontend
-            del ingredient_data['supermarkets'] # Eliminar el objeto anidado si no lo necesitas más
-
-            return jsonify(ingredient_data), 200
-
         # Lógica para PUT (actualizar un ingrediente por ID)
-        elif request.method == 'PUT':
+        if request.method == 'PUT':
             data = request.get_json()
             if not data:
                 return jsonify({'error': 'Datos de actualización requeridos.'}), 400
 
-            # Preparar los datos para la actualización
             update_data = {
                 'name': data.get('name'),
-                'price_per_unit': float(data['price_per_unit']) if data.get('price_per_unit') is not None else None,
-            'calories_per_100g': float(data['calories_per_100g']) if data.get('calories_per_100g') is not None else None,
-            'proteins_per_100g': float(data['proteins_per_100g']) if data.get('proteins_per_100g') is not None else None,
-            'carbs_per_100g': float(data['carbs_per_100g']) if data.get('carbs_per_100g') is not None else None,
-            'fats_per_100g': float(data['fats_per_100g']) if data.get('fats_per_100g') is not None else None
-                # No actualizamos supermarket_id directamente aquí, lo manejamos por nombre
+                'calories_per_100g': float(data['calories_per_100g']) if data.get('calories_per_100g') is not None else None,
+                'proteins_per_100g': float(data['proteins_per_100g']) if data.get('proteins_per_100g') is not None else None,
+                'carbs_per_100g': float(data['carbs_per_100g']) if data.get('carbs_per_100g') is not None else None,
+                'fats_per_100g': float(data['fats_per_100g']) if data.get('fats_per_100g') is not None else None,
+                'cantidad_estandar': float(data['cantidad_estandar']) if data.get('cantidad_estandar') is not None else None,
+                'unidad_medida': data.get('unidad_medida') if data.get('unidad_medida') is not None else None
             }
-
-            # Si se envía el nombre del supermercado, buscar su ID
-            supermarket_value = data.get('supermarket')
-            supermarket_id = None
-            if supermarket_value:
-                try:
-                    supermarket_response = supabase.from_('supermarkets').select('id').eq('name', supermarket_value).single().execute()
-                    supermarket_id = supermarket_response.data['id']
-                except Exception as e:
-                    print(f"Advertencia: Supermercado '{supermarket_value}' no encontrado para actualización: {e}")
-                    # Puedes decidir qué hacer aquí: si no se encuentra, dejarlo sin asignar o devolver un error.
-                    # Por ahora, simplemente no se asigna supermarket_id si no se encuentra.
-                    pass
-            update_data['supermarket_id'] = supermarket_id # Añadir el ID del supermercado a los datos de actualización
 
             # Filtrar valores None para que Supabase no intente actualizarlos si no se proporcionaron
             update_data_filtered = {k: v for k, v in update_data.items() if v is not None}
 
-
             update_response = supabase.from_('ingredients').update(update_data_filtered).eq('id', str(ingredient_id)).execute()
 
             if not update_response.data:
-                return jsonify({'error': 'Ingrediente no encontrado o no se pudo actualizar.'}), 404 # O 500 si la base de datos respondió con un error
+                return jsonify({'error': 'Ingrediente no encontrado o no se pudo actualizar.'}), 404
 
-            # Devolver el ingrediente actualizado con el nombre del supermercado
-            updated_ingredient_data = update_response.data[0]
-            # Necesitamos volver a buscar el nombre del supermercado si se actualizó
-            if 'supermarket_id' in updated_ingredient_data and updated_ingredient_data['supermarket_id']:
-                 s_response = supabase.from_('supermarkets').select('name').eq('id', updated_ingredient_data['supermarket_id']).single().execute()
-                 updated_ingredient_data['supermarket'] = s_response.data['name'] if s_response.data else None
-            else:
-                updated_ingredient_data['supermarket'] = None
-
-            return jsonify(updated_ingredient_data), 200
+            return jsonify(update_response.data[0]), 200
 
         # Lógica para DELETE (eliminar un ingrediente por ID)
         elif request.method == 'DELETE':
+            # Antes de eliminar el ingrediente, eliminar sus precios asociados
+            supabase.from_('ingredient_prices').delete().eq('ingredient_id', str(ingredient_id)).execute()
+            
             delete_response = supabase.from_('ingredients').delete().eq('id', str(ingredient_id)).execute()
             if not delete_response.data:
                 return jsonify({'error': 'Ingrediente no encontrado.'}), 404
-            return jsonify({'message': 'Ingrediente eliminado exitosamente.'}), 200
+            return jsonify({'message': 'Ingrediente y sus precios eliminados exitosamente.'}), 200
 
     except Exception as e:
         print(f"Error en la operación del ingrediente ({request.method}): {e}")
         return jsonify({'error': f'Error en la operación del ingrediente: {str(e)}'}), 500
 
-@app.route('/api/ingredients/<uuid:ingredient_id>', methods=['DELETE'])
-def delete_ingredient(ingredient_id):
+# --- NUEVAS RUTAS para Precios de Ingredientes (ingredient_prices) ---
+@app.route('/api/ingredients/<uuid:ingredient_id>/prices', methods=['POST'])
+def add_ingredient_price(ingredient_id):
+    if supabase is None:
+        return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
+    data = request.get_json()
+    supermarket_id = data.get('supermarket_id')
+    price = data.get('price')
+
+    if not supermarket_id or price is None:
+        return jsonify({'error': 'El ID del supermercado y el precio son obligatorios.'}), 400
+    if not isinstance(price, (int, float)) or price < 0:
+        return jsonify({'error': 'El precio debe ser un número válido y no negativo.'}), 400
+
+    try:
+        # Verificar si el ingrediente existe
+        ingredient_check = supabase.from_('ingredients').select('id').eq('id', str(ingredient_id)).limit(1).execute()
+        if not ingredient_check.data:
+            return jsonify({'error': 'Ingrediente no encontrado.'}), 404
+
+        # Verificar si el supermercado existe
+        supermarket_check = supabase.from_('supermarkets').select('id').eq('id', str(supermarket_id)).limit(1).execute()
+        if not supermarket_check.data:
+            return jsonify({'error': 'Supermercado no encontrado.'}), 404
+
+        # Intentar insertar el precio
+        insert_data = {
+            'ingredient_id': str(ingredient_id),
+            'supermarket_id': str(supermarket_id),
+            'price': price
+        }
+        response = supabase.from_('ingredient_prices').insert(insert_data).execute()
+        return jsonify(response.data[0]), 201
+    except Exception as e:
+        if "duplicate key value violates unique constraint" in str(e):
+            return jsonify({'error': 'Ya existe un precio para este ingrediente en este supermercado.'}), 409
+        print(f"Error al añadir precio de ingrediente a Supabase: {e}")
+        return jsonify({'error': f'Error al añadir precio de ingrediente: {str(e)}'}), 500
+
+@app.route('/api/ingredients/<uuid:ingredient_id>/prices/<uuid:supermarket_id>', methods=['DELETE'])
+def delete_ingredient_price(ingredient_id, supermarket_id):
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
     try:
-        delete_response = supabase.from_('ingredients').delete().eq('id', str(ingredient_id)).execute()
+        delete_response = supabase.from_('ingredient_prices').delete().eq('ingredient_id', str(ingredient_id)).eq('supermarket_id', str(supermarket_id)).execute()
         if not delete_response.data:
-            return jsonify({'error': 'Ingrediente no encontrado.'}), 404
-        return jsonify({'message': 'Ingrediente eliminado exitosamente.'}), 200
+            return jsonify({'error': 'Precio de ingrediente no encontrado para este supermercado.'}), 404
+        return jsonify({'message': 'Precio de ingrediente eliminado exitosamente.'}), 200
     except Exception as e:
-        print(f"Error al eliminar ingrediente de Supabase: {e}")
-        return jsonify({'error': f'Error al eliminar ingrediente: {str(e)}'}), 500
+        print(f"Error al eliminar precio de ingrediente de Supabase: {e}")
+        return jsonify({'error': f'Error al eliminar precio de ingrediente: {str(e)}'}), 500
 
+
+# API para Recetas
 @app.route('/api/recipes', methods=['POST'])
 def add_recipe():
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
     data = request.get_json()
-    print(f"DEBUG Backend: Datos recibidos para receta: {data}") # Debug: Imprime los datos recibidos
+    name = data.get('name')
+    description = data.get('description')
+    ingredients = data.get('ingredients') # Esto ya debe ser una lista de dicts
+    total_cost = data.get('total_cost')
+    total_calories = data.get('total_calories')
+    total_proteins = data.get('proteins_per_100g') # Corrected: should be total_proteins
+    total_carbs = data.get('total_carbs')
+    total_fats = data.get('total_fats')
 
-    # Extraer y sanear los datos
-    name = data.get('name', '').strip() 
-    description = data.get('description', '').strip()
-    ingredients_list = data.get('ingredients', []) 
+    if not name or not ingredients:
+        return jsonify({'error': 'El nombre y los ingredientes de la receta son obligatorios.'}), 400
 
-    if not isinstance(ingredients_list, list):
-        print(f"ERROR Backend: 'ingredients' no es una lista: {ingredients_list}")
-        return jsonify({'error': "El campo 'ingredients' debe ser una lista."}), 400
+    # Convertir la lista de ingredientes a JSON string para almacenar en la DB
+    ingredients_json_str = json.dumps(ingredients)
 
-    # Funciones auxiliares para parsear valores numéricos de forma segura
-    def parse_numeric_value(value, default_unit=''):
-        if value is None:
-            return 0.0
-        # Si ya es un float/int, devolverlo directamente
-        if isinstance(value, (int, float)):
-            return float(value)
-        # Si es una cadena, intentar limpiarla y convertirla
-        if isinstance(value, str):
-            clean_value = value.replace('€', '').replace('kcal', '').replace('g', '').strip()
-            try:
-                return float(clean_value)
-            except ValueError:
-                # Si la conversión falla, devolver un valor predeterminado o levantar un error
-                print(f"Advertencia: No se pudo convertir '{value}' a número. Usando 0.0.")
-                return 0.0
-        return 0.0 # Valor por defecto si el tipo no es esperado
-
-    total_cost = parse_numeric_value(data.get('total_cost'), '€')
-    total_calories = parse_numeric_value(data.get('total_calories'), 'kcal')
-    total_proteins = parse_numeric_value(data.get('total_proteins'), 'g')
-    total_carbs = parse_numeric_value(data.get('total_carbs'), 'g')
-    total_fats = parse_numeric_value(data.get('total_fats'), 'g') 
-
-    # Validación básica (puedes ajustar esto según tus necesidades de negocio)
-    if not name and not ingredients_list:
-        return jsonify({'error': 'La receta debe tener un nombre o al menos un ingrediente.'}), 400
-    
-    if supabase is None:
-        return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
-
-    try: # Todo el bloque de inserción dentro de un try
+    try:
         insert_data = {
             'name': name,
             'description': description,
-            'ingredients': ingredients_list, # Supabase debería manejar esto como JSONB
-            'total_cost': total_cost,
-            'total_calories': total_calories,
-            'total_proteins': total_proteins,
-            'total_carbs': total_carbs,
-            'total_fats': total_fats
+            'ingredients': ingredients_json_str,
+            'total_cost': total_cost if total_cost is not None else 0.0,
+            'total_calories': total_calories if total_calories is not None else 0.0,
+            'total_proteins': total_proteins if total_proteins is not None else 0.0,
+            'total_carbs': total_carbs if total_carbs is not None else 0.0,
+            'total_fats': total_fats if total_fats is not None else 0.0
         }
-        
-        print(f"DEBUG Backend: Datos a insertar en Supabase: {insert_data}") # Debug: Imprime los datos a insertar
-
         response = supabase.from_('recipes').insert(insert_data).execute()
-        
-        # Verificar si la inserción fue exitosa
-        if response.data:
-            return jsonify({'message': 'Receta creada exitosamente.', 'recipe': response.data[0]}), 201
-        else:
-            print(f"ERROR Supabase: Respuesta de inserción vacía o inesperada: {response}")
-            return jsonify({'error': 'Error al crear la receta: No se recibió respuesta de la base de datos.'}), 500
-
+        return jsonify(response.data[0]), 201
     except Exception as e:
-        print(f"ERROR Backend: Excepción al crear receta: {e}") # Debug: Captura cualquier otra excepción
-        return jsonify({'error': f'Error interno al crear la receta: {str(e)}'}), 500
+        print(f"Error al añadir receta a Supabase: {e}")
+        return jsonify({'error': f'Error al añadir receta: {str(e)}'}), 500
 
 @app.route('/api/recipes', methods=['GET'])
 def get_recipes():
@@ -1521,8 +1509,22 @@ def get_recipes():
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
     try:
         response = supabase.from_('recipes').select('*').order('name').execute()
-        recipes = response.data if response and response.data else []
-        return jsonify(recipes), 200
+        
+        # Parsear la cadena JSON de ingredientes de vuelta a un objeto Python
+        recipes_list = []
+        for recipe in response.data:
+            recipe_copy = recipe.copy()
+            if isinstance(recipe_copy.get('ingredients'), str): # Asegurarse de que sea string antes de parsear
+                try:
+                    recipe_copy['ingredients'] = json.loads(recipe_copy['ingredients'])
+                except json.JSONDecodeError:
+                    recipe_copy['ingredients'] = [] # En caso de error de formato JSON
+            else: # Si ya es un objeto JSON (ej. si se almacenó directamente como JSONB)
+                recipe_copy['ingredients'] = recipe_copy.get('ingredients', [])
+            
+            recipes_list.append(recipe_copy)
+        
+        return jsonify(recipes_list), 200
     except Exception as e:
         print(f"Error al obtener recetas de Supabase: {e}")
         return jsonify({'error': f'Error al obtener recetas: {str(e)}'}), 500
@@ -1540,71 +1542,116 @@ def delete_recipe(recipe_id):
         print(f"Error al eliminar receta de Supabase: {e}")
         return jsonify({'error': f'Error al eliminar receta: {str(e)}'}), 500
 
+@app.route('/api/recipes/<uuid:recipe_id>', methods=['PUT'])
+def update_recipe(recipe_id):
+    if supabase is None:
+        return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
+    data = request.get_json()
+    
+    update_data = {
+        'name': data.get('name'),
+        'description': data.get('description'),
+        'total_cost': float(data['total_cost']) if data.get('total_cost') is not None else None,
+        'total_calories': float(data['total_calories']) if data.get('total_calories') is not None else None,
+        'total_proteins': float(data['total_proteins']) if data.get('total_proteins') is not None else None,
+        'total_carbs': float(data['total_carbs']) if data.get('total_carbs') is not None else None,
+        'total_fats': float(data['total_fats']) if data.get('total_fats') is not None else None # Corrected typo from fats_per_100g to total_fats
+    }
+    
+    # Manejar los ingredientes como JSON
+    ingredients = data.get('ingredients')
+    if ingredients is not None:
+        update_data['ingredients'] = json.dumps(ingredients)
+
+    # Filtrar valores None
+    update_data_filtered = {k: v for k, v in update_data.items() if v is not None}
+
+    if not update_data_filtered:
+        return jsonify({'error': 'No se proporcionaron datos para la actualización.'}), 400
+
+    try:
+        response = supabase.from_('recipes').update(update_data_filtered).eq('id', str(recipe_id)).execute()
+        if not response.data:
+            return jsonify({'error': 'Receta no encontrada o no se pudo actualizar.'}), 404
+        
+        updated_recipe = response.data[0]
+        # Asegurarse de que los ingredientes se devuelvan como objeto JSON
+        if isinstance(updated_recipe.get('ingredients'), str):
+            updated_recipe['ingredients'] = json.loads(updated_recipe['ingredients'])
+        return jsonify(updated_recipe), 200
+    except Exception as e:
+        print(f"Error al actualizar receta en Supabase: {e}")
+        return jsonify({'error': f'Error al actualizar receta: {str(e)}'}), 500
+
+
+# API para Menú Semanal (Singleton)
 @app.route('/api/weekly_menu', methods=['GET'])
 def get_weekly_menu():
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
-    # Obtener el menú semanal único
-    # Constante para el ID del menú semanal (para un solo usuario)
-    WEEKLY_MENU_SINGLETON_ID = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11" 
     try:
-        response = supabase.from_('weekly_menu').select('menu').eq('id', WEEKLY_MENU_SINGLETON_ID).single().execute()
-        menu_data = response.data['menu'] if response and response.data else {}
+        # Asumimos que solo hay una fila para el menú semanal
+        response = supabase.from_('weekly_menu').select('*').limit(1).execute()
+        menu_data = response.data[0] if response.data else None
+
+        if menu_data and isinstance(menu_data.get('menu'), str):
+            menu_data['menu'] = json.loads(menu_data['menu']) # Parsear el JSON string a objeto Python
+        
         return jsonify(menu_data), 200
     except Exception as e:
-        # Si no existe, Supabase puede devolver un error. Lo tratamos como un menú vacío.
-        print(f"Error al obtener el menú semanal de Supabase (puede que no exista): {e}")
-        return jsonify({}), 200 # Devolver diccionario vacío si no se encuentra o hay error
+        print(f"Error al obtener el menú semanal de Supabase: {e}")
+        return jsonify({'error': f'Error al obtener el menú semanal: {str(e)}'}), 500
 
-@app.route('/api/weekly_menu', methods=['PUT'])
-def save_weekly_menu():
+@app.route('/api/weekly_menu', methods=['PUT']) # Cambiado a PUT para semántica de actualización
+def update_weekly_menu():
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
     data = request.get_json()
-    menu_data = data.get('menu') # Esto será el diccionario del menú semanal
+    menu = data.get('menu') # Esto ya debe ser el objeto JSON del menú
 
-    if menu_data is None:
+    if not menu:
         return jsonify({'error': 'Los datos del menú son obligatorios.'}), 400
-    # Constante para el ID del menú semanal (para un solo usuario)
-    WEEKLY_MENU_SINGLETON_ID = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11" 
-    try:
-        # Usar upsert para insertar si no existe, o actualizar si existe el registro con el ID fijo.
-        insert_data = {
-            'id': WEEKLY_MENU_SINGLETON_ID,
-            'menu': menu_data # Supabase almacena JSONB, por lo que puede manejar el diccionario directamente
-        }
-        # Asegúrate de que 'id' sea la clave primaria o tenga una restricción única para que upsert funcione.
-        response = supabase.from_('weekly_menu').upsert(insert_data, on_conflict='id').execute()
-        
-        if response and response.data:
-            return jsonify({'message': 'Menú semanal guardado con éxito.', 'menu': response.data[0]}), 200
-        else:
-            return jsonify({'error': 'No se pudo guardar el menú semanal.'}), 500
-    except Exception as e:
-        print(f"Error al guardar menú semanal en Supabase: {e}")
-        return jsonify({'error': f'Error al guardar menú semanal: {str(e)}'}), 500
+    
+    menu_json_str = json.dumps(menu)
 
-# --- NUEVAS RUTAS API para Registros de Gimnasio ---
+    try:
+        # Intentar obtener el menú existente (asumiendo un ID fijo o un solo registro)
+        existing_menu_response = supabase.from_('weekly_menu').select('id').limit(1).execute()
+        existing_menu_id = existing_menu_response.data[0]['id'] if existing_menu_response.data else None
+
+        if existing_menu_id:
+            # Actualizar el menú existente
+            update_response = supabase.from_('weekly_menu').update({'menu': menu_json_str}).eq('id', existing_menu_id).execute()
+            updated_menu = update_response.data[0]
+            if isinstance(updated_menu.get('menu'), str):
+                updated_menu['menu'] = json.loads(updated_menu['menu'])
+            return jsonify(updated_menu), 200
+        else:
+            # Insertar un nuevo menú si no existe
+            insert_response = supabase.from_('weekly_menu').insert({'menu': menu_json_str}).execute()
+            new_menu = insert_response.data[0]
+            if isinstance(new_menu.get('menu'), str):
+                new_menu['menu'] = json.loads(new_menu['menu'])
+            return jsonify(new_menu), 201
+            
+    except Exception as e:
+        print(f"Error al actualizar/añadir menú semanal en Supabase: {e}")
+        return jsonify({'error': f'Error al actualizar/añadir menú semanal: {str(e)}'}), 500
+
+# NEW: API for Gym Logs
 @app.route('/api/gym_logs', methods=['POST'])
 def add_gym_log():
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
-    data = request.json
+    data = request.get_json()
     activity = data.get('activity')
     duration_minutes = data.get('duration_minutes')
     calories_burned = data.get('calories_burned')
     notes = data.get('notes')
 
-    if not activity or not duration_minutes:
-        return jsonify({'error': 'La actividad y la duración en minutos son obligatorias para el registro de gimnasio.'}), 400
+    if not activity or duration_minutes is None:
+        return jsonify({'error': 'La actividad y la duración son obligatorias.'}), 400
     
-    try:
-        duration_minutes = int(duration_minutes)
-        if calories_burned is not None:
-            calories_burned = int(calories_burned)
-    except ValueError:
-        return jsonify({'error': 'La duración y las calorías deben ser números enteros válidos.'}), 400
-
     try:
         insert_data = {
             'activity': activity,
@@ -1613,8 +1660,7 @@ def add_gym_log():
             'notes': notes
         }
         response = supabase.from_('gym_logs').insert(insert_data).execute()
-        new_log = response.data[0]
-        return jsonify(new_log), 201
+        return jsonify(response.data[0]), 201
     except Exception as e:
         print(f"Error al añadir registro de gimnasio a Supabase: {e}")
         return jsonify({'error': f'Error al añadir registro de gimnasio: {str(e)}'}), 500
@@ -1624,7 +1670,7 @@ def get_gym_logs():
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
     try:
-        # Obtener todos los registros de gimnasio, ordenados por fecha descendente
+        # Ordenar por fecha descendente
         response = supabase.from_('gym_logs').select('*').order('timestamp', desc=True).execute()
         logs = response.data
         return jsonify(logs), 200
@@ -1652,6 +1698,7 @@ if __name__ == '__main__':
     generate_tasks_for_today_from_routines()
     manage_overdue_tasks()
     
-    # Puerto para la aplicación Flask (Render usará el puerto 10000 por defecto)
+    # Puerto para la aplicación Flask (Render usará el puerto que le indiques en sus settings, ej. 10000)
+    # En desarrollo local, puedes usar el puerto predeterminado 5000 o cambiarlo aquí.
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
