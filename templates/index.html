@@ -10,7 +10,7 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" xintegrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==\" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" xintegrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         /* Estilos personalizados para los badges de conteo y algunas transiciones */
         .button-count, .button-nav-count {
@@ -471,6 +471,178 @@
         const saveQuickCitaBtn = document.getElementById('saveQuickCitaBtn');
         const cancelQuickCitaBtn = document.getElementById('cancelQuickCitaBtn');
 
+        // NEW: Cache for all ingredients (for shopping list recognition)
+        let allIngredients = [];
+
+        // Fetches all ingredients from the API
+        async function fetchAllIngredients() {
+            try {
+                const response = await fetch('/api/ingredients');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error al obtener ingredientes.');
+                }
+                allIngredients = await response.json();
+                // populateIngredientSuggestions(); // This is not needed in index.html as there's no datalist here
+            } catch (error) {
+                console.error('Error al cargar todos los ingredientes:', error);
+                // No alert here, as it might be normal if there are no ingredients.
+            }
+        }
+
+        /**
+         * Parsea la cadena de entrada de la lista de la compra, manejando frases con "de"
+         * y priorizando la coincidencia con nombres de ingredientes existentes.
+         * @param {string} inputString La cadena de texto del input.
+         * @returns {Array<{item: string, ingredient_id: string|null}>} Un array de ítems parseados.
+         */
+        function parseShoppingListInputAndMatchIngredients(inputString) {
+            let identifiedItems = [];
+            const words = inputString.split(/\s+/).filter(word => word.length > 0); // Divide por uno o más espacios
+
+            // Ordena los ingredientes por la longitud del nombre de forma descendente para priorizar las coincidencias de varias palabras
+            const sortedIngredients = [...allIngredients].sort((a, b) => b.name.length - a.name.length);
+
+            let i = 0;
+            while (i < words.length) {
+                let foundIngredientMatch = null;
+
+                // 1. Intenta coincidir con el nombre de ingrediente más largo posible (primero de varias palabras)
+                for (const ingredient of sortedIngredients) {
+                    const ingNameLower = ingredient.name.toLowerCase();
+                    const ingWords = ingNameLower.split(/\s+/).filter(w => w.length > 0);
+                    
+                    // Construye una frase a partir del segmento actual de palabras para comparar con los nombres de ingredientes
+                    const currentPhraseAttempt = words.slice(i, i + ingWords.length).join(' ').toLowerCase();
+
+                    if (currentPhraseAttempt === ingNameLower) {
+                        foundIngredientMatch = ingredient;
+                        break; // Se encontró una coincidencia (ya sea de varias palabras o una exacta de una palabra), se procesa
+                    }
+                }
+
+                if (foundIngredientMatch) {
+                    // Añade el ítem del ingrediente reconocido
+                    identifiedItems.push({ item: foundIngredientMatch.name, ingredient_id: foundIngredientMatch.id });
+                    i += foundIngredientMatch.name.split(/\s+/).length; // Avanza el índice más allá de las palabras del ingrediente reconocido
+                } else {
+                    // No se encontró una coincidencia directa de ingrediente para este segmento. Maneja "de" y otras palabras.
+                    let currentWord = words[i];
+                    let itemText = currentWord; // No usado directamente en esta versión, pero útil para depuración
+
+                    // Manejo especial para "de", "del", "de la", etc.
+                    const deConnectors = ['de', 'del', 'de la', 'de los', 'de las'];
+                    if (deConnectors.includes(currentWord.toLowerCase()) && i > 0 && i + 1 < words.length) {
+                        // Intenta combinar con el ítem previamente identificado si era una sola palabra, o una frase simple
+                        if (identifiedItems.length > 0 && !identifiedItems[identifiedItems.length - 1].ingredient_id) {
+                            let lastItem = identifiedItems[identifiedItems.length - 1];
+                            const nextWord = words[i + 1];
+                            const combinedPhrase = `${lastItem.item} ${currentWord} ${nextWord}`;
+                            
+                            // Comprueba si esta nueva frase combinada coincide con un ingrediente
+                            const combinedIngredientMatch = allIngredients.find(ing => ing.name.toLowerCase() === combinedPhrase.toLowerCase());
+                            if (combinedIngredientMatch) {
+                                lastItem.item = combinedIngredientMatch.name;
+                                lastItem.ingredient_id = combinedIngredientMatch.id;
+                            } else {
+                                lastItem.item = combinedPhrase;
+                                lastItem.ingredient_id = null; // No hay coincidencia de ingrediente para la frase combinada
+                            }
+                            i += 2; // Consume "de" y la siguiente palabra
+                        } else {
+                             // "de" aparece, pero no hay un ítem anterior para combinar de manera significativa, o el anterior ya era un ingrediente.
+                             // Trata "de" como una palabra (probablemente se filtrará más tarde si está sola).
+                            identifiedItems.push({ item: currentWord, ingredient_id: null });
+                            i++;
+                        }
+                    } else {
+                        // Palabra regular. Intenta coincidir como un ingrediente de una sola palabra.
+                        const singleWordIngredient = allIngredients.find(ing => ing.name.toLowerCase() === currentWord.toLowerCase());
+                        if (singleWordIngredient) {
+                            identifiedItems.push({ item: singleWordIngredient.name, ingredient_id: singleWordIngredient.id });
+                        } else {
+                            identifiedItems.push({ item: currentWord, ingredient_id: null });
+                        }
+                        i++;
+                    }
+                }
+            }
+            
+            // Limpieza final: filtra los ítems vacíos y asegura que no queden separadores puros ("y", "and", "de" solos)
+            let finalItems = identifiedItems.filter(itemData => itemData.item.trim().length > 0);
+            
+            const separators = ['y', 'and', 'de', 'del', 'de la', 'de los', 'de las'];
+            finalItems = finalItems.filter(itemData => !separators.includes(itemData.item.toLowerCase()));
+            
+            // Elimina duplicados (ej., si "arroz" y "arroz bomba" coincidieron, se queda con el más largo/específico si el análisis resultó en ambos)
+            const uniqueItems = [];
+            const seenKeys = new Set();
+            for (const item of finalItems) {
+                // Una clave única basada en el nombre del ítem y el ID del ingrediente vinculado (si existe)
+                const key = `${item.item.toLowerCase()}-${item.ingredient_id || 'null'}`;
+                if (!seenKeys.has(key)) {
+                    uniqueItems.push(item);
+                    seenKeys.add(key);
+                }
+            }
+            return uniqueItems;
+        }
+
+        // Event for the quick list button
+        quickListButton.addEventListener('click', async () => {
+            const rawInput = entryTextInput.value.trim();
+            if (!rawInput) {
+                window.location.href = '/lista'; // If no text, just go to the list
+                return;
+            }
+
+            // MODIFIED: Use the new smart parsing function that also links ingredients
+            const itemsToAdd = parseShoppingListInputAndMatchIngredients(rawInput);
+
+            if (itemsToAdd.length === 0) {
+                showCustomAlert('No se pudieron identificar ítems válidos para añadir a la lista.', 'Entrada Inválida');
+                return;
+            }
+
+            let allItemsAddedSuccessfully = true;
+            for (const itemData of itemsToAdd) {
+                try {
+                    const response = await fetch('/api/lista_compra', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ item: itemData.item, ingredient_id: itemData.ingredient_id })
+                    });
+                    if (!response.ok) {
+                        let errorMessage = `HTTP error! status: ${response.status}`;
+                        const contentType = response.headers.get('content-type');
+                        const responseBody = await response.text(); 
+                        if (contentType && contentType.includes('application/json')) {
+                            try {
+                                const errorData = JSON.parse(responseBody);
+                                errorMessage = errorData.error || errorMessage;
+                            } catch (jsonParseError) {
+                                console.warn("JSON parsing failed for lista_compra error, falling back to raw text.", jsonParseError);
+                                errorMessage = `El servidor respondió con un JSON inválido. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
+                            }
+                        } else {
+                            errorMessage = `El servidor respondió con un error no JSON. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
+                            console.error("Respuesta de error no JSON del servidor:", responseBody);
+                        }
+                        throw new Error(errorMessage);
+                    }
+                    console.log(`Item "${itemData.item}" (Ingrediente ID: ${itemData.ingredient_id || 'N/A'}) added successfully to shopping list.`);
+                } catch (error) {
+                    console.error(`Error adding item "${itemData.item}" to shopping list:`, error);
+                    showCustomAlert(`No se pudo añadir "${itemData.item}" a la lista de la compra: ${error.message}`, 'Error de Lista');
+                    allItemsAddedSuccessfully = false;
+                }
+            }
+            entryTextInput.value = '';
+            // No redirect if not all items were successfully added
+            if (allItemsAddedSuccessfully) {
+                 window.location.href = '/lista';
+            }
+        });
 
         function formatFecha(date) {
             const year = date.getFullYear();
@@ -660,7 +832,8 @@
                     const errorText = await citasResponse.text();
                     throw new Error(`Error al cargar citas próximas: ${errorText}`);
                 }
-                upcomingCitas = await citasResponse.json();
+                const fetchedCitas = await citasResponse.json();
+                upcomingCitas = fetchedCitas; // Update the upcomingCitas variable
                 quickCitaCountElem.textContent = upcomingCitas.length;
                 navCitasCountElem.textContent = upcomingCitas.length;
             } catch (error) {
@@ -683,6 +856,7 @@
                     quickListCountElem.textContent = '0';
                     navListCountElem.textContent = '0';
                 }
+
             } catch (error) {
                 console.error('Error fetching list count:', error);
                 quickListCountElem.textContent = '0';
@@ -1778,135 +1952,6 @@
             entryTypeSelect.dispatchEvent(new Event('change')); 
         });
 
-        /**
-         * Parsea la cadena de entrada de la lista de la compra, manejando frases con "de".
-         * @param {string} inputString La cadena de texto del input.
-         * @returns {string[]} Un array de ítems parseados.
-         */
-        function parseShoppingListInput(inputString) {
-            const items = [];
-            
-            // Primero, divide por comas para manejar elementos separados explícitamente.
-            // Elimina los espacios en blanco alrededor de las comas.
-            const commaSeparatedParts = inputString.split(',').map(part => part.trim());
-
-            // Expresión regular para capturar frases "adhesivas" como "X de Y" o palabras individuales.
-            // Busca:
-            // a) Una o más palabras (incluyendo acentos) seguidas de un espacio,
-            //    y luego una de las preposiciones/artículos ("de", "del", "de la", "de los", "de las"),
-            //    seguido de un espacio y otra palabra. Ejemplo: "pechuga de pollo".
-            // b) O cualquier secuencia de caracteres no espaciados (para palabras individuales).
-            // La bandera 'i' es para ignorar mayúsculas/minúsculas. 'g' para todas las coincidencias.
-            const smartSplitRegex = /\b(?:[\w\u00C0-\u017F]+\s+(?:de|del|de la|de los|de las)\s+[\w\u00C0-\u017F]+|\S+)\b/gi;
-
-            commaSeparatedParts.forEach(part => {
-                // Usa `match` para extraer los tokens basados en la expresión regular inteligente.
-                const tokens = part.match(smartSplitRegex);
-                if (tokens) {
-                    tokens.forEach(token => {
-                        const trimmedToken = token.trim();
-                        if (trimmedToken) {
-                            items.push(trimmedToken);
-                        }
-                    });
-                }
-            });
-
-            return items;
-        }
-
-
-        // Event for the quick list button
-        quickListButton.addEventListener('click', async () => {
-            const rawInput = entryTextInput.value.trim();
-            if (!rawInput) {
-                window.location.href = '/lista'; // Si no hay texto, simplemente ve a la lista
-                return;
-            }
-
-            // MODIFICADO: Usar la nueva función de parseo inteligente
-            const itemsToAdd = parseShoppingListInput(rawInput);
-
-
-            let allItemsAddedSuccessfully = true;
-            for (const item of itemsToAdd) {
-                try {
-                    const response = await fetch('/api/lista_compra', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ item: item })
-                    });
-                    if (!response.ok) {
-                        let errorMessage = `HTTP error! status: ${response.status}`;
-                        const contentType = response.headers.get('content-type');
-                        const responseBody = await response.text(); 
-                        if (contentType && contentType.includes('application/json')) {
-                            try {
-                                const errorData = JSON.parse(responseBody);
-                                errorMessage = errorData.error || errorMessage;
-                            } catch (jsonParseError) {
-                                console.warn("JSON parsing failed for lista_compra error, falling back to raw text.", jsonParseError);
-                                errorMessage = `El servidor respondió con un JSON inválido. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
-                            }
-                        } else {
-                            errorMessage = `El servidor respondió con un error no JSON. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
-                            console.error("Respuesta de error no JSON del servidor:", responseBody);
-                        }
-                        throw new Error(errorMessage);
-                    }
-                    console.log(`Item "${item}" added successfully to shopping list.`);
-                } catch (error) {
-                    console.error(`Error adding item "${item}" to shopping list:`, error);
-                    showCustomAlert(`No se pudo añadir "${item}" a la lista de la compra: ${error.message}`, 'Error de Lista');
-                    allItemsAddedSuccessfully = false;
-                }
-            }
-            entryTextInput.value = '';
-            // No redirigir si no todos los ítems se añadieron con éxito
-            if (allItemsAddedSuccessfully) {
-                 window.location.href = '/lista';
-            }
-        });
-
-        // Event listener para el botón de Notas Rápidas
-        quickNotesButton.addEventListener('click', async () => {
-            const noteText = entryTextInput.value.trim();
-            if (noteText) {
-                const fecha = formatFecha(fechaActual); 
-                try {
-                    const response = await fetch('/api/notas', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ texto: noteText, fecha: fecha })
-                    });
-                    if (!response.ok) {
-                        let errorMessage = `HTTP error! status: ${response.status}`;
-                        const contentType = response.headers.get('content-type');
-                        const responseBody = await response.text(); 
-                        if (contentType && contentType.includes('application/json')) {
-                            try {
-                                const errorData = JSON.parse(responseBody);
-                                errorMessage = errorData.error || errorMessage;
-                            } catch (jsonParseError) {
-                                console.warn("JSON parsing failed for add_nota error, falling back to raw text.", jsonParseError);
-                                errorMessage = `El servidor respondió con un JSON inválido. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
-                            }
-                        } else {
-                            errorMessage = `El servidor respondió con un error no JSON. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
-                            console.error("Respuesta de error no JSON del servidor:", responseBody);
-                        }
-                        throw new Error(errorMessage);
-                    }
-                    showCustomAlert('Nota rápida guardada con éxito.', 'Nota Guardada');
-                    entryTextInput.value = ''; 
-                } catch (error) {
-                    console.error('Error al guardar la nota rápida:', error);
-                    showCustomAlert(`No se pudo guardar la nota rápida: ${error.message}`, 'Error al Guardar Nota');
-                }
-            }
-            window.location.href = '/notas'; 
-        });
-
         // NUEVO: Lógica para el botón de Citas Rápidas
         quickCitaButton.addEventListener('click', async () => {
             const citaText = entryTextInput.value.trim();
@@ -2215,6 +2260,7 @@
             citaFechaInput.min = todayFormatted;
             citaFechaInput.value = todayFormatted; // Establecer valor inicial a hoy
 
+            fetchAllIngredients(); // NEW: Fetch all ingredients for the quick list button
             fetchCombinedAgenda();
             entryTypeSelect.dispatchEvent(new Event('change')); // Initial dispatch to set form fields
         });

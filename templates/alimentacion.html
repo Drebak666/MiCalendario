@@ -17,575 +17,904 @@
             font-family: 'Inter', sans-serif;
             background-color: #f0f2f5; /* Un gris claro consistente con el fondo de la app */
             color: #333;
+            /* Asegurar que el body y html permitan desplazamiento */
+            min-height: 100vh; /* Asegura que el body ocupe al menos toda la altura del viewport */
+            overflow-y: auto; /* Permite el desplazamiento vertical si el contenido excede la altura */
         }
 
-        /* Contenedor principal responsive */
-        .main-container {
-            max-width: 1000px; /* Ancho máximo para pantallas grandes */
-            margin: 0 auto;
-            padding: 1rem; /* Padding más compacto en móviles */
+        /* Contenedor principal para centrar el contenido */
+        .food-container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            /* min-height para que siempre tenga un tamaño base, pero se expanda con el contenido */
+            min-height: calc(100vh - 40px); /* 100vh - (2 * margin) */
         }
 
-        /* Títulos de sección */
-        .section-title {
-            font-size: 2rem; /* Más pequeño para móviles */
-            font-weight: 700;
-            color: #1a202c;
-            margin-bottom: 1.5rem; /* Margen reducido */
+        h1 {
+            font-size: 2.25rem; /* text-4xl */
+            font-weight: bold;
+            color: #1a202c; /* text-gray-900 */
             text-align: center;
-        }
-        @media (min-width: 768px) { /* Ajuste para desktop */
-            .section-title {
-                font-size: 2.25rem;
-                margin-bottom: 2rem;
-            }
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #edf2f7; /* border-b-2 border-gray-200 */
         }
 
-        /* Acordeón: Estilos principales */
-        .accordion-item {
-            background-color: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            margin-bottom: 1rem; /* Margen entre elementos */
-            overflow: hidden;
+        /* Estilos para los encabezados de sección */
+        h2 {
+            font-size: 1.75rem; /* text-3xl */
+            font-weight: bold;
+            color: #4a5568; /* text-gray-700 */
+            margin-top: 25px;
+            margin-bottom: 15px;
+            padding-left: 10px;
+            border-left: 4px solid #63b3ed; /* border-l-4 border-blue-400 */
         }
 
-        /* Encabezado del acordeón (el botón) */
-        .accordion-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 1.25rem; /* Padding ajustado para móvil */
-            background-color: #4f46e5; /* indigo-600 - color principal de la app */
-            color: white;
-            font-size: 1.25rem; /* text-xl para móvil */
-            font-weight: 700;
-            cursor: pointer;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            border-top-left-radius: 0.75rem;
-            border-top-right-radius: 0.75rem;
-            transition: background-color 0.2s ease-in-out;
-        }
-        .accordion-header:hover {
-            background-color: #4338ca; /* indigo-700 */
-        }
-        @media (min-width: 768px) { /* Ajuste para desktop */
-            .accordion-header {
-                font-size: 1.5rem; /* text-2xl */
-                padding: 1.25rem 1.5rem;
-            }
+        /* Formulario para agregar ingredientes y recetas */
+        .form-section {
+            background-color: #f7fafc; /* gray-50 */
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
         }
 
-        /* Icono de flecha */
-        .accordion-icon {
-            transition: transform 0.3s ease-in-out;
-        }
-        .accordion-header.active .accordion-icon {
-            transform: rotate(90deg);
+        .form-group {
+            margin-bottom: 15px;
         }
 
-        /* Contenido del acordeón */
-        .accordion-content {
-            padding: 1.25rem; /* Padding ajustado */
-            background-color: white;
-            border-bottom-left-radius: 0.75rem;
-            border-bottom-right-radius: 0.75rem;
-            display: none;
-            /* Usar max-height para una animación suave */
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
-        }
-        .accordion-content.open {
-            max-height: 1000px; /* Suficientemente grande para el contenido */
-            padding: 1.5rem; /* Restaura el padding completo al abrir */
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2d3748; /* gray-800 */
         }
 
-        /* Formularios e inputs */
-        .form-input {
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group textarea,
+        .form-group select {
             width: 100%;
-            padding: 0.65rem; /* Menos padding en inputs para móviles */
-            border: 1px solid #d1d5db;
-            border-radius: 0.375rem;
-            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
-            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            padding: 10px;
+            border: 1px solid #cbd5e0; /* gray-300 */
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1em;
+            color: #4a5568; /* gray-700 */
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
-        .form-input:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+
+        .form-group input[type="text"]:focus,
+        .form-group input[type="number"]:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: #63b3ed; /* blue-400 */
+            box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.5); /* blue-200 with opacity */
             outline: none;
         }
 
-        /* Botones de acción */
-        .action-button {
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-group .flex {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap; /* Permitir que los elementos se envuelvan */
+        }
+
+        .form-group .flex > div {
+            flex: 1;
+            min-width: 150px; /* Asegurar que los elementos no se aplasten demasiado */
+        }
+
+        /* Estilos para botones de acción */
+        .btn-primary {
+            background-color: #4299e1; /* blue-500 */
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            width: auto;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 0.65rem 1.25rem; /* Padding ajustado para móvil */
-            font-weight: 600;
-            border-radius: 0.5rem;
-            background-color: #4f46e5;
-            color: white;
-            transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            width: 100%; /* Por defecto al 100% en móvil */
+            gap: 8px;
         }
-        .action-button:hover {
-            background-color: #4338ca;
+
+        .btn-primary:hover {
+            background-color: #3182ce; /* blue-600 */
             transform: translateY(-1px);
-        }
-        .action-button:active {
-            transform: translateY(0);
-            box-shadow: none;
-        }
-        @media (min-width: 640px) { /* Ajuste para tablet/desktop */
-            .action-button {
-                width: auto; /* Ancho automático en pantallas más grandes */
-                padding: 0.75rem 1.5rem;
-            }
+            box-shadow: 0 4px 8px rgba(0,0,0,0.25);
         }
 
-        /* Tarjetas de elementos (supermercado, ingrediente, receta) */
-        .item-card {
-            background-color: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            padding: 1rem; /* Padding más compacto */
-            margin-bottom: 0.75rem;
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-            border: 1px solid #e2e8f0;
-        }
-        .item-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        .btn-secondary {
+            background-color: #a0aec0; /* gray-500 */
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            width: auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
-        /* Botones de eliminar */
-        .delete-button {
+        .btn-secondary:hover {
+            background-color: #718096; /* gray-600 */
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+        }
+
+        .btn-danger {
             background-color: #ef4444; /* red-500 */
             color: white;
-            padding: 0.4rem 0.6rem; /* Más pequeño para móviles */
-            border-radius: 0.375rem;
-            transition: background-color 0.2s ease-in-out;
-            font-size: 0.8rem; /* Tamaño de fuente más pequeño */
-        }
-        .delete-button:hover {
-            background-color: #dc2626; /* red-600 */
-        }
-        @media (min-width: 640px) {
-            .delete-button {
-                padding: 0.5rem 0.75rem;
-                font-size: 1rem;
-            }
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            width: auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
-        /* Menú Semanal Grid */
+        .btn-danger:hover {
+            background-color: #dc2626; /* red-600 */
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+        }
+
+        /* Listados de elementos */
+        .list-section {
+            margin-top: 20px;
+        }
+
+        .list-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .list-section li {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .list-section li:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+        }
+
+        .list-item-content {
+            flex-grow: 1;
+        }
+
+        .list-item-actions {
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0; /* Evita que los botones se encojan */
+        }
+
+        .list-item-actions button {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            transition: background-color 0.2s;
+        }
+
+        .ingredient-details, .recipe-details {
+            font-size: 0.95em;
+            color: #4a5568;
+            margin-top: 5px;
+            display: flex; /* Usar flexbox para detalles responsivos */
+            flex-wrap: wrap; /* Permitir que los detalles se envuelvan */
+            gap: 8px 15px; /* Espacio entre los detalles y entre filas */
+        }
+        .ingredient-details span, .recipe-details span {
+            display: inline-block;
+            color: #667eea; /* indigo-500 */
+            font-weight: 500;
+        }
+        .ingredient-details strong, .recipe-details strong {
+            color: #2d3748;
+        }
+
+        /* Estilos para la lista de ingredientes de una receta */
+        .recipe-ingredients-list {
+            list-style: disc;
+            padding-left: 20px;
+            margin-top: 10px;
+            color: #4a5568;
+        }
+
+        .recipe-ingredients-list li {
+            background-color: transparent; /* Anula el fondo del li general */
+            box-shadow: none; /* Anula la sombra del li general */
+            padding: 5px 0; /* Ajusta el padding */
+            margin-bottom: 0; /* Elimina margen inferior */
+            align-items: flex-start; /* Alinea al inicio si el contenido es multilínea */
+        }
+
+        /* Accordion styles */
+        .accordion-item {
+            border: 1px solid #e2e8f0; /* gray-200 */
+            border-radius: 8px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            background-color: #ffffff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .accordion-header {
+            background-color: #f7fafc; /* gray-50 */
+            padding: 15px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: #2d3748;
+            border-bottom: 1px solid #e2e8f0;
+            transition: background-color 0.2s;
+        }
+
+        .accordion-header:hover {
+            background-color: #edf2f7; /* gray-100 */
+        }
+
+        .accordion-content {
+            padding: 0 20px;
+            max-height: 0; /* Altura inicial colapsada */
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+            box-sizing: content-box; /* Asegura que padding no afecte max-height calculada */
+        }
+
+        .accordion-item.active .accordion-content {
+            /* max-height: 500px;  Suficiente para expandir el contenido, ahora será dinámico */
+            max-height: var(--content-height, 0); /* Usar variable CSS para altura dinámica */
+            padding: 15px 20px;
+        }
+
+        .accordion-item.active .accordion-header {
+            border-bottom: none;
+        }
+
+        .accordion-header .arrow {
+            transition: transform 0.3s ease-out;
+        }
+
+        .accordion-item.active .accordion-header .arrow {
+            transform: rotate(90deg);
+        }
+
+        /* Mensajes de información o error */
+        .mensaje-info {
+            background-color: #e2e8f0; /* gray-200 */
+            color: #2d3748; /* gray-800 */
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .mensaje-error {
+            background-color: #fed7d7; /* red-200 */
+            color: #c53030; /* red-800 */
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .flex-container {
+            display: flex;
+            flex-wrap: wrap; /* Permite que los elementos se envuelvan en pantallas pequeñas */
+            gap: 1rem; /* Espacio entre elementos */
+            margin-bottom: 1rem;
+        }
+
+        .flex-item {
+            flex: 1; /* Permite que los elementos se expandan */
+            min-width: 150px; /* Ancho mínimo para evitar que se aplasten demasiado */
+        }
+        /* Style for the ingredient list when adding/editing recipes */
+        .ingredient-recipe-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+        .ingredient-recipe-item:last-child {
+            border-bottom: none;
+        }
+        .ingredient-recipe-item span {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+        .ingredient-recipe-item input[type="number"] {
+            width: 80px;
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #cbd5e0;
+        }
+        .ingredient-recipe-item button {
+            background-color: #ef4444; /* red-500 */
+            color: white;
+            border: none;
+            padding: 5px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .ingredient-recipe-item button:hover {
+            background-color: #dc2626; /* red-600 */
+        }
+
+        /* Estilos específicos para la sección del menú semanal */
         .weekly-menu-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Columnas más flexibles */
-            gap: 0.75rem; /* Espacio reducido */
-        }
-        @media (min-width: 768px) {
-             .weekly-menu-grid {
-                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-                gap: 1rem;
-            }
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
         }
 
         .day-card {
-            background-color: #e0f2fe; /* light blue */
-            border-radius: 0.75rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            padding: 1rem; /* Padding ajustado */
-            min-height: 160px; /* Altura mínima ajustada */
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            border: 1px solid #bfdbfe;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         }
-        .day-title {
-            font-weight: 700;
-            color: #1e40af; /* dark blue */
-            margin-bottom: 0.5rem;
-            font-size: 1.1rem; /* Tamaño de fuente ajustado */
+
+        .day-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
         }
-        .meal-input {
-            background-color: white;
-            border: 1px solid #bfdbfe;
-            border-radius: 0.375rem;
-            padding: 0.4rem; /* Padding más compacto */
-            margin-bottom: 0.4rem;
-            min-height: 2.2rem; /* Altura consistente */
-            display: flex;
-            align-items: center;
-            font-size: 0.9rem; /* Tamaño de fuente más pequeño */
+
+        .day-card h3 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 15px;
         }
-        .meal-input:focus {
-            border-color: #60a5fa;
-            box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
+
+        .day-card .meal-input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            font-size: 0.95em;
+        }
+
+        .day-card .meal-input:focus {
+            border-color: #63b3ed;
+            box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.5);
             outline: none;
         }
 
-        /* Estilos específicos para la lista de ingredientes seleccionados en Recetas */
-        #selectedIngredientsList {
-            background-color: #f9fafb; /* Ligeramente más oscuro que el fondo para distinción */
-            padding: 0.75rem; /* Padding ajustado */
-            border-radius: 0.5rem;
-            border: 1px solid #e5e7eb;
-            min-height: 50px;
-        }
-        #selectedIngredientsList .flex {
-            padding: 0.5rem; /* Padding de los ítems individuales */
-            font-size: 0.9rem;
+        .save-menu-btn-container {
+            text-align: center;
+            margin-top: 30px;
         }
 
-        /* Responsive adjustments for ingredient/recipe stat boxes */
-        .grid.grid-cols-2.lg\:grid-cols-3.gap-4 {
-            grid-template-columns: 1fr; /* Una columna en móvil */
+        /* Custom Modal Styles (Tailwind-compatible) */
+        .custom-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
         }
-        @media (min-width: 640px) { /* Dos columnas en sm */
-             .grid.grid-cols-2.lg\:grid-cols-3.gap-4 {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        .custom-modal-content {
+            background-color: white;
+            padding: 2.5rem; /* p-10 */
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            animation: fadeInScale 0.3s ease-out;
         }
-        @media (min-width: 1024px) { /* Tres columnas en lg */
-             .grid.grid-cols-2.lg\:grid-cols-3.gap-4 {
-                grid-template-columns: repeat(3, 1fr);
-            }
+        .custom-modal-content h3 {
+            font-size: 1.875rem; /* text-3xl */
+            font-weight: bold;
+            margin-bottom: 1rem; /* mb-4 */
+            color: #2d3748; /* text-gray-800 */
+        }
+        .custom-modal-content p {
+            font-size: 1.125rem; /* text-lg */
+            color: #4a5568; /* text-gray-700 */
+            margin-bottom: 1.5rem; /* mb-6 */
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem; /* gap-4 */
+        }
+        .modal-actions .boton {
+            padding: 0.75rem 1.5rem; /* px-6 py-3 */
+            border-radius: 9999px; /* rounded-full */
+            font-weight: 600; /* font-semibold */
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .modal-actions .boton:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .modal-actions .boton:first-child {
+            background-color: #48bb78; /* green-500 */
+        }
+        .modal-actions .boton:first-child:hover {
+            background-color: #38a169; /* green-600 */
+        }
+        .modal-actions .cancel-button {
+            background-color: #a0aec0; /* gray-500 */
+        }
+        .modal-actions .cancel-button:hover {
+            background-color: #718096; /* gray-600 */
         }
 
-        /* Estilos para el modal de alerta/confirmación */
-        #customAlertModal .action-button {
-            width: auto; /* Ancho automático para los botones del modal */
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        /* Estilos para los badges de conteo y algunas transiciones */
+        .button-count, .button-nav-count {
+            position: absolute;
+            top: 0;
+            right: 0;
+            transform: translate(50%, -50%); /* Ajusta la posición del badge */
+            background-color: #ef4444; /* Rojo de Tailwind */
+            color: white;
+            border-radius: 9999px; /* Completamente redondo */
+            padding: 0.25em 0.6em;
+            font-size: 0.75em;
+            font-weight: bold;
+            min-width: 1.75em; /* Asegura un ancho mínimo para números de 1 o 2 dígitos */
+            text-align: center;
+            line-height: 1; /* Alinea el texto verticalmente */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
     </style>
 </head>
-<body class="bg-gray-100 flex flex-col min-h-screen">
-    <!-- Navbar -->
-    <nav class="bg-gradient-to-r from-indigo-600 to-indigo-800 p-4 shadow-lg">
-        <div class="container mx-auto flex justify-between items-center">
-            <a href="/" class="text-white text-2xl font-bold rounded-lg px-3 py-2 hover:bg-indigo-700 transition-colors">Mi Agenda</a>
-            <div class="flex space-x-4">
-                <a href="/" class="text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">Hoy</a>
-                <a href="/calendario" class="text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">Calendario</a>
-                <a href="/registros_importantes" class="text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">Registros Importantes</a>
-                <a href="/lista" class="text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">Lista de la Compra</a>
-                <a href="/citas" class="text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">Citas</a>
-                <a href="/notas" class="text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">Notas</a>
-                <a href="/documentacion" class="text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">Documentación</a>
-                <a href="/alimentacion" class="text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">Alimentación</a>
-            </div>
-        </div>
-    </nav>
-
-    <main class="flex-grow main-container">
-        <h1 class="section-title">Gestión de Alimentación</h1>
+<body>
+    <div class="food-container">
+        <h1>Gestión de Alimentación</h1>
 
         <!-- Acordeón para Supermercados -->
-        <div class="accordion-item">
-            <div class="accordion-header" data-target="supermercadosContent">
-                <span><i class="fas fa-store mr-3"></i> Supermercados</span>
-                <i class="fas fa-chevron-right accordion-icon"></i>
+        <div class="accordion-item" id="supermarketAccordion">
+            <div class="accordion-header">
+                Supermercados
+                <i class="fas fa-chevron-right arrow"></i>
             </div>
-            <div id="supermercadosContent" class="accordion-content">
-                <div class="bg-white p-4 rounded-xl shadow-md mb-6">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-3">Añadir Nuevo Supermercado</h2>
-                    <div class="flex flex-col sm:flex-row gap-3">
-                        <input type="text" id="supermarketName" placeholder="Nombre del Supermercado" class="form-input flex-grow">
-                        <button id="addSupermarketBtn" class="action-button"><i class="fas fa-plus mr-2"></i> Añadir Supermercado</button>
+            <div class="accordion-content">
+                <div class="form-section">
+                    <h2>Añadir Nuevo Supermercado</h2>
+                    <div class="form-group">
+                        <label for="supermarketName">Nombre del Supermercado:</label>
+                        <input type="text" id="supermarketName" placeholder="Ej: Mercadona" class="w-full">
                     </div>
+                    <button id="addSupermarketBtn" class="btn-primary">
+                        <i class="fas fa-plus-circle"></i> Añadir Supermercado
+                    </button>
                 </div>
 
-                <div class="bg-white p-4 rounded-xl shadow-md">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-3">Listado de Supermercados</h2>
-                    <div id="supermarketsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                        <!-- Los supermercados se cargarán aquí -->
-                        <p class="text-gray-500 text-center col-span-full">Cargando supermercados...</p>
-                    </div>
+                <div class="list-section">
+                    <h2>Listado de Supermercados</h2>
+                    <ul id="supermarketsList">
+                        <li class="mensaje-info">Cargando supermercados...</li>
+                    </ul>
                 </div>
             </div>
         </div>
 
         <!-- Acordeón para Ingredientes -->
-        <div class="accordion-item">
-            <div class="accordion-header" data-target="ingredientesContent">
-                <span><i class="fas fa-carrot mr-3"></i> Ingredientes</span>
-                <i class="fas fa-chevron-right accordion-icon"></i>
+        <div class="accordion-item" id="ingredientAccordion">
+            <div class="accordion-header">
+                Ingredientes
+                <i class="fas fa-chevron-right arrow"></i>
             </div>
-            <div id="ingredientesContent" class="accordion-content">
-                <div class="bg-white p-4 rounded-xl shadow-md mb-6">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-3">Añadir Nuevo Ingrediente</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                        <input type="text" id="ingredientName" placeholder="Nombre del Ingrediente" class="form-input">
-                        <select id="ingredientSupermarket" class="form-input">
-                            <option value="">Selecciona Supermercado</option>
-                            <!-- Los supermercados se cargarán aquí -->
-                        </select>
-                        <input type="number" step="0.01" id="ingredientPrice" placeholder="Precio por unidad (€)" class="form-input">
-                        <input type="number" step="0.1" id="ingredientCalories" placeholder="Calorías / 100g (opcional)" class="form-input">
-                        <input type="number" step="0.1" id="ingredientProteins" placeholder="Proteínas / 100g (opcional)" class="form-input">
-                        <input type="number" step="0.1" id="ingredientCarbs" placeholder="Carbohidratos / 100g (opcional)" class="form-input">
-                        <input type="number" step="0.1" id="ingredientFats" placeholder="Grasas / 100g (opcional)" class="form-input">
+            <div class="accordion-content">
+                <div class="form-section">
+                    <h2>
+                        <span id="ingredientFormTitle">Añadir Nuevo Ingrediente</span>
+                    </h2>
+                    <div class="form-group">
+                        <label for="ingredientName">Nombre del Ingrediente:</label>
+                        <input type="text" id="ingredientName" placeholder="Ej: Arroz largo" class="w-full">
                     </div>
-                    <button id="addIngredientBtn" class="action-button w-full mt-4"><i class="fas fa-plus mr-2"></i> Añadir Ingrediente</button>
+                    <div class="form-group">
+                        <label for="ingredientSupermarket">Supermercado (opcional):</label>
+                        <select id="ingredientSupermarket" class="w-full">
+                            <option value="">Selecciona un supermercado</option>
+                        </select>
+                    </div>
+                    <div class="form-group flex-container">
+                        <div class="flex-item">
+                            <label for="ingredientPrice">Precio por Unidad (€):</label>
+                            <input type="number" id="ingredientPrice" step="0.01" value="0.00">
+                        </div>
+                        <div class="flex-item">
+                            <label for="ingredientCalories">Calorías (kcal/100g):</label>
+                            <input type="number" id="ingredientCalories" step="0.1" value="0.0">
+                        </div>
+                    </div>
+                    <div class="form-group flex-container">
+                        <div class="flex-item">
+                            <label for="ingredientProteins">Proteínas (g/100g):</label>
+                            <input type="number" id="ingredientProteins" step="0.1" value="0.0">
+                        </div>
+                        <div class="flex-item">
+                            <label for="ingredientCarbs">Carbohidratos (g/100g):</label>
+                            <input type="number" id="ingredientCarbs" step="0.1" value="0.0">
+                        </div>
+                        <div class="flex-item">
+                            <label for="ingredientFats">Grasas (g/100g):</label>
+                            <input type="number" id="ingredientFats" step="0.1" value="0.0">
+                        </div>
+                    </div>
+                    <div class="flex gap-4">
+                        <button id="addIngredientBtn" class="btn-primary flex-1">
+                            <i class="fas fa-plus-circle"></i> Añadir Ingrediente
+                        </button>
+                        <button id="cancelEditIngredientBtn" class="btn-secondary flex-1" style="display:none;">
+                            <i class="fas fa-times"></i> Cancelar Edición
+                        </button>
+                    </div>
                 </div>
 
-                <div class="bg-white p-4 rounded-xl shadow-md">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-3">Listado de Ingredientes</h2>
-                    <div id="ingredientsList" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <!-- Los ingredientes se cargarán aquí -->
-                        <p class="text-gray-500 text-center col-span-full">Cargando ingredientes...</p>
-                    </div>
+                <div class="list-section">
+                    <h2>Listado de Ingredientes</h2>
+                    <ul id="ingredientsList">
+                        <li class="mensaje-info">Cargando ingredientes...</li>
+                    </ul>
                 </div>
             </div>
         </div>
 
         <!-- Acordeón para Recetas -->
-        <div class="accordion-item">
-            <div class="accordion-header" data-target="recetasContent">
-                <span><i class="fas fa-utensils mr-3"></i> Recetas</span>
-                <i class="fas fa-chevron-right accordion-icon"></i>
+        <div class="accordion-item" id="recipeAccordion">
+            <div class="accordion-header">
+                Recetas
+                <i class="fas fa-chevron-right arrow"></i>
             </div>
-            <div id="recetasContent" class="accordion-content">
-                <div class="bg-white p-4 rounded-xl shadow-md mb-6">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-3">Crear Nueva Receta</h2>
-                    <div class="grid grid-cols-1 gap-3 mb-3">
-                        <input type="text" id="recipeName" placeholder="Nombre de la Receta" class="form-input">
-                        <textarea id="recipeDescription" placeholder="Descripción de la receta o preparación (opcional)" class="form-input resize-y"></textarea>
+            <div class="accordion-content">
+                <div class="form-section">
+                    <h2>Añadir Nueva Receta</h2>
+                    <div class="form-group">
+                        <label for="recipeName">Nombre de la Receta:</label>
+                        <input type="text" id="recipeName" class="w-full">
                     </div>
-                    <div class="mb-4">
-                        <label for="recipeIngredientsSelect" class="block text-gray-700 font-semibold mb-2 text-sm">Selecciona Ingredientes y Cantidades:</label>
-                        <div class="flex flex-col sm:flex-row gap-2 mb-2">
-                            <select id="recipeIngredientsSelect" class="form-input flex-grow">
-                                <option value="">Selecciona un ingrediente</option>
-                                <!-- Ingredientes se cargarán aquí -->
-                            </select>
-                            <input type="number" step="0.01" id="ingredientQuantity" placeholder="Cantidad (g/ml)" class="form-input w-full sm:w-32">
-                            <button id="addIngredientToRecipeBtn" class="action-button px-3 py-2 text-sm"><i class="fas fa-plus mr-1"></i> Añadir</button>
+                    <div class="form-group">
+                        <label for="recipeDescription">Descripción:</label>
+                        <textarea id="recipeDescription" class="w-full"></textarea>
+                    </div>
+                    <h3>Ingredientes de la Receta:</h3>
+                    <div class="form-group">
+                        <label for="addIngredientToRecipe">Añadir ingrediente existente:</label>
+                        <select id="addIngredientToRecipe" class="w-full">
+                            <option value="">Selecciona un ingrediente</option>
+                        </select>
+                        <button id="addSelectedIngredientToRecipe" class="btn-primary mt-2">
+                            <i class="fas fa-plus"></i> Añadir a la Receta
+                        </button>
+                    </div>
+                    <ul id="currentRecipeIngredientsList" class="my-4 p-3 border rounded-lg bg-white">
+                        <!-- Ingredientes añadidos dinámicamente aquí -->
+                        <li class="mensaje-info" id="noIngredientsMessage">No hay ingredientes añadidos a la receta.</li>
+                    </ul>
+
+                    <div class="form-group flex-container">
+                        <div class="flex-item">
+                            <label>Costo Total:</label>
+                            <span id="totalCost" class="font-bold text-blue-700">0.00€</span>
                         </div>
-                        <div id="selectedIngredientsList" class="bg-gray-50 p-3 rounded-md border border-gray-200 min-h-[50px] text-sm">
-                            <!-- Ingredientes seleccionados para la receta se mostrarán aquí -->
-                            <p class="text-gray-500 text-sm italic">Ningún ingrediente añadido aún.</p>
+                        <div class="flex-item">
+                            <label>Calorías Totales:</label>
+                            <span id="totalCalories" class="font-bold text-orange-700">0.0 kcal</span>
+                        </div>
+                        <div class="flex-item">
+                            <label>Proteínas Totales:</label>
+                            <span id="totalProteins" class="font-bold text-green-700">0.0 g</span>
+                        </div>
+                        <div class="flex-item">
+                            <label>Carbohidratos Totales:</label>
+                            <span id="totalCarbs" class="font-bold text-purple-700">0.0 g</span>
+                        </div>
+                        <div class="flex-item">
+                            <label>Grasas Totales:</label>
+                            <span id="totalFats" class="font-bold text-red-700">0.0 g</span>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2 mb-4 text-xs sm:text-sm font-semibold">
-                        <div class="p-2 bg-blue-50 rounded-md">Costo Total: <span id="totalRecipeCost" class="font-bold text-blue-800">0.00€</span></div>
-                        <div class="p-2 bg-green-50 rounded-md">Calorías Totales: <span id="totalRecipeCalories" class="font-bold text-green-800">0.00 kcal</span></div>
-                        <div class="p-2 bg-yellow-50 rounded-md">Proteínas Totales: <span id="totalRecipeProteins" class="font-bold text-yellow-800">0.00 g</span></div>
-                        <div class="p-2 bg-orange-50 rounded-md">Carbohidratos Totales: <span id="font-bold text-orange-800">0.00 g</span></div>
-                        <div class="p-2 bg-red-50 rounded-md">Grasas Totales: <span id="totalRecipeFats" class="font-bold text-red-800">0.00 g</span></div>
-                    </div>
-                    <button id="createRecipeBtn" class="action-button w-full mt-3"><i class="fas fa-utensils mr-2"></i> Crear Receta</button>
+                    <button id="addRecipeBtn" class="btn-primary">
+                        <i class="fas fa-utensils"></i> Añadir Receta
+                    </button>
                 </div>
 
-                <div class="bg-white p-4 rounded-xl shadow-md">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-3">Listado de Recetas</h2>
-                    <div id="recipesList" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <!-- Las recetas se cargarán aquí -->
-                        <p class="text-gray-500 text-center col-span-full">Cargando recetas...</p>
-                    </div>
+                <div class="list-section">
+                    <h2>Listado de Recetas</h2>
+                    <ul id="recipesList">
+                        <li class="mensaje-info">Cargando recetas...</li>
+                    </ul>
                 </div>
             </div>
         </div>
 
         <!-- Acordeón para Menú Semanal -->
-        <div class="accordion-item">
-            <div class="accordion-header" data-target="menuSemanalContent">
-                <span><i class="fas fa-calendar-alt mr-3"></i> Menú Semanal</span>
-                <i class="fas fa-chevron-right accordion-icon"></i>
+        <div class="accordion-item" id="weeklyMenuAccordion">
+            <div class="accordion-header">
+                Menú Semanal
+                <i class="fas fa-chevron-right arrow"></i>
             </div>
-            <div id="menuSemanalContent" class="accordion-content">
-                <div class="bg-white p-4 rounded-xl shadow-md mb-6">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-3 text-center">Planificador de Menú Semanal</h2>
-                    <div class="weekly-menu-grid mb-4">
-                        <!-- Días de la semana -->
-                        <div class="day-card" data-day="Lunes">
-                            <h3 class="day-title">Lunes</h3>
-                            <input type="text" placeholder="Desayuno" class="meal-input" data-meal-type="desayuno">
-                            <input type="text" placeholder="Comida" class="meal-input" data-meal-type="comida">
-                            <input type="text" placeholder="Cena" class="meal-input" data-meal-type="cena">
-                        </div>
-                        <div class="day-card" data-day="Martes">
-                            <h3 class="day-title">Martes</h3>
-                            <input type="text" placeholder="Desayuno" class="meal-input" data-meal-type="desayuno">
-                            <input type="text" placeholder="Comida" class="meal-input" data-meal-type="comida">
-                            <input type="text" placeholder="Cena" class="meal-input" data-meal-type="cena">
-                        </div>
-                        <div class="day-card" data-day="Miércoles">
-                            <h3 class="day-title">Miércoles</h3>
-                            <input type="text" placeholder="Desayuno" class="meal-input" data-meal-type="desayuno">
-                            <input type="text" placeholder="Comida" class="meal-input" data-meal-type="comida">
-                            <input type="text" placeholder="Cena" class="meal-input" data-meal-type="cena">
-                        </div>
-                        <div class="day-card" data-day="Jueves">
-                            <h3 class="day-title">Jueves</h3>
-                            <input type="text" placeholder="Desayuno" class="meal-input" data-meal-type="desayuno">
-                            <input type="text" placeholder="Comida" class="meal-input" data-meal-type="comida">
-                            <input type="text" placeholder="Cena" class="meal-input" data-meal-type="cena">
-                        </div>
-                        <div class="day-card" data-day="Viernes">
-                            <h3 class="day-title">Viernes</h3>
-                            <input type="text" placeholder="Desayuno" class="meal-input" data-meal-type="desayuno">
-                            <input type="text" placeholder="Comida" class="meal-input" data-meal-type="comida">
-                            <input type="text" placeholder="Cena" class="meal-input" data-meal-type="cena">
-                        </div>
-                        <div class="day-card" data-day="Sábado">
-                            <h3 class="day-title">Sábado</h3>
-                            <input type="text" placeholder="Desayuno" class="meal-input" data-meal-type="desayuno">
-                            <input type="text" placeholder="Comida" class="meal-input" data-meal-type="comida">
-                            <input type="text" placeholder="Cena" class="meal-input" data-meal-type="cena">
-                        </div>
-                        <div class="day-card" data-day="Domingo">
-                            <h3 class="day-title">Domingo</h3>
-                            <input type="text" placeholder="Desayuno" class="meal-input" data-meal-type="desayuno">
-                            <input type="text" placeholder="Comida" class="meal-input" data-meal-type="comida">
-                            <input type="text" placeholder="Cena" class="meal-input" data-meal-type="cena">
-                        </div>
-                    </div>
-                    <button id="saveMenuBtn" class="action-button w-full mt-3"><i class="fas fa-save mr-2"></i> Guardar Menú Semanal</button>
+            <div class="accordion-content">
+                <div class="weekly-menu-grid" id="weeklyMenuGrid">
+                    <!-- Cards de días de la semana se cargarán aquí -->
+                </div>
+                <div class="save-menu-btn-container">
+                    <button id="saveMenuBtn" class="btn-primary">
+                        <i class="fas fa-save"></i> Guardar Menú Semanal
+                    </button>
                 </div>
             </div>
         </div>
-    </main>
+
+        <div class="navigation-notes">
+            <a href="/" class="boton">
+                <i class="fas fa-home"></i>
+                <span>Volver a la Agenda</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Custom Alert/Confirm Modal HTML -->
+    <div id="customModalOverlay" class="custom-modal-overlay" style="display:none;">
+        <div class="custom-modal-content">
+            <h3 id="customModalTitle"></h3>
+            <p id="customModalMessage"></p>
+            <div class="modal-actions" id="customModalActions">
+                <!-- Buttons will be injected here -->
+            </div>
+        </div>
+    </div>
 
     <script>
-        // --- Funciones de utilidad ---
-        // Muestra una ventana modal personalizada en lugar de alert() o confirm()
-        function showCustomAlert(message, title = 'Notificación', type = 'alert', onConfirm = null) {
-            const existingModal = document.getElementById('customAlertModal');
-            if (existingModal) existingModal.remove(); // Evita múltiples modales
+        // Variables globales para almacenar datos y elementos del DOM
+        let allSupermarkets = [];
+        let allIngredients = []; // Almacenará todos los ingredientes cargados
+        let allRecipes = [];
+        let currentRecipeIngredients = []; // Ingredientes temporalmente añadidos a la receta actual
+        let weeklyMenuData = {}; // Almacenará los datos del menú semanal
+        let editingIngredientId = null; // Variable para controlar si se está editando un ingrediente
 
-            const alertModal = document.createElement('div');
-            alertModal.id = 'customAlertModal';
-            alertModal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50';
-            alertModal.innerHTML = `
-                <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 transform transition-all duration-300 scale-95 opacity-0" id="customAlertContent">
-                    <h3 class="text-xl font-bold mb-4 text-gray-800">${title}</h3>
-                    <p class="text-gray-700 mb-6">${message}</p>
-                    <div class="flex justify-end gap-3">
-                        ${type === 'confirm' ? '<button id="cancelCustomAlert" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">Cancelar</button>' : ''}
-                        <button id="closeCustomAlert" class="action-button">${type === 'confirm' ? 'Aceptar' : 'Cerrar'}</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(alertModal);
+        const addSupermarketBtn = document.getElementById('addSupermarketBtn');
+        const supermarketNameInput = document.getElementById('supermarketName');
+        const supermarketsList = document.getElementById('supermarketsList');
 
-            // Animar la entrada del modal
-            setTimeout(() => {
-                const content = document.getElementById('customAlertContent');
-                content.classList.remove('scale-95', 'opacity-0');
-                content.classList.add('scale-100', 'opacity-100');
-            }, 50);
+        const addIngredientBtn = document.getElementById('addIngredientBtn');
+        const ingredientFormTitle = document.getElementById('ingredientFormTitle'); // Nuevo: Título del formulario de ingrediente
+        const cancelEditIngredientBtn = document.getElementById('cancelEditIngredientBtn'); // Nuevo: Botón de cancelar edición
+        const ingredientNameInput = document.getElementById('ingredientName');
+        const ingredientSupermarketSelect = document.getElementById('ingredientSupermarket');
+        const ingredientPriceInput = document.getElementById('ingredientPrice');
+        const ingredientCaloriesInput = document.getElementById('ingredientCalories');
+        const ingredientProteinsInput = document.getElementById('ingredientProteins');
+        const ingredientCarbsInput = document.getElementById('ingredientCarbs');
+        const ingredientFatsInput = document.getElementById('ingredientFats');
+        const ingredientsList = document.getElementById('ingredientsList');
 
-            const closeAndRemove = (executeConfirm = false) => {
-                const content = document.getElementById('customAlertContent');
-                content.classList.remove('scale-100', 'opacity-100');
-                content.classList.add('scale-95', 'opacity-0');
-                content.addEventListener('transitionend', () => {
-                    alertModal.remove();
-                    if (executeConfirm && onConfirm) {
-                        onConfirm();
-                    }
-                }, { once: true });
-            };
+        const recipeNameInput = document.getElementById('recipeName');
+        const recipeDescriptionInput = document.getElementById('recipeDescription');
+        const addIngredientToRecipeSelect = document.getElementById('addIngredientToRecipe');
+        const addSelectedIngredientToRecipeBtn = document.getElementById('addSelectedIngredientToRecipe');
+        const currentRecipeIngredientsList = document.getElementById('currentRecipeIngredientsList');
+        const noIngredientsMessage = document.getElementById('noIngredientsMessage');
+        const totalCostSpan = document.getElementById('totalCost');
+        const totalCaloriesSpan = document.getElementById('totalCalories');
+        const totalProteinsSpan = document.getElementById('totalProteins');
+        const totalCarbsSpan = document.getElementById('totalCarbs');
+        const totalFatsSpan = document.getElementById('totalFats');
+        const addRecipeBtn = document.getElementById('addRecipeBtn');
+        const recipesList = document.getElementById('recipesList');
 
-            document.getElementById('closeCustomAlert').addEventListener('click', () => closeAndRemove(true));
-            if (type === 'confirm') {
-                document.getElementById('cancelCustomAlert').addEventListener('click', () => closeAndRemove(false));
-            }
+        const weeklyMenuGrid = document.getElementById('weeklyMenuGrid');
+        const saveMenuBtn = document.getElementById('saveMenuBtn');
+
+        // --- Funciones de Utilidad para Modales ---
+        function showCustomModal(message, title = 'Mensaje', type = 'alert') {
+            return new Promise((resolve) => {
+                const modalOverlay = document.getElementById('customModalOverlay');
+                const modalTitle = document.getElementById('customModalTitle');
+                const modalMessage = document.getElementById('customModalMessage');
+                const modalActions = document.getElementById('customModalActions');
+
+                modalTitle.textContent = title;
+                modalMessage.textContent = message;
+                modalActions.innerHTML = ''; // Limpiar botones anteriores
+
+                if (type === 'alert') {
+                    const okButton = document.createElement('button');
+                    okButton.classList.add('boton', 'btn-primary');
+                    okButton.textContent = 'Aceptar';
+                    okButton.addEventListener('click', () => {
+                        modalOverlay.style.display = 'none';
+                        resolve(true);
+                    });
+                    modalActions.appendChild(okButton);
+                } else if (type === 'confirm') {
+                    const yesButton = document.createElement('button');
+                    yesButton.classList.add('boton', 'btn-primary');
+                    yesButton.textContent = 'Sí';
+                    yesButton.addEventListener('click', () => {
+                        modalOverlay.style.display = 'none';
+                        resolve(true);
+                    });
+                    const noButton = document.createElement('button');
+                    noButton.classList.add('boton', 'btn-secondary', 'cancel-button');
+                    noButton.textContent = 'No';
+                    noButton.addEventListener('click', () => {
+                        modalOverlay.style.display = 'none';
+                        resolve(false);
+                    });
+                    modalActions.appendChild(yesButton);
+                    modalActions.appendChild(noButton);
+                }
+
+                modalOverlay.style.display = 'flex';
+            });
         }
 
-        // --- Lógica del Acordeón ---
-        const accordionHeaders = document.querySelectorAll('.accordion-header');
+        function showCustomAlert(message, title = 'Mensaje') {
+            return showCustomModal(message, title, 'alert');
+        }
 
-        accordionHeaders.forEach(header => {
+        async function showCustomConfirm(message, title = 'Confirmación') {
+            return await showCustomModal(message, title, 'confirm');
+        }
+
+        // --- Funcionalidad de Acordeón ---
+        document.querySelectorAll('.accordion-header').forEach(header => {
             header.addEventListener('click', () => {
-                const targetId = header.dataset.target;
-                const content = document.getElementById(targetId);
-                const icon = header.querySelector('.accordion-icon');
+                const accordionItem = header.closest('.accordion-item');
+                const content = header.nextElementSibling;
 
-                // Si ya está abierto, lo cerramos
-                if (header.classList.contains('active')) {
-                    content.classList.remove('open');
-                    header.classList.remove('active');
-                } else {
-                    // Cierra cualquier otro acordeón abierto
-                    document.querySelectorAll('.accordion-header.active').forEach(openHeader => {
-                        const openContent = document.getElementById(openHeader.dataset.target);
-                        openContent.classList.remove('open');
-                        openHeader.classList.remove('active');
-                    });
-
-                    // Abre el acordeón clicado
-                    content.style.display = 'block'; // Asegura que el contenido sea visible para la transición
-                    setTimeout(() => { // Pequeño retraso para que la transición de display:block tenga efecto
-                        content.classList.add('open');
-                    }, 10);
-                    header.classList.add('active');
-
-                    // Carga los datos al abrir el acordeón
-                    if (targetId === 'supermercadosContent') {
-                        fetchSupermarkets();
-                    } else if (targetId === 'ingredientesContent') {
-                        fetchSupermarketsForIngredients();
-                        fetchIngredients();
-                    } else if (targetId === 'recetasContent') {
-                        fetchAllIngredientsForRecipes();
-                        fetchRecipes();
-                    } else if (targetId === 'menuSemanalContent') {
-                        fetchWeeklyMenu();
+                // Cierra otros acordeones
+                document.querySelectorAll('.accordion-item').forEach(item => {
+                    if (item !== accordionItem) {
+                        item.classList.remove('active');
+                        item.querySelector('.accordion-content').style.maxHeight = 0;
                     }
+                });
+
+                // Abre o cierra el acordeón actual
+                accordionItem.classList.toggle('active');
+                if (accordionItem.classList.contains('active')) {
+                    // Calcular altura real para transición suave
+                    content.style.maxHeight = content.scrollHeight + "px";
+                    // Asegurar que la altura se recalcule si el contenido cambia (ej. al cargar datos)
+                    setTimeout(() => {
+                        content.style.maxHeight = content.scrollHeight + "px";
+                        accordionItem.style.setProperty('--content-height', content.scrollHeight + "px");
+                    }, 350); // Pequeño retraso para que el contenido se cargue y luego se ajuste
+
+                    // Cargar datos específicos cuando el acordeón se abre
+                    if (accordionItem.id === 'supermarketAccordion') {
+                        fetchSupermarkets();
+                    } else if (accordionItem.id === 'ingredientAccordion') {
+                        fetchIngredients();
+                        fetchSupermarkets(ingredientSupermarketSelect); // Cargar supermercados para el select de ingredientes
+                    } else if (accordionItem.id === 'recipeAccordion') {
+                        fetchRecipes();
+                        fetchIngredients(addIngredientToRecipeSelect); // Cargar ingredientes para el select de recetas
+                    } else if (accordionItem.id === 'weeklyMenuAccordion') {
+                        renderWeeklyMenuGrid(); // Renderiza la estructura antes de cargar los datos
+                        fetchWeeklyMenu(); // Carga los datos guardados
+                    }
+                } else {
+                    content.style.maxHeight = 0;
                 }
             });
         });
 
-        // --- Supermercados ---
-        const supermarketNameInput = document.getElementById('supermarketName');
-        const addSupermarketBtn = document.getElementById('addSupermarketBtn');
-        const supermarketsListDiv = document.getElementById('supermarketsList');
-
-        async function fetchSupermarkets() {
-            supermarketsListDiv.innerHTML = '<p class="text-gray-500 text-center col-span-full">Cargando supermercados...</p>';
+        // --- Funciones para Supermercados ---
+        async function fetchSupermarkets(selectElement = null) {
+            console.log('Fetching supermarkets...');
             try {
                 const response = await fetch('/api/supermarkets');
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Error al cargar supermercados: ${response.status} - ${errorText}`);
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                const supermarkets = await response.json();
-                renderSupermarkets(supermarkets);
+                allSupermarkets = await response.json();
+                renderSupermarkets(selectElement);
             } catch (error) {
                 console.error('Error fetching supermarkets:', error);
-                supermarketsListDiv.innerHTML = `<p class="text-red-500 text-center col-span-full">Error al cargar supermercados: ${error.message}</p>`;
-                showCustomAlert(`Error al cargar supermercados: ${error.message}`, 'Error de Carga');
+                if (selectElement) {
+                    selectElement.innerHTML = '<option value="">Error al cargar</option>';
+                } else {
+                    supermarketsList.innerHTML = '<li class="mensaje-error">Error al cargar supermercados.</li>';
+                }
+                showCustomAlert(`No se pudieron cargar los supermercados: ${error.message}`, 'Error de Carga');
             }
         }
 
-        function renderSupermarkets(supermarkets) {
-            supermarketsListDiv.innerHTML = '';
-            if (supermarkets.length === 0) {
-                supermarketsListDiv.innerHTML = '<p class="text-gray-500 text-center col-span-full">No hay supermercados registrados aún.</p>';
-                return;
+        function renderSupermarkets(selectElement = null) {
+            if (selectElement) {
+                selectElement.innerHTML = '<option value="">Selecciona un supermercado</option>';
+                allSupermarkets.forEach(supermarket => {
+                    const option = document.createElement('option');
+                    option.value = supermarket.name; // Usar el nombre como valor
+                    option.textContent = supermarket.name;
+                    selectElement.appendChild(option);
+                });
+            } else {
+                supermarketsList.innerHTML = '';
+                if (allSupermarkets.length === 0) {
+                    supermarketsList.innerHTML = '<li class="mensaje-info">No hay supermercados registrados.</li>';
+                    return;
+                }
+                allSupermarkets.forEach(supermarket => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <span class="font-semibold">${supermarket.name}</span>
+                        <div class="list-item-actions">
+                            <button class="btn-danger p-2" onclick="deleteSupermarket('${supermarket.id}')" title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    supermarketsList.appendChild(li);
+                });
             }
-            supermarkets.forEach(supermarket => {
-                const supermarketCard = document.createElement('div');
-                supermarketCard.className = 'item-card flex justify-between items-center';
-                supermarketCard.innerHTML = `
-                    <span class="text-lg font-medium text-gray-700">${supermarket.name}</span>
-                    <button class="delete-button delete-supermarket-btn" data-id="${supermarket.id}">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                `;
-                supermarketsListDiv.appendChild(supermarketCard);
-            });
-            addSupermarketDeleteListeners();
         }
 
-        async function addSupermarket() {
+        addSupermarketBtn.addEventListener('click', async () => {
             const name = supermarketNameInput.value.trim();
             if (!name) {
-                showCustomAlert('El nombre del supermercado no puede estar vacío.', 'Campo Obligatorio');
+                showCustomAlert('El nombre del supermercado es obligatorio.', 'Campo Requerido');
                 return;
             }
             try {
@@ -594,413 +923,377 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name })
                 });
-                if (response.status === 409) { // Conflict - Duplicated name
-                    showCustomAlert('Un supermercado con ese nombre ya existe.', 'Supermercado Duplicado');
+                if (response.status === 409) { // Conflicto: Ya existe
+                    showCustomAlert('Ya existe un supermercado con ese nombre.', 'Duplicado');
                     return;
                 }
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(errorData.error || 'Error al añadir supermercado.');
+                    throw new Error(errorData.error || 'Error al añadir el supermercado.');
                 }
-                supermarketNameInput.value = '';
                 showCustomAlert('Supermercado añadido con éxito.', 'Éxito');
-                fetchSupermarkets(); // Recargar la lista
-                fetchSupermarketsForIngredients(); // Recargar el selector de ingredientes
+                supermarketNameInput.value = '';
+                fetchSupermarkets();
+                fetchSupermarkets(ingredientSupermarketSelect); // Actualizar el select también
             } catch (error) {
                 console.error('Error adding supermarket:', error);
-                showCustomAlert(`Error al añadir supermercado: ${error.message}`, 'Error');
+                showCustomAlert(`No se pudo añadir el supermercado: ${error.message}`, 'Error');
             }
-        }
+        });
 
         async function deleteSupermarket(supermarketId) {
-            showCustomAlert('¿Estás seguro de que quieres eliminar este supermercado? Esta acción no se puede deshacer.', 'Confirmar Eliminación', 'confirm', async () => {
+            const confirmAction = await showCustomConfirm('¿Estás seguro de que quieres eliminar este supermercado?');
+            if (confirmAction) {
                 try {
                     const response = await fetch(`/api/supermarkets/${supermarketId}`, {
                         method: 'DELETE'
                     });
                     if (!response.ok) {
                         const errorData = await response.json();
-                        throw new Error(errorData.error || 'Error al eliminar supermercado.');
+                        throw new Error(errorData.error || 'Error al eliminar el supermercado.');
                     }
-                    showCustomAlert('Supermercado eliminado con éxito.', 'Éxito');
-                    fetchSupermarkets(); // Recargar la lista
-                    fetchSupermarketsForIngredients(); // Recargar el selector de ingredientes
+                    showCustomAlert('Supermercado eliminado con éxito.', 'Eliminación Exitosa');
+                    fetchSupermarkets();
+                    fetchSupermarkets(ingredientSupermarketSelect); // Actualizar el select también
                 } catch (error) {
                     console.error('Error deleting supermarket:', error);
-                    showCustomAlert(`Error al eliminar supermercado: ${error.message}`, 'Error');
+                    showCustomAlert(`No se pudo eliminar el supermercado: ${error.message}`, 'Error');
                 }
-            });
-        }
-
-        function addSupermarketDeleteListeners() {
-            document.querySelectorAll('.delete-supermarket-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const id = e.currentTarget.dataset.id;
-                    deleteSupermarket(id);
-                });
-            });
-        }
-
-        addSupermarketBtn.addEventListener('click', addSupermarket);
-
-        // --- Ingredientes ---
-        const ingredientNameInput = document.getElementById('ingredientName');
-        const ingredientSupermarketSelect = document.getElementById('ingredientSupermarket');
-        const ingredientPriceInput = document.getElementById('ingredientPrice');
-        const ingredientCaloriesInput = document.getElementById('ingredientCalories');
-        const ingredientProteinsInput = document.getElementById('ingredientProteins');
-        const ingredientCarbsInput = document.getElementById('ingredientCarbs');
-        const ingredientFatsInput = document.getElementById('ingredientFats');
-        const addIngredientBtn = document.getElementById('addIngredientBtn');
-        const ingredientsListDiv = document.getElementById('ingredientsList');
-
-        async function fetchSupermarketsForIngredients() {
-            try {
-                const response = await fetch('/api/supermarkets');
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Error al cargar supermercados para selector: ${response.status} - ${errorText}`);
-                }
-                const supermarkets = await response.json();
-                ingredientSupermarketSelect.innerHTML = '<option value="">Selecciona Supermercado</option>';
-                supermarkets.forEach(s => {
-                    const option = document.createElement('option');
-                    option.value = s.name; // Usamos el nombre para enviar al backend y que encuentre el ID
-                    option.textContent = s.name;
-                    ingredientSupermarketSelect.appendChild(option);
-                });
-            } catch (error) {
-                console.error('Error fetching supermarkets for ingredient select:', error);
-                showCustomAlert(`Error al cargar supermercados: ${error.message}`, 'Error de Carga');
             }
         }
 
-        async function fetchIngredients() {
-            ingredientsListDiv.innerHTML = '<p class="text-gray-500 text-center col-span-full">Cargando ingredientes...</p>';
+        // --- Funciones para Ingredientes ---
+        async function fetchIngredients(selectElement = null) {
+            console.log('Fetching ingredients...');
+            ingredientsList.innerHTML = '<li class="mensaje-info">Cargando ingredientes...</li>'; // Mensaje de carga para la lista principal
+            if (selectElement) {
+                selectElement.innerHTML = '<option value="">Cargando ingredientes...</option>'; // Mensaje de carga para el select
+            }
+
             try {
                 const response = await fetch('/api/ingredients');
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Error al cargar ingredientes: ${response.status} - ${errorText}`);
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                const ingredients = await response.json();
-                renderIngredients(ingredients);
+                allIngredients = await response.json();
+                console.log('Fetched ingredients:', allIngredients); // Debug: ver ingredientes cargados
+                renderIngredients(selectElement);
             } catch (error) {
                 console.error('Error fetching ingredients:', error);
-                ingredientsListDiv.innerHTML = `<p class="text-red-500 text-center col-span-full">Error al cargar ingredientes: ${error.message}</p>`;
-                showCustomAlert(`Error al cargar ingredientes: ${error.message}`, 'Error de Carga');
+                if (selectElement) {
+                    selectElement.innerHTML = '<option value="">Error al cargar</option>';
+                } else {
+                    ingredientsList.innerHTML = '<li class="mensaje-error">Error al cargar ingredientes.</li>';
+                }
+                showCustomAlert(`No se pudieron cargar los ingredientes: ${error.message}`, 'Error de Carga');
             }
         }
 
-      function renderIngredients(ingredients) {
-    // Si no hay ingredientes, muestra un mensaje
-    if (ingredients.length === 0) {
-        ingredientsListDiv.innerHTML = '<p class="text-gray-500 text-center col-span-full">No hay ingredientes registrados aún.</p>';
-        return;
-    }
-
-    // Crea un DocumentFragment para una inserción más eficiente en el DOM
-    const fragment = document.createDocumentFragment();
-
-    ingredients.forEach(ingredient => {
-        const ingredientCard = document.createElement('div');
-        ingredientCard.className = 'item-card flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 rounded-lg shadow-sm mb-2'; // Añadidas clases de Tailwind para estilo
-        ingredientCard.innerHTML = `
-            <div class="flex-grow">
-                <h3 class="text-lg font-semibold text-gray-800">${ingredient.name}</h3>
-                <p class="text-sm text-gray-600">Supermercado: ${ingredient.supermarket || 'N/A'}</p>
-                <p class="text-sm text-gray-600">Precio/unidad: ${ingredient.price_per_unit != null && !isNaN(ingredient.price_per_unit) ? ingredient.price_per_unit.toFixed(2) + '€' : 'N/A'}</p>
-                <p class="text-xs text-gray-500">
-                    Cal: ${ingredient.calories_per_100g != null && !isNaN(ingredient.calories_per_100g) ? ingredient.calories_per_100g.toFixed(2) : 'N/A'} |
-                    Pro: ${ingredient.proteins_per_100g != null && !isNaN(ingredient.proteins_per_100g) ? ingredient.proteins_per_100g.toFixed(2) : 'N/A'} |
-                    Carb: ${ingredient.carbs_per_100g != null && !isNaN(ingredient.carbs_per_100g) ? ingredient.carbs_per_100g.toFixed(2) : 'N/A'} |
-                    Gra: ${ingredient.fats_per_100g != null && !isNaN(ingredient.fats_per_100g) ? ingredient.fats_per_100g.toFixed(2) : 'N/A'} (por 100g)
-                </p>
-            </div>
-            <div class="flex gap-2 mt-3 sm:mt-0">
-                <button class="edit-button bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-sm" data-id="${ingredient.id}">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="delete-button delete-ingredient-btn bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-sm" data-id="${ingredient.id}">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        `;
-        fragment.appendChild(ingredientCard);
-    });
-
-    // Limpia el contenido actual y añade el nuevo fragmento
-    ingredientsListDiv.innerHTML = '';
-    ingredientsListDiv.appendChild(fragment);
-
-    // Vuelve a añadir los listeners después de renderizar
-    addIngredientDeleteListeners();
-    addIngredientEditListeners(); // Función nueva para los listeners de edición
-}
-
-/**
- * Carga los datos de un ingrediente específico en el formulario para su edición.
- * @param {string} id - El ID del ingrediente a cargar.
- */
-async function cargarDatosIngredienteParaEditar(id) {
-    try {
-        const response = await fetch(`/api/ingredients/${id}`);
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'No se pudo obtener el ingrediente');
-        }
-        const ingredient = await response.json();
-
-        // Rellenar el formulario con los datos del ingrediente
-        ingredientNameInput.value = ingredient.name || '';
-        ingredientSupermarketSelect.value = ingredient.supermarket || '';
-        ingredientPriceInput.value = ingredient.price_per_unit || '';
-        ingredientCaloriesInput.value = ingredient.calories_per_100g || '';
-        ingredientProteinsInput.value = ingredient.proteins_per_100g || '';
-        ingredientCarbsInput.value = ingredient.carbs_per_100g || '';
-        ingredientFatsInput.value = ingredient.fats_per_100g || '';
-
-        // Modificar el botón de añadir para que actúe como "Guardar Cambios"
-        addIngredientBtn.dataset.editingId = ingredient.id; // Guarda el ID en el dataset del botón
-        addIngredientBtn.innerHTML = '<i class="fas fa-save mr-2"></i> Guardar Cambios';
-    } catch (error) {
-        console.error('Error cargando ingrediente para edición:', error);
-        // Asumiendo que showCustomAlert existe en tu código
-        showCustomAlert(`Error cargando ingrediente: ${error.message}`, 'Error');
-    }
-}
-
-/**
- * Añade un nuevo ingrediente o actualiza uno existente.
- */
-async function addIngredient() {
-    const editingId = addIngredientBtn.dataset.editingId; // Obtiene el ID si estamos editando
-
-    const name = ingredientNameInput.value.trim();
-    const supermarket = ingredientSupermarketSelect.value;
-    const price_per_unit = parseFloat(ingredientPriceInput.value);
-    const calories_per_100g = parseFloat(ingredientCaloriesInput.value) || 0;
-    const proteins_per_100g = parseFloat(ingredientProteinsInput.value) || 0;
-    const carbs_per_100g = parseFloat(ingredientCarbsInput.value) || 0;
-    const fats_per_100g = parseFloat(ingredientFatsInput.value) || 0;
-
-    if (!name || !supermarket || isNaN(price_per_unit)) {
-        showCustomAlert('El nombre del ingrediente, el supermercado y el precio por unidad son obligatorios.', 'Campos Obligatorios');
-        return;
-    }
-
-    const ingredientData = {
-        name, supermarket, price_per_unit, calories_per_100g, proteins_per_100g, carbs_per_100g, fats_per_100g
-    };
-
-    try {
-        let response;
-        let method;
-        let url;
-        let successMessage;
-
-        if (editingId) {
-            // Estamos en modo edición (PUT/PATCH)
-            method = 'PUT'; // O 'PATCH' si tu API lo prefiere para actualizaciones parciales
-            url = `/api/ingredients/${editingId}`;
-            successMessage = 'Ingrediente actualizado con éxito.';
-        } else {
-            // Estamos en modo añadir (POST)
-            method = 'POST';
-            url = '/api/ingredients';
-            successMessage = 'Ingrediente añadido con éxito.';
+        function renderIngredients(selectElement = null) {
+            if (selectElement) {
+                selectElement.innerHTML = '<option value="">Selecciona un ingrediente</option>';
+                allIngredients.forEach(ingredient => {
+                    const option = document.createElement('option');
+                    option.value = ingredient.id; // Usar el ID como valor
+                    option.textContent = ingredient.name + (ingredient.supermarket ? ` (${ingredient.supermarket})` : '');
+                    selectElement.appendChild(option);
+                });
+            } else {
+                ingredientsList.innerHTML = ''; // Limpiar el mensaje de carga o de error previo
+                if (allIngredients.length === 0) {
+                    ingredientsList.innerHTML = '<li class="mensaje-info">No hay ingredientes registrados.</li>';
+                    return;
+                }
+                allIngredients.forEach(ingredient => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <div class="list-item-content">
+                            <span class="font-semibold text-lg">${ingredient.name}</span>
+                            <div class="ingredient-details">
+                                <span>${ingredient.supermarket ? `Supermercado: <strong>${ingredient.supermarket}</strong>` : 'N/A'}</span>
+                                <span>Precio: <strong>${ingredient.price_per_unit ? ingredient.price_per_unit.toFixed(2) + '€' : '0.00€'}</strong></span>
+                                <span>Calorías: <strong>${ingredient.calories_per_100g ? ingredient.calories_per_100g.toFixed(1) : '0.0'} kcal</strong></span>
+                                <span>Proteínas: <strong>${ingredient.proteins_per_100g ? ingredient.proteins_per_100g.toFixed(1) : '0.0'} g</strong></span>
+                                <span>Carbohidratos: <strong>${ingredient.carbs_per_100g ? ingredient.carbs_per_100g.toFixed(1) : '0.0'} g</strong></span>
+                                <span>Grasas: <strong>${ingredient.fats_per_100g ? ingredient.fats_per_100g.toFixed(1) : '0.0'} g</strong></span>
+                            </div>
+                        </div>
+                        <div class="list-item-actions">
+                            <button class="btn-primary p-2" onclick="editIngredient('${ingredient.id}')" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-danger p-2" onclick="deleteIngredient('${ingredient.id}')" title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    ingredientsList.appendChild(li);
+                });
+            }
         }
 
-        response = await fetch(url, {
-            method: method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(ingredientData)
+        function resetIngredientForm() {
+            editingIngredientId = null;
+            ingredientFormTitle.textContent = 'Añadir Nuevo Ingrediente';
+            addIngredientBtn.innerHTML = '<i class="fas fa-plus-circle"></i> Añadir Ingrediente';
+            addIngredientBtn.classList.remove('bg-yellow-500', 'hover:bg-yellow-600'); // Quitar estilos de "Guardar Cambios"
+            addIngredientBtn.classList.add('btn-primary'); // Restaurar estilos de "Añadir"
+            cancelEditIngredientBtn.style.display = 'none';
+
+            ingredientNameInput.value = '';
+            ingredientSupermarketSelect.value = '';
+            ingredientPriceInput.value = '0.00';
+            ingredientCaloriesInput.value = '0.0';
+            ingredientProteinsInput.value = '0.0';
+            ingredientCarbsInput.value = '0.0';
+            ingredientFatsInput.value = '0.0';
+        }
+
+        async function editIngredient(ingredientId) {
+            const ingredient = allIngredients.find(ing => ing.id === ingredientId);
+            if (!ingredient) {
+                showCustomAlert('Ingrediente no encontrado para editar.', 'Error');
+                return;
+            }
+
+            // Establecer el modo de edición
+            editingIngredientId = ingredient.id;
+            ingredientFormTitle.textContent = 'Editar Ingrediente';
+            addIngredientBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Cambios';
+            addIngredientBtn.classList.remove('btn-primary');
+            addIngredientBtn.classList.add('bg-yellow-500', 'hover:bg-yellow-600'); // Cambiar color para indicar edición
+            cancelEditIngredientBtn.style.display = 'inline-flex'; // Mostrar botón de cancelar
+
+            // Rellenar el formulario con los datos del ingrediente
+            ingredientNameInput.value = ingredient.name;
+            // Seleccionar el supermercado correcto en el dropdown
+            if (ingredient.supermarket) {
+                const supermarketOption = Array.from(ingredientSupermarketSelect.options).find(option => option.textContent === ingredient.supermarket);
+                if (supermarketOption) {
+                    ingredientSupermarketSelect.value = supermarketOption.value;
+                } else {
+                    ingredientSupermarketSelect.value = ''; // Si no se encuentra, dejarlo en blanco
+                }
+            } else {
+                ingredientSupermarketSelect.value = '';
+            }
+            
+            ingredientPriceInput.value = ingredient.price_per_unit || 0;
+            ingredientCaloriesInput.value = ingredient.calories_per_100g || 0;
+            ingredientProteinsInput.value = ingredient.proteins_per_100g || 0;
+            ingredientCarbsInput.value = ingredient.carbs_per_100g || 0;
+            ingredientFatsInput.value = ingredient.fats_per_100g || 0;
+
+            // Desplazarse al formulario
+            ingredientFormTitle.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        cancelEditIngredientBtn.addEventListener('click', resetIngredientForm);
+
+        addIngredientBtn.addEventListener('click', async () => {
+            const name = ingredientNameInput.value.trim();
+            const supermarket = ingredientSupermarketSelect.value; // Ya es el nombre
+            const price_per_unit = parseFloat(ingredientPriceInput.value);
+            const calories_per_100g = parseFloat(ingredientCaloriesInput.value);
+            const proteins_per_100g = parseFloat(ingredientProteinsInput.value);
+            const carbs_per_100g = parseFloat(ingredientCarbsInput.value);
+            const fats_per_100g = parseFloat(ingredientFatsInput.value);
+
+            if (!name) {
+                showCustomAlert('El nombre del ingrediente es obligatorio.', 'Campo Requerido');
+                return;
+            }
+            if (isNaN(price_per_unit) || isNaN(calories_per_100g) || isNaN(proteins_per_100g) || isNaN(carbs_per_100g) || isNaN(fats_per_100g)) {
+                showCustomAlert('Asegúrate de que todos los valores numéricos son válidos.', 'Error de Entrada');
+                return;
+            }
+
+            const method = editingIngredientId ? 'PUT' : 'POST';
+            const url = editingIngredientId ? `/api/ingredients/${editingIngredientId}` : '/api/ingredients';
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name,
+                        supermarket, // Enviar el nombre del supermercado, el backend lo resolverá a ID
+                        price_per_unit,
+                        calories_per_100g,
+                        proteins_per_100g,
+                        carbs_per_100g,
+                        fats_per_100g
+                    })
+                });
+
+                if (method === 'POST' && response.status === 200) { // Significa que ya existía al añadir
+                    showCustomAlert('El ingrediente ya existe. No se añadió un duplicado.', 'Información');
+                } else if (!response.ok) {
+                    let errorData;
+                    const contentType = response.headers.get("content-type");
+                    if (contentType && contentType.includes("application/json")) {
+                        errorData = await response.json();
+                    } else {
+                        const errorText = await response.text();
+                        errorData = { error: `El servidor respondió con un error no JSON. Código: ${response.status}. Mensaje: ${errorText.substring(0, 100)}...` };
+                        console.error("Respuesta de error no JSON del servidor:", errorText);
+                    }
+                    throw new Error(errorData.error || `Error al ${editingIngredientId ? 'actualizar' : 'añadir'} el ingrediente.`);
+                } else {
+                    showCustomAlert(`Ingrediente ${editingIngredientId ? 'actualizado' : 'añadido'} con éxito.`, 'Éxito');
+                }
+
+                resetIngredientForm(); // Limpiar el formulario y resetear el estado de edición
+                fetchIngredients(); // Actualizar la lista
+                fetchIngredients(addIngredientToRecipeSelect); // Actualizar el select de recetas
+            } catch (error) {
+                console.error(`Error ${editingIngredientId ? 'actualizando' : 'añadiendo'} ingredient:`, error);
+                showCustomAlert(`No se pudo ${editingIngredientId ? 'actualizar' : 'añadir'} el ingrediente: ${error.message}`, 'Error');
+            }
         });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || `Error al ${editingId ? 'actualizar' : 'añadir'} ingrediente.`);
+        async function deleteIngredient(ingredientId) {
+            const confirmAction = await showCustomConfirm('¿Estás seguro de que quieres eliminar este ingrediente?');
+            if (confirmAction) {
+                try {
+                    const response = await fetch(`/api/ingredients/${ingredientId}`, {
+                        method: 'DELETE'
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Error al eliminar el ingrediente.');
+                    }
+                    showCustomAlert('Ingrediente eliminado con éxito.', 'Eliminación Exitosa');
+                    fetchIngredients(); // Actualizar la lista
+                    fetchIngredients(addIngredientToRecipeSelect); // Actualizar el select de recetas
+                } catch (error) {
+                    console.error('Error deleting ingredient:', error);
+                    showCustomAlert(`No se pudo eliminar el ingrediente: ${error.message}`, 'Error');
+                }
+            }
         }
 
-        showCustomAlert(successMessage, 'Éxito');
-        clearIngredientForm(); // Limpiar el formulario y resetear el botón
-        fetchIngredients(); // Asumiendo que esta función refresca la lista principal de ingredientes
-        fetchAllIngredientsForRecipes(); // Para actualizar el selector de ingredientes en Recetas
-    } catch (error) {
-        console.error(`Error al ${editingId ? 'actualizar' : 'añadir'} ingrediente:`, error);
-        showCustomAlert(`Error al ${editingId ? 'actualizar' : 'añadir'} ingrediente: ${error.message}`, 'Error');
-    }
-}
+        // --- Funciones para Recetas ---
+        async function fetchRecipes() {
+            console.log('Fetching recipes...');
+            recipesList.innerHTML = '<li class="mensaje-info">Cargando recetas...</li>';
+            try {
+                const response = await fetch('/api/recipes');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                allRecipes = await response.json();
+                console.log('Fetched recipes:', allRecipes); // Debug: ver recetas cargadas
+                renderRecipes();
+            } catch (error) {
+                console.error('Error fetching recipes:', error);
+                recipesList.innerHTML = '<li class="mensaje-error">Error al cargar recetas.</li>';
+                showCustomAlert(`No se pudieron cargar las recetas: ${error.message}`, 'Error de Carga');
+            }
+        }
 
-/**
- * Elimina un ingrediente de la base de datos.
- * @param {string} ingredientId - El ID del ingrediente a eliminar.
- */
-async function deleteIngredient(ingredientId) {
-    showCustomAlert('¿Estás seguro de que quieres eliminar este ingrediente? Esto también lo eliminará de cualquier receta donde se use.', 'Confirmar Eliminación', 'confirm', async () => {
-        try {
-            const response = await fetch(`/api/ingredients/${ingredientId}`, {
-                method: 'DELETE'
+        function renderRecipes() {
+            recipesList.innerHTML = '';
+            if (allRecipes.length === 0) {
+                recipesList.innerHTML = '<li class="mensaje-info">No hay recetas registradas.</li>';
+                return;
+            }
+            allRecipes.forEach(recipe => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div class="list-item-content">
+                        <h3 class="font-bold text-lg">${recipe.name}</h3>
+                        <p class="text-gray-600 mb-2">${recipe.description || 'Sin descripción'}</p>
+                        <h4 class="font-semibold text-sm mt-2">Ingredientes:</h4>
+                        <ul class="recipe-ingredients-list">
+                            ${recipe.ingredients.map(ing => `
+                                <li>${ing.name} (${ing.quantity}g)</li>
+                            `).join('')}
+                        </ul>
+                        <div class="recipe-details mt-2">
+                            <span>Costo Total: <strong>${recipe.total_cost.toFixed(2)}€</strong></span>
+                            <span>Calorías Totales: <strong>${recipe.total_calories.toFixed(1)} kcal</strong></span>
+                            <span>Proteínas Totales: <strong>${recipe.total_proteins.toFixed(1)} g</strong></span>
+                            <span>Carbohidratos Totales: <strong>${recipe.total_carbs.toFixed(1)} g</strong></span>
+                            <span>Grasas Totales: <strong>${recipe.total_fats.toFixed(1)} g</strong></span>
+                        </div>
+                    </div>
+                    <button class="btn-danger" onclick="deleteRecipe('${recipe.id}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                recipesList.appendChild(li);
             });
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Error al eliminar ingrediente.');
-            }
-            showCustomAlert('Ingrediente eliminado con éxito.', 'Éxito');
-            fetchIngredients(); // Refresca la lista de ingredientes
-            fetchAllIngredientsForRecipes(); // Actualiza el selector de ingredientes en Recetas
-            fetchRecipes(); // Recargar recetas para reflejar el cambio si el ingrediente se usaba
-        } catch (error) {
-            console.error('Error deleting ingredient:', error);
-            showCustomAlert(`Error al eliminar ingrediente: ${error.message}`, 'Error');
         }
-    });
-}
 
-/**
- * Limpia el formulario de ingredientes y resetea el botón de "Guardar Cambios" a "Añadir Ingrediente".
- */
-function clearIngredientForm() {
-    ingredientNameInput.value = '';
-    ingredientSupermarketSelect.value = '';
-    ingredientPriceInput.value = '';
-    ingredientCaloriesInput.value = '';
-    ingredientProteinsInput.value = '';
-    ingredientCarbsInput.value = '';
-    ingredientFatsInput.value = '';
-
-    // Resetea el botón de Añadir/Guardar
-    delete addIngredientBtn.dataset.editingId; // Elimina el ID de edición
-    addIngredientBtn.innerHTML = '<i class="fas fa-plus mr-2"></i> Añadir Ingrediente'; // Resetea el texto del botón
-}
-
-/**
- * Añade los listeners de clic para los botones de eliminar ingrediente.
- */
-function addIngredientDeleteListeners() {
-    document.querySelectorAll('.delete-ingredient-btn').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const id = e.currentTarget.dataset.id;
-            deleteIngredient(id);
-        });
-    });
-}
-
-/**
- * Añade los listeners de clic para los botones de editar ingrediente.
- */
-function addIngredientEditListeners() {
-    document.querySelectorAll('.edit-button').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const ingredientId = btn.getAttribute('data-id');
-            cargarDatosIngredienteParaEditar(ingredientId);
-        });
-    });
-}
-
-// --- Listeners de Eventos Iniciales de Ingredientes ---
-// Este listener se mantiene siempre y llama a addIngredient, que ahora maneja añadir y editar
-addIngredientBtn.addEventListener('click', addIngredient);
-
-
-// --- Funciones de Recetas ---
-
-/**
- * Carga todos los ingredientes disponibles para el selector de recetas.
- */
-async function fetchAllIngredientsForRecipes() {
-    try {
-        const response = await fetch('/api/ingredients');
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Error al cargar ingredientes para recetas: ${response.status} - ${errorText}`);
-        }
-        allAvailableIngredients = await response.json();
-        recipeIngredientsSelect.innerHTML = '<option value="">Selecciona un ingrediente</option>'; // Limpiar antes de rellenar
-        allAvailableIngredients.forEach(ing => {
-            const option = document.createElement('option');
-            option.value = ing.id;
-            option.textContent = ing.name;
-            recipeIngredientsSelect.appendChild(option);
-        });
-    } catch (error) {
-        console.error('Error fetching all ingredients for recipes:', error);
-        showCustomAlert(`Error al cargar ingredientes para recetas: ${error.message}`, 'Error de Carga');
-    }
-}
-
-// --- Inicialización (Llama a estas funciones cuando la página carga) ---
-// Asegúrate de que estas funciones existan en tu código.
-// Por ejemplo:
-// document.addEventListener('DOMContentLoaded', () => {
-//     fetchIngredients(); // Cargar la lista inicial de ingredientes
-//     fetchAllIngredientsForRecipes(); // Cargar ingredientes para el selector de recetas
-//     fetchRecipes(); // Si tienes una función para cargar las recetas al inicio
-// });
-
-        function addIngredientToCurrentRecipe() {
-            const ingredientId = recipeIngredientsSelect.value;
-            const quantity = parseFloat(ingredientQuantityInput.value);
-
-            if (!ingredientId || isNaN(quantity) || quantity <= 0) {
-                showCustomAlert('Por favor, selecciona un ingrediente y una cantidad válida.', 'Campos Incompletos');
+        addSelectedIngredientToRecipeBtn.addEventListener('click', () => {
+            const selectedIngredientId = addIngredientToRecipeSelect.value;
+            if (!selectedIngredientId) {
+                showCustomAlert('Por favor, selecciona un ingrediente para añadir.', 'Selección Requerida');
                 return;
             }
 
-            const existingIngredientIndex = currentRecipeIngredients.findIndex(item => item.ingredient_id === ingredientId);
-            if (existingIngredientIndex !== -1) {
-                showCustomAlert('Este ingrediente ya ha sido añadido a la receta. Si deseas modificar la cantidad, elimínalo y vuelve a añadirlo con la nueva cantidad.', 'Ingrediente Duplicado');
-                return;
-            }
-
-            const ingredient = allAvailableIngredients.find(ing => ing.id === ingredientId);
+            const ingredient = allIngredients.find(ing => ing.id === selectedIngredientId);
             if (ingredient) {
-                currentRecipeIngredients.push({
+                // Verificar si el ingrediente ya está en la lista de la receta actual
+                if (currentRecipeIngredients.some(item => item.ingredient_id === ingredient.id)) {
+                    showCustomAlert('Este ingrediente ya ha sido añadido a la receta.', 'Duplicado');
+                    return;
+                }
+
+                const ingredientForRecipe = {
                     ingredient_id: ingredient.id,
                     name: ingredient.name,
-                    quantity: quantity,
+                    quantity: 100, // Cantidad por defecto, el usuario puede cambiarla
                     price_per_unit: ingredient.price_per_unit || 0,
                     calories_per_100g: ingredient.calories_per_100g || 0,
                     proteins_per_100g: ingredient.proteins_per_100g || 0,
                     carbs_per_100g: ingredient.carbs_per_100g || 0,
                     fats_per_100g: ingredient.fats_per_100g || 0
-                });
+                };
+                currentRecipeIngredients.push(ingredientForRecipe);
                 renderCurrentRecipeIngredients();
                 calculateRecipeTotals();
-                // Limpiar campos
-                recipeIngredientsSelect.value = '';
-                ingredientQuantityInput.value = '';
-            } else {
-                showCustomAlert('Ingrediente no encontrado.', 'Error');
             }
-        }
-
-        function removeIngredientFromCurrentRecipe(ingredientId) {
-            currentRecipeIngredients = currentRecipeIngredients.filter(item => item.ingredient_id !== ingredientId);
-            renderCurrentRecipeIngredients();
-            calculateRecipeTotals();
-        }
+        });
 
         function renderCurrentRecipeIngredients() {
-            selectedIngredientsListDiv.innerHTML = '';
+            currentRecipeIngredientsList.innerHTML = '';
             if (currentRecipeIngredients.length === 0) {
-                selectedIngredientsListDiv.innerHTML = '<p class="text-gray-500 text-sm italic">Ningún ingrediente añadido aún.</p>';
+                noIngredientsMessage.style.display = 'block';
                 return;
             }
-            currentRecipeIngredients.forEach(item => {
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'flex justify-between items-center bg-white p-2 rounded-md shadow-sm mb-2';
-                itemDiv.innerHTML = `
-                    <span>${item.name} - ${item.quantity}g/ml</span>
-                    <button class="delete-button text-sm px-2 py-1 remove-recipe-ingredient-btn" data-id="${item.ingredient_id}">
+            noIngredientsMessage.style.display = 'none';
+
+            currentRecipeIngredients.forEach((ing, index) => {
+                const li = document.createElement('li');
+                li.classList.add('ingredient-recipe-item');
+                li.innerHTML = `
+                    <span>${ing.name}</span>
+                    <input type="number" value="${ing.quantity}" min="1" step="1" data-index="${index}" class="quantity-input">
+                    <button data-index="${index}" class="remove-ingredient-btn">
                         <i class="fas fa-times"></i>
                     </button>
                 `;
-                selectedIngredientsListDiv.appendChild(itemDiv);
+                currentRecipeIngredientsList.appendChild(li);
             });
-            document.querySelectorAll('.remove-recipe-ingredient-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    removeIngredientFromCurrentRecipe(e.currentTarget.dataset.id);
+
+            // Añadir event listeners a los inputs de cantidad
+            currentRecipeIngredientsList.querySelectorAll('.quantity-input').forEach(input => {
+                input.addEventListener('input', (event) => {
+                    const index = parseInt(event.target.dataset.index);
+                    currentRecipeIngredients[index].quantity = parseFloat(event.target.value) || 0;
+                    calculateRecipeTotals();
+                });
+            });
+
+            // Añadir event listeners a los botones de eliminar
+            currentRecipeIngredientsList.querySelectorAll('.remove-ingredient-btn').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const index = parseInt(event.target.closest('button').dataset.index);
+                    currentRecipeIngredients.splice(index, 1);
+                    renderCurrentRecipeIngredients();
+                    calculateRecipeTotals();
                 });
             });
         }
@@ -1012,206 +1305,163 @@ async function fetchAllIngredientsForRecipes() {
             let totalCarbs = 0;
             let totalFats = 0;
 
-            currentRecipeIngredients.forEach(item => {
-                const quantityFactor = item.quantity / 100; // Para calcular por 100g
-
-                totalCost += (item.price_per_unit || 0) * item.quantity; 
-                totalCalories += (item.calories_per_100g || 0) * quantityFactor;
-                totalProteins += (item.proteins_per_100g || 0) * quantityFactor;
-                totalCarbs += (item.carbs_per_100g || 0) * quantityFactor;
-                totalFats += (item.fats_per_100g || 0) * quantityFactor;
+            currentRecipeIngredients.forEach(ing => {
+                const quantityFactor = ing.quantity / 100; // Para calcular nutrientes por 100g
+                totalCost += (ing.price_per_unit / 100) * ing.quantity; // Asumiendo precio_por_unidad es por unidad y cantidad es en gramos
+                totalCalories += ing.calories_per_100g * quantityFactor;
+                totalProteins += ing.proteins_per_100g * quantityFactor;
+                totalCarbs += ing.carbs_per_100g * quantityFactor;
+                totalFats += ing.fats_per_100g * quantityFactor;
             });
 
-            totalRecipeCostSpan.textContent = `${totalCost.toFixed(2)}€`;
-            totalRecipeCaloriesSpan.textContent = `${totalCalories.toFixed(2)} kcal`;
-            totalRecipeProteinsSpan.textContent = `${totalProteins.toFixed(2)} g`;
-            totalRecipeCarbsSpan.textContent = `${totalCarbs.toFixed(2)} g`;
-            totalRecipeFatsSpan.textContent = `${totalFats.toFixed(2)} g`;
+            totalCostSpan.textContent = `${totalCost.toFixed(2)}€`;
+            totalCaloriesSpan.textContent = `${totalCalories.toFixed(1)} kcal`;
+            totalProteinsSpan.textContent = `${totalProteins.toFixed(1)} g`;
+            totalCarbsSpan.textContent = `${totalCarbs.toFixed(1)} g`;
+            totalFatsSpan.textContent = `${totalFats.toFixed(1)} g`;
         }
 
-        async function createRecipe() {
+        addRecipeBtn.addEventListener('click', async () => {
             const name = recipeNameInput.value.trim();
             const description = recipeDescriptionInput.value.trim();
 
-            if (!name || currentRecipeIngredients.length === 0) {
-                showCustomAlert('El nombre de la receta y al menos un ingrediente son obligatorios.', 'Campos Incompletos');
+            if (!name) {
+                showCustomAlert('El nombre de la receta es obligatorio.', 'Campo Requerido');
+                return;
+            }
+            if (currentRecipeIngredients.length === 0) {
+                showCustomAlert('La receta debe tener al menos un ingrediente.', 'Ingredientes Requeridos');
                 return;
             }
 
-            const total_cost = parseFloat(totalRecipeCostSpan.textContent);
-            const total_calories = parseFloat(totalRecipeCaloriesSpan.textContent);
-            const total_proteins = parseFloat(totalRecipeProteinsSpan.textContent);
-            const total_carbs = parseFloat(totalRecipeCarbsSpan.textContent);
-            const total_fats = parseFloat(totalRecipeFatsSpan.textContent);
+            const recipeData = {
+                name,
+                description,
+                ingredients: currentRecipeIngredients,
+                total_cost: parseFloat(totalCostSpan.textContent.replace('€', '')),
+                total_calories: parseFloat(totalCaloriesSpan.textContent.replace(' kcal', '')),
+                total_proteins: parseFloat(totalProteinsSpan.textContent.replace(' g', '')),
+                total_carbs: parseFloat(totalCarbsSpan.textContent.replace(' g', '')),
+                total_fats: parseFloat(totalFatsSpan.textContent.replace(' g', ''))
+            };
+
+            console.log('Attempting to create recipe with data:', recipeData);
 
             try {
                 const response = await fetch('/api/recipes', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name,
-                        description,
-                        ingredients: currentRecipeIngredients, // Se guarda como JSONB en Supabase
-                        total_cost,
-                        total_calories,
-                        total_proteins,
-                        total_carbs,
-                        total_fats
-                    })
+                    body: JSON.stringify(recipeData)
                 });
+
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Error al crear receta.');
+                    // Intenta leer el error como JSON primero
+                    let errorData;
+                    const contentType = response.headers.get("content-type");
+                    if (contentType && contentType.indexOf("application/json") !== -1) {
+                        errorData = await response.json();
+                    } else {
+                        // Si no es JSON, lee como texto y muestra parte
+                        const errorText = await response.text();
+                        errorData = { error: `El servidor respondió con un error no JSON. Código: ${response.status}. Mensaje: ${errorText.substring(0, 100)}...` };
+                        console.error("Respuesta de error no JSON del servidor:", errorText);
+                    }
+                    throw new Error(errorData.error || 'Error al crear la receta.');
                 }
+
                 showCustomAlert('Receta creada con éxito.', 'Éxito');
-                // Limpiar campos y estado
+                // Limpiar formulario y reiniciar
                 recipeNameInput.value = '';
                 recipeDescriptionInput.value = '';
                 currentRecipeIngredients = [];
                 renderCurrentRecipeIngredients();
-                calculateRecipeTotals(); // Resetear a 0
-                fetchRecipes(); // Recargar la lista de recetas
+                calculateRecipeTotals(); // Reiniciar totales
+                fetchRecipes(); // Actualizar la lista de recetas
             } catch (error) {
                 console.error('Error creating recipe:', error);
-                showCustomAlert(`Error al crear receta: ${error.message}`, 'Error');
+                showCustomAlert(`No se pudo crear la receta: ${error.message}`, 'Error');
             }
-        }
-
-        async function fetchRecipes() {
-            recipesListDiv.innerHTML = '<p class="text-gray-500 text-center col-span-full">Cargando recetas...</p>';
-            try {
-                const response = await fetch('/api/recipes');
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Error al cargar recetas: ${response.status} - ${errorText}`);
-                }
-                const recipes = await response.json();
-                renderRecipes(recipes);
-            } catch (error) {
-                console.error('Error fetching recipes:', error);
-                recipesListDiv.innerHTML = `<p class="text-red-500 text-center col-span-full">Error al cargar recetas: ${error.message}</p>`;
-                showCustomAlert(`Error al cargar recetas: ${error.message}`, 'Error de Carga');
-            }
-        }
-
-        function renderRecipes(recipes) {
-            recipesListDiv.innerHTML = '';
-            if (recipes.length === 0) {
-                recipesListDiv.innerHTML = '<p class="text-gray-500 text-center col-span-full">No hay recetas registradas aún.</p>';
-                return;
-            }
-            recipes.forEach(recipe => {
-                const recipeCard = document.createElement('div');
-                recipeCard.className = 'item-card flex flex-col';
-                
-                let ingredientsHtml = '<ul class="list-disc list-inside text-sm text-gray-700 mt-2 ml-4">';
-                if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
-                    recipe.ingredients.forEach(ing => {
-                        ingredientsHtml += `<li>${ing.name} - ${ing.quantity}g/ml</li>`;
-                    });
-                }
-                ingredientsHtml += '</ul>';
-
-                recipeCard.innerHTML = `
-                    <div class="flex justify-between items-start mb-2">
-                        <h3 class="text-xl font-bold text-gray-800">${recipe.name}</h3>
-                        <button class="delete-button delete-recipe-btn" data-id="${recipe.id}">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                    ${recipe.description ? `<p class="text-gray-700 mb-3 text-sm">${recipe.description}</p>` : ''}
-                    <div class="bg-gray-50 p-3 rounded-md text-sm font-medium mb-3">
-                        <p class="font-semibold mb-1">Ingredientes:</p>
-                        ${ingredientsHtml}
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-xs text-gray-600">
-                        <p class="bg-blue-50 p-2 rounded-md">Costo: <span class="font-semibold">${recipe.total_cost.toFixed(2)}€</span></p>
-                        <p class="bg-green-50 p-2 rounded-md">Calorías: <span class="font-semibold">${recipe.total_calories.toFixed(2)} kcal</span></p>
-                        <p class="bg-yellow-50 p-2 rounded-md">Proteínas: <span class="font-semibold">${recipe.total_proteins.toFixed(2)} g</span></p>
-                        <p class="bg-orange-50 p-2 rounded-md">Carbohidratos: <span class="font-semibold">${recipe.total_carbs.toFixed(2)} g</span></p>
-                        <p class="bg-red-50 p-2 rounded-md">Grasas: <span class="font-semibold">${recipe.total_fats.toFixed(2)} g</span></p>
-                    </div>
-                `;
-                recipesListDiv.appendChild(recipeCard);
-            });
-            addRecipeDeleteListeners();
-        }
+        });
 
         async function deleteRecipe(recipeId) {
-            showCustomAlert('¿Estás seguro de que quieres eliminar esta receta?', 'Confirmar Eliminación', 'confirm', async () => {
+            const confirmAction = await showCustomConfirm('¿Estás seguro de que quieres eliminar esta receta?');
+            if (confirmAction) {
                 try {
                     const response = await fetch(`/api/recipes/${recipeId}`, {
                         method: 'DELETE'
                     });
                     if (!response.ok) {
                         const errorData = await response.json();
-                        throw new Error(errorData.error || 'Error al eliminar receta.');
+                        throw new Error(errorData.error || 'Error al eliminar la receta.');
                     }
-                    showCustomAlert('Receta eliminada con éxito.', 'Éxito');
-                    fetchRecipes();
+                    showCustomAlert('Receta eliminada con éxito.', 'Eliminación Exitosa');
+                    fetchRecipes(); // Recargar la lista
                 } catch (error) {
                     console.error('Error deleting recipe:', error);
-                    showCustomAlert(`Error al eliminar receta: ${error.message}`, 'Error');
+                    showCustomAlert(`No se pudo eliminar la receta: ${error.message}`, 'Error');
                 }
-            });
-        }
-
-        function addRecipeDeleteListeners() {
-            document.querySelectorAll('.delete-recipe-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const id = e.currentTarget.dataset.id;
-                    deleteRecipe(id);
-                });
-            });
-        }
-
-        addIngredientToRecipeBtn.addEventListener('click', addIngredientToCurrentRecipe);
-        createRecipeBtn.addEventListener('click', createRecipe);
-
-
-        // --- Menú Semanal ---
-        const saveMenuBtn = document.getElementById('saveMenuBtn');
-        const mealInputs = document.querySelectorAll('.meal-input');
-
-        const daysOfWeek = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
-        const mealTypes = ["desayuno", "comida", "cena"];
-
-        async function fetchWeeklyMenu() {
-            try {
-                const response = await fetch('/api/weekly_menu');
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Error al cargar menú semanal: ${response.status} - ${errorText}`);
-                }
-                const menu = await response.json();
-                renderWeeklyMenu(menu);
-            } catch (error) {
-                console.error('Error fetching weekly menu:', error);
-                showCustomAlert(`Error al cargar menú semanal: ${error.message}`, 'Error de Carga');
-                renderWeeklyMenu({}); // Renderiza un menú vacío en caso de error
             }
         }
 
-        function renderWeeklyMenu(menu) {
-            mealInputs.forEach(input => input.value = ''); // Limpiar inputs primero
-            
+        // --- Funciones para Menú Semanal ---
+        function renderWeeklyMenuGrid() {
+            weeklyMenuGrid.innerHTML = ''; // Limpiar el contenido anterior
+            const daysOfWeek = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+            const mealTypes = ["Desayuno", "Almuerzo", "Cena"];
+
             daysOfWeek.forEach(day => {
-                if (menu[day]) {
-                    mealTypes.forEach(mealType => {
-                        const mealValue = menu[day][mealType];
-                        if (mealValue) {
-                            const input = document.querySelector(`.day-card[data-day="${day}"] .meal-input[data-meal-type="${mealType}"]`);
-                            if (input) {
-                                input.value = mealValue;
-                            }
-                        }
-                    });
-                }
+                const dayCard = document.createElement('div');
+                dayCard.classList.add('day-card');
+                dayCard.dataset.day = day; // Guardar el día como data attribute
+
+                dayCard.innerHTML = `
+                    <h3>${day}</h3>
+                    ${mealTypes.map(mealType => `
+                        <input type="text" class="meal-input" data-meal-type="${mealType}" placeholder="${mealType}...">
+                    `).join('')}
+                `;
+                weeklyMenuGrid.appendChild(dayCard);
             });
+        }
+
+        async function fetchWeeklyMenu() {
+            console.log('Fetching weekly menu...');
+            try {
+                const response = await fetch('/api/weekly_menu');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const menu = await response.json();
+                weeklyMenuData = menu; // Almacenar el menú completo
+                console.log('Fetched weekly menu data:', weeklyMenuData); // Debug: ver menú cargado
+
+                // Rellenar los inputs con los datos del menú
+                Object.keys(weeklyMenuData).forEach(day => {
+                    const dayCard = document.querySelector(`.day-card[data-day="${day}"]`);
+                    if (dayCard) {
+                        Object.keys(weeklyMenuData[day]).forEach(mealType => {
+                            const input = dayCard.querySelector(`.meal-input[data-meal-type="${mealType}"]`);
+                            if (input) {
+                                input.value = weeklyMenuData[day][mealType] || '';
+                            }
+                        });
+                    }
+                });
+                showCustomAlert('Menú semanal cargado con éxito.', 'Carga Exitosa');
+            } catch (error) {
+                console.error('Error fetching weekly menu:', error);
+                showCustomAlert(`No se pudo cargar el menú semanal: ${error.message}. Se iniciará con un menú vacío.`, 'Error de Carga');
+                weeklyMenuData = {}; // Asegurarse de que esté vacío en caso de error
+                // Opcionalmente, puedes limpiar los inputs si no se cargó nada
+                document.querySelectorAll('.meal-input').forEach(input => input.value = '');
+            }
         }
 
         async function saveWeeklyMenu() {
             const menuData = {};
+            const daysOfWeek = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+            const mealTypes = ["Desayuno", "Almuerzo", "Cena"];
+
             daysOfWeek.forEach(day => {
                 menuData[day] = {};
                 mealTypes.forEach(mealType => {
@@ -1241,10 +1491,10 @@ async function fetchAllIngredientsForRecipes() {
 
         saveMenuBtn.addEventListener('click', saveWeeklyMenu);
 
-        // --- Inicialización ---
+        // --- Inicialización --
         document.addEventListener('DOMContentLoaded', () => {
-            // No abrir ningún acordeón por defecto, todos cerrados inicialmente
-            // La carga de datos se dispara al abrir cada acordeón
+            // Inicializar la cuadrícula del menú semanal sin abrir el acordeón
+            renderWeeklyMenuGrid(); 
         });
 
     </script>
