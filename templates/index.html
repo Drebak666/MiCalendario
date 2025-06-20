@@ -10,7 +10,7 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" xintegrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" xintegrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==\" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         /* Estilos personalizados para los badges de conteo y algunas transiciones */
         .button-count, .button-nav-count {
@@ -257,14 +257,18 @@
                 <div class="form-group day-selector">
                     <p class="block text-gray-700 text-sm font-bold mb-2">Repetir los días (solo para rutinas):</p>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        <label class="flex items-center"><input type="checkbox" name="routineDay" value="Lunes" class="form-checkbox mr-2 rounded"> <span>Lunes</span></label>
-                        <label class="flex items-center"><input type="checkbox" name="routineDay" value="Martes" class="form-checkbox mr-2 rounded"> <span>Martes</span></label>
-                        <label class="flex items-center"><input type="checkbox" name="routineDay" value="Miércoles" class="form-checkbox mr-2 rounded"> <span>Miércoles</span></label>
-                        <label class="flex items-center"><input type="checkbox" name="routineDay" value="Jueves" class="form-checkbox mr-2 rounded"> <span>Jueves</span></label>
-                        <label class="flex items-center"><input type="checkbox" name="routineDay" value="Viernes" class="form-checkbox mr-2 rounded"> <span>Viernes</span></label>
-                        <label class="flex items-center"><input type="checkbox" name="routineDay" value="Sábado" class="form-checkbox mr-2 rounded"> <span>Sábado</span></label>
-                        <label class="flex items-center"><input type="checkbox" name="routineDay" value="Domingo" class="form-checkbox mr-2 rounded"> <span>Domingo</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="routineDay" value="Lunes" class="form-checkbox"> <span>Lunes</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="routineDay" value="Martes" class="form-checkbox"> <span>Martes</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="routineDay" value="Miércoles" class="form-checkbox"> <span>Miércoles</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="routineDay" value="Jueves" class="form-checkbox"> <span>Jueves</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="routineDay" value="Viernes" class="form-checkbox"> <span>Viernes</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="routineDay" value="Sábado" class="form-checkbox"> <span>Sábado</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="routineDay" value="Domingo" class="form-checkbox"> <span>Domingo</span></label>
                     </div>
+                </div>
+                <div class="mb-4">
+                    <label for="routineEndTimeInput" class="block text-gray-700 text-sm font-bold mb-2">Hora Fin (Rutina):</label>
+                    <input type="time" id="routineEndTimeInput" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 </div>
             </div>
 
@@ -480,6 +484,14 @@
             fechaActualDisplay.textContent = fechaActual.toLocaleDateString('es-ES', options);
         }
 
+        // Helper para obtener el objeto Date de un momento específico para la ordenación
+        const getMoment = (dateStr, timeStr) => {
+            if (!timeStr) return null; 
+            const [h, m] = timeStr.split(':').map(Number);
+            const [y, M, d] = dateStr.split('-').map(Number);
+            return new Date(y, M - 1, d, h, m, 0); 
+        };
+
         // Function to render requirements list (for add form and display)
         function renderRequisitosList(requisitosArray, displayElement, isEditable = true, citaId = null) {
             displayElement.innerHTML = '';
@@ -533,7 +545,8 @@
 
         async function fetchCombinedAgenda() {
             const todayDate = formatFecha(fechaActual);
-            const todayDayOfWeek = (fechaActual.getDay()); 
+            const currentDate = new Date(); // Definición de currentDate
+            const todayDayOfWeek = currentDate.getDay(); 
 
             let allEntries = [];
             let upcomingCitas = []; 
@@ -563,9 +576,10 @@
                         allEntries.push({
                             id: routine.id,
                             type: 'rutina',
-                            displayTime: routine.hora,
+                            displayTime: routine.hora, // This is the start time of the routine
                             displayText: routine.nombre,
-                            dias: routine.dias
+                            dias: routine.dias,
+                            hora_fin: routine.hora_fin // This is the end time of the routine
                         });
                     }
                 });
@@ -587,30 +601,78 @@
                 completedRoutineIdsForToday = new Set(); 
             }
 
+            // --- LÓGICA DE AUTO-COMPLETADO DE TAREAS Y RUTINAS ---
+            let itemsToMarkCompleted = []; // Unificado para tareas y rutinas
+            const now = new Date();
+            const todayDateString = formatFecha(now);
+
+            allEntries.forEach(entry => {
+                // Tareas: Desactivado el auto-completado para tareas.
+                // La lógica de auto-completado para tareas ha sido removida/comentada para requerir completado manual.
+
+                // Rutinas: Auto-completado para rutinas (si su hora_fin ha pasado y no están ya completadas)
+                if (entry.type === 'rutina' && !completedRoutineIdsForToday.has(entry.id) && entry.hora_fin) {
+                    const [hour, minute] = entry.hora_fin.split(':').map(Number);
+                    const routineEndDateTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute);
+
+                    if (routineEndDateTime < now) {
+                        itemsToMarkCompleted.push({ type: 'rutina', id: entry.id, currentStatus: completedRoutineIdsForToday.has(entry.id) });
+                        completedRoutineIdsForToday.add(entry.id); // Actualiza el estado localmente para el renderizado inmediato
+                        console.log(`DEBUG: Rutina '${entry.displayText}' (${entry.id}) identificada para auto-completar.`);
+                    }
+                }
+            });
+
+            // Enviar las actualizaciones al backend de forma asíncrona
+            if (itemsToMarkCompleted.length > 0) {
+                console.log("DEBUG: Ítems identificados para auto-completar:", itemsToMarkCompleted);
+                itemsToMarkCompleted.forEach(async (item) => {
+                    try {
+                        let response;
+                        // Solo se envía la solicitud al backend para rutinas
+                        if (item.type === 'rutina') {
+                            response = await fetch(`/api/rutinas/${item.id}/toggle_completada_dia`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ fecha: todayDateString })
+                            });
+                        }
+                        
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            console.error(`Error al auto-completar ${item.type} ${item.id} en el backend:`, errorText);
+                        } else {
+                            console.log(`${item.type} ${item.id} auto-completada en el backend.`);
+                        }
+                    } catch (error) {
+                        console.error(`Error de red al auto-completar ${item.type} ${item.id}:`, error);
+                    }
+                });
+            }
+            // --- FIN LÓGICA DE AUTO-COMPLETADO DE TAREAS Y RUTINAS ---
+
             // Fetch Citas para el mes actual
-            const currentMonth = fechaActual.getMonth() + 1; // 1-indexed
+            const currentMonth = fechaActual.getMonth() + 1; 
             const currentYear = fechaActual.getFullYear();
             try {
-                // Modificado: Ahora se obtiene el campo 'recordatorio' también
                 const citasResponse = await fetch(`/api/citas/proximas/${currentYear}/${currentMonth}`);
                 if (!citasResponse.ok) {
                     const errorText = await citasResponse.text();
                     throw new Error(`Error al cargar citas próximas: ${errorText}`);
                 }
                 upcomingCitas = await citasResponse.json();
-                // Actualizar el contador de citas
                 quickCitaCountElem.textContent = upcomingCitas.length;
                 navCitasCountElem.textContent = upcomingCitas.length;
             } catch (error) {
                 console.error('Error fetching upcoming citas:', error);
                 upcomingCitas = [];
-                quickCitaCountElem.textContent = '0'; // Default if error
+                quickCitaCountElem.textContent = '0'; 
                 navCitasCountElem.textContent = '0';
             }
 
             // Fetch para el conteo de ítems de la lista de compra
             try {
-                const listCountResponse = await fetch('/api/lista_compra'); // Fetch all to count uncompleted
+                const listCountResponse = await fetch('/api/lista_compra'); 
                 if (listCountResponse.ok) {
                     const items = await listCountResponse.json();
                     const uncompletedCount = items.filter(item => !item.comprado).length;
@@ -645,18 +707,9 @@
                 navNotesCountElem.textContent = '0';
             }
 
-
-            renderUpcomingCitas(upcomingCitas); // Renderizar citas en su propia sección
-            renderCombinedAgenda(allEntries); // Renderizar tareas y rutinas
+            renderUpcomingCitas(upcomingCitas); 
+            renderCombinedAgenda(allEntries); 
         }
-
-        // Helper para obtener el objeto Date de un momento específico para la ordenación
-        const getMoment = (dateStr, timeStr) => {
-            if (!timeStr) return null; 
-            const [h, m] = timeStr.split(':').map(Number);
-            const [y, M, d] = dateStr.split('-').map(Number);
-            return new Date(y, M - 1, d, h, m, 0); 
-        };
 
         function renderUpcomingCitas(citas) {
             upcomingCitasList.innerHTML = '';
@@ -850,32 +903,44 @@
                 const isBCompleted = (b.type === 'tarea' && b.completada) || (b.type === 'rutina' && completedRoutineIdsForToday.has(b.id));
 
                 const aMoment = getMoment(todayDateString, a.displayTime);
+                // Para rutinas, la ordenación debe basarse en hora_fin para la prioridad de "Vencida"
+                const aMomentRoutineEnd = a.type === 'rutina' && a.hora_fin ? getMoment(todayDateString, a.hora_fin) : aMoment;
                 const bMoment = getMoment(todayDateString, b.displayTime);
+                const bMomentRoutineEnd = b.type === 'rutina' && b.hora_fin ? getMoment(todayDateString, b.hora_fin) : bMoment;
+
 
                 let priorityA, priorityB;
 
                 if (isACompleted) {
                     priorityA = 3; 
-                } else if (aMoment && aMoment < now) { 
-                    priorityA = 2;
-                } else { 
-                    priorityA = 1;
+                } else if (a.type === 'tarea' && aMoment && aMoment < now) { 
+                    priorityA = 2; // Tarea vencida
+                } else if (a.type === 'rutina' && aMomentRoutineEnd && aMomentRoutineEnd < now) {
+                    priorityA = 2; // Rutina vencida
+                }
+                else { 
+                    priorityA = 1; // Pendiente
                 }
 
                 if (isBCompleted) {
                     priorityB = 3;
-                } else if (bMoment && bMoment < now) { 
-                    priorityB = 2;
-                } else { 
-                    priorityB = 1;
+                } else if (b.type === 'tarea' && bMoment && bMoment < now) { 
+                    priorityB = 2; // Tarea vencida
+                } else if (b.type === 'rutina' && bMomentRoutineEnd && bMomentRoutineEnd < now) {
+                    priorityB = 2; // Rutina vencida
+                }
+                else { 
+                    priorityB = 1; // Pendiente
                 }
 
                 if (priorityA !== priorityB) {
                     return priorityA - priorityB;
                 }
 
-                const timeA = a.displayTime || '24:00'; 
-                const timeB = b.displayTime || '24:00'; 
+                // Si tienen la misma prioridad, ordenar por hora
+                // Usar hora_fin para rutinas en la comparación si ambas son rutinas o si una es rutina y la otra no tiene hora
+                const timeA = a.type === 'rutina' && a.hora_fin ? a.hora_fin : (a.displayTime || '24:00'); 
+                const timeB = b.type === 'rutina' && b.hora_fin ? b.hora_fin : (b.displayTime || '24:00'); 
                 return timeA.localeCompare(timeB);
             });
 
@@ -959,20 +1024,62 @@
                 } else if (entry.type === 'rutina') {
                     li.classList.add('routine-item');
                     const formattedTime = entry.displayTime ? entry.displayTime.substring(0, 5) : '';
-                    const horaPrefix = formattedTime ? `<span class="entry-time text-gray-500 text-sm">${formattedTime}</span> - ` : '';
-                    textSpan.innerHTML = `${horaPrefix}${entry.displayText}`;
+                    const formattedEndTime = entry.hora_fin ? entry.hora_fin.substring(0, 5) : ''; // Display end time
+                    
+                    let timeDisplay = '';
+                    if (formattedTime && formattedEndTime) {
+                        timeDisplay = `${formattedTime}-${formattedEndTime}`;
+                    } else if (formattedTime) {
+                        timeDisplay = formattedTime;
+                    }
+
+                    textSpan.innerHTML = timeDisplay ? `<span class="entry-time text-gray-500 text-sm">${timeDisplay}</span> - ${entry.displayText}` : entry.displayText;
                     contentDiv.appendChild(textSpan);
+
+                    // --- INICIO: Lógica para determinar el estado de la rutina (NUEVO) ---
+                    let statusText = '';
+                    let statusClass = '';
+
+                    const routineStartTimeParts = entry.displayTime.split(':').map(Number);
+                    const routineEndTimeParts = entry.hora_fin ? entry.hora_fin.split(':').map(Number) : routineStartTimeParts; 
+
+                    const routineStartDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), routineStartTimeParts[0], routineStartTimeParts[1]);
+                    const routineEndDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), routineEndTimeParts[0], routineEndTimeParts[1]);
+
+                    if (now >= routineStartDate && now < routineEndDate) { // La rutina está actualmente en curso
+                        statusText = 'En curso';
+                        statusClass = 'bg-blue-200 text-blue-800'; 
+                    } else if (now < routineStartDate) { // La rutina está programada para el futuro
+                        statusText = 'Pendiente';
+                        statusClass = 'bg-yellow-200 text-yellow-800';
+                    } else { // now >= routineEndDate, la rutina ya ha pasado
+                        statusText = 'Vencida';
+                        statusClass = 'bg-red-200 text-red-800';
+                    }
+                    // --- FIN: Lógica para determinar el estado de la rutina ---
 
                     const timeLeftSpan = document.createElement('span');
                     timeLeftSpan.classList.add('time-left', 'ml-2', 'text-sm');
                     timeLeftSpan.dataset.taskId = `routine-${entry.id}`;
                     timeLeftSpan.dataset.taskDate = todayDateString; 
-                    timeLeftSpan.dataset.taskTime = entry.displayTime || '';
+                    timeLeftSpan.dataset.taskTime = entry.hora_fin || entry.displayTime; // Pass hora_fin for routines' time left calculation
                     contentDiv.appendChild(timeLeftSpan);
+
+                    // --- INICIO: Agregar el badge de estado para rutinas (NUEVO) ---
+                    const statusBadge = document.createElement('span');
+                    // CORRECTED LINE: Split statusClass into individual classes before adding
+                    statusBadge.classList.add('ml-2', 'px-2', 'py-1', 'rounded-full', 'text-xs', 'font-semibold', ...statusClass.split(' ')); 
+                    statusBadge.textContent = statusText;
+                    contentDiv.appendChild(statusBadge);
+                    // --- FIN: Agregar el badge de estado ---
 
                     if (completedRoutineIdsForToday.has(entry.id)) {
                         li.classList.add('completed-item'); 
                         textSpan.classList.add('completada'); 
+                        // Si está completada, sobrescribe el estado a "Completada" y su clase correspondiente
+                        statusBadge.textContent = 'Completada';
+                        statusBadge.classList.remove(...statusBadge.classList.values()); // Elimina todas las clases de color previas
+                        statusBadge.classList.add('ml-2', 'px-2', 'py-1', 'rounded-full', 'text-xs', 'font-semibold', 'bg-green-200', 'text-green-800'); // Establece las clases de completado
                     }
 
                     const completeRoutineButton = document.createElement('button');
@@ -1147,7 +1254,7 @@
                 hours = parseInt(timeParts[0]);
                 minutes = parseInt(timeParts[1]);
             } else {
-                hours = 23;
+                hours = 23; // Default to end of day if no time is provided
                 minutes = 59;
             }
             
@@ -1162,12 +1269,29 @@
             }
 
             if (itemMoment < now) {
+                // If it's a routine and its end time has passed, show how much time has elapsed
                 if (isRoutineItem) { 
-                    targetElement.textContent = '(Pasada)';
+                    const diffMs = now - itemMoment;
+                    const daysPassed = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                    const hoursPassed = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutesPassed = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+                    let elapsedTimeText = '';
+                    if (daysPassed > 0) {
+                        elapsedTimeText = `(Hace ${daysPassed} día${daysPassed !== 1 ? 's' : ''})`;
+                    } else if (hoursPassed > 0) {
+                        elapsedTimeText = `(Hace ${hoursPassed}h ${minutesPassed}m)`;
+                    } else if (minutesPassed > 0) {
+                        elapsedTimeText = `(Hace ${minutesPassed}m)`;
+                    } else {
+                        elapsedTimeText = '(Hace menos de 1m)';
+                    }
+                    targetElement.textContent = elapsedTimeText;
                     targetElement.style.color = '#888'; 
-                    targetElement.classList.add('pasada'); 
+                    targetElement.classList.add('pasada'); // Keep 'pasada' class for styling
                     if (parentItem) parentItem.querySelector('.entry-text').classList.remove('vencida'); 
                 } else { 
+                    // For tasks, show as 'Vencida' if time has passed and they are not completed
                     targetElement.textContent = '(Vencida)';
                     targetElement.style.color = '#dc3545';
                     targetElement.classList.remove('pasada');
@@ -1176,6 +1300,7 @@
                 return;
             }
 
+            // If time is in the future or current for both tasks and routines
             const diffMs = itemMoment - now;
             const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
             const hoursLeft = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -1203,7 +1328,7 @@
             activeTasksTimeSpans.forEach(span => {
                 const itemId = span.dataset.taskId;
                 const itemDate = span.dataset.taskDate;
-                const itemTime = span.dataset.taskTime;
+                const itemTime = span.dataset.taskTime; // This will be hora_fin for routines
                 updateTimeLeft(itemId, itemDate, itemTime);
             });
         }
@@ -1562,8 +1687,10 @@
                                                 .filter(checkbox => checkbox.checked)
                                                 .map(checkbox => dayNameToNumber[checkbox.value]);
 
+                const routineEndTime = document.getElementById('routineEndTimeInput').value.trim(); // Obtener hora_fin
+
                 if (!hora || diasSeleccionados.length === 0) {
-                    showCustomAlert('Para una rutina, la hora y al menos un día son obligatorios.', 'Campos Obligatorios');
+                    showCustomAlert('Para una rutina, la hora de inicio y al menos un día son obligatorios.', 'Campos Obligatorios');
                     return;
                 }
 
@@ -1573,7 +1700,7 @@
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ nombre: text, hora, dias: diasSeleccionados }),
+                        body: JSON.stringify({ nombre: text, hora: hora, hora_fin: routineEndTime || null, dias: diasSeleccionados }), // Incluir hora_fin
                     });
 
                     if (!response.ok) {
@@ -1646,7 +1773,7 @@
 
             entryTextInput.value = '';
             entryTimeInput.value = '';
-            routineDayCheckboxes.forEach(checkbox => checkbox.checked = false);
+            routineDayCheckboxes.forEach(checkbox => checkbox.checked = false); 
             entryTypeSelect.value = 'tarea'; 
             entryTypeSelect.dispatchEvent(new Event('change')); 
         });
