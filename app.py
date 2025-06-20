@@ -1,3 +1,4 @@
+# En app.py
 import os
 import json
 from datetime import datetime, date, timedelta
@@ -1273,10 +1274,10 @@ def add_ingredient():
 
     # Valores predeterminados si no se proporcionan
     price_per_unit = price_per_unit if price_per_unit is not None else 0.0
-    calories_per_100g = calories_per_100g if calories_per_100g is not None else 0
-    proteins_per_100g = proteins_per_100g if proteins_per_100g is not None else 0
-    carbs_per_100g = carbs_per_100g if carbs_per_100g is not None else 0
-    fats_per_100g = fats_per_100g if fats_per_100g is not None else 0
+    calories_per_100g = calories_per_100g if calories_per_100g is not None else 0.0
+    proteins_per_100g = proteins_per_100g if proteins_per_100g is not None else 0.0
+    carbs_per_100g = carbs_per_100g if carbs_per_100g is not None else 0.0
+    fats_per_100g = fats_per_100g if fats_per_100g is not None else 0.0
 
 
     if not name:
@@ -1334,7 +1335,7 @@ def get_ingredients():
                 'supermarket': supermarket_name, # Aquí usamos el nombre para el frontend
                 'price_per_unit': ingredient['price_per_unit'],
                 'calories_per_100g': ingredient['calories_per_100g'],
-                'proteins_per_100g': ingredient['proteins_per_100g'],
+                'proteins_per_100g': ingredient['proteins_per_100g'], # CORREGIDO: Usar 'proteins_per_100g'
                 'carbs_per_100g': ingredient['carbs_per_100g'],
                 'fats_per_100g': ingredient['fats_per_100g']
             })
@@ -1374,11 +1375,11 @@ def handle_ingredient(ingredient_id):
             # Preparar los datos para la actualización
             update_data = {
                 'name': data.get('name'),
-                'price_per_unit': data.get('price_per_unit'),
-                'calories_per_100g': data.get('calories_per_100g'),
-                'proteins_per_100g': data.get('proteins_per_100g'),
-                'carbs_per_100g': data.get('carbs_per_100g'),
-                'fats_per_100g': data.get('fats_per_100g')
+                'price_per_unit': float(data['price_per_unit']) if data.get('price_per_unit') is not None else None,
+            'calories_per_100g': float(data['calories_per_100g']) if data.get('calories_per_100g') is not None else None,
+            'proteins_per_100g': float(data['proteins_per_100g']) if data.get('proteins_per_100g') is not None else None,
+            'carbs_per_100g': float(data['carbs_per_100g']) if data.get('carbs_per_100g') is not None else None,
+            'fats_per_100g': float(data['fats_per_100g']) if data.get('fats_per_100g') is not None else None
                 # No actualizamos supermarket_id directamente aquí, lo manejamos por nombre
             }
 
@@ -1445,40 +1446,74 @@ def add_recipe():
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
     data = request.get_json()
-    name = data.get('name')
-    ingredients_list = data.get('ingredients') 
-    total_cost = data.get('total_cost')
-    total_calories = data.get('total_calories')
-    total_proteins = data.get('total_proteins')
-    total_carbs = data.get('total_carbs')
-    total_fats = data.get('fats') # Corregido: Debería ser 'fats' según el JSON de la solicitud, no 'total_fats'
-    description = data.get('description') # NUEVO: obtener descripción
+    print(f"DEBUG Backend: Datos recibidos para receta: {data}") # Debug: Imprime los datos recibidos
 
+    # Extraer y sanear los datos
+    name = data.get('name', '').strip() 
+    description = data.get('description', '').strip()
+    ingredients_list = data.get('ingredients', []) 
 
-    if not all([name, ingredients_list is not None, total_cost is not None, total_calories is not None,
-                total_proteins is not None, total_carbs is not None, total_fats is not None]):
-        return jsonify({'error': 'Faltan datos obligatorios de la receta.'}), 400
+    if not isinstance(ingredients_list, list):
+        print(f"ERROR Backend: 'ingredients' no es una lista: {ingredients_list}")
+        return jsonify({'error': "El campo 'ingredients' debe ser una lista."}), 400
+
+    # Funciones auxiliares para parsear valores numéricos de forma segura
+    def parse_numeric_value(value, default_unit=''):
+        if value is None:
+            return 0.0
+        # Si ya es un float/int, devolverlo directamente
+        if isinstance(value, (int, float)):
+            return float(value)
+        # Si es una cadena, intentar limpiarla y convertirla
+        if isinstance(value, str):
+            clean_value = value.replace('€', '').replace('kcal', '').replace('g', '').strip()
+            try:
+                return float(clean_value)
+            except ValueError:
+                # Si la conversión falla, devolver un valor predeterminado o levantar un error
+                print(f"Advertencia: No se pudo convertir '{value}' a número. Usando 0.0.")
+                return 0.0
+        return 0.0 # Valor por defecto si el tipo no es esperado
+
+    total_cost = parse_numeric_value(data.get('total_cost'), '€')
+    total_calories = parse_numeric_value(data.get('total_calories'), 'kcal')
+    total_proteins = parse_numeric_value(data.get('total_proteins'), 'g')
+    total_carbs = parse_numeric_value(data.get('total_carbs'), 'g')
+    total_fats = parse_numeric_value(data.get('total_fats'), 'g') 
+
+    # Validación básica (puedes ajustar esto según tus necesidades de negocio)
+    if not name and not ingredients_list:
+        return jsonify({'error': 'La receta debe tener un nombre o al menos un ingrediente.'}), 400
     
-    try:
+    if supabase is None:
+        return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
+
+    try: # Todo el bloque de inserción dentro de un try
         insert_data = {
             'name': name,
-            'description': description, # NUEVO: añadir descripción
-            'ingredients': ingredients_list, # Almacenar como JSONB
+            'description': description,
+            'ingredients': ingredients_list, # Supabase debería manejar esto como JSONB
             'total_cost': total_cost,
             'total_calories': total_calories,
             'total_proteins': total_proteins,
             'total_carbs': total_carbs,
             'total_fats': total_fats
         }
+        
+        print(f"DEBUG Backend: Datos a insertar en Supabase: {insert_data}") # Debug: Imprime los datos a insertar
+
         response = supabase.from_('recipes').insert(insert_data).execute()
-        new_recipe = response.data[0] if response and response.data else None
-        if new_recipe:
-            return jsonify(new_recipe), 201
+        
+        # Verificar si la inserción fue exitosa
+        if response.data:
+            return jsonify({'message': 'Receta creada exitosamente.', 'recipe': response.data[0]}), 201
         else:
-            return jsonify({'error': 'No se pudo insertar la receta.'}), 500
+            print(f"ERROR Supabase: Respuesta de inserción vacía o inesperada: {response}")
+            return jsonify({'error': 'Error al crear la receta: No se recibió respuesta de la base de datos.'}), 500
+
     except Exception as e:
-        print(f"Error al añadir receta a Supabase: {e}")
-        return jsonify({'error': f'Error al añadir receta: {str(e)}'}), 500
+        print(f"ERROR Backend: Excepción al crear receta: {e}") # Debug: Captura cualquier otra excepción
+        return jsonify({'error': f'Error interno al crear la receta: {str(e)}'}), 500
 
 @app.route('/api/recipes', methods=['GET'])
 def get_recipes():
@@ -1620,4 +1655,3 @@ if __name__ == '__main__':
     # Puerto para la aplicación Flask (Render usará el puerto 10000 por defecto)
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
-
