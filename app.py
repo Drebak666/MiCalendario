@@ -94,23 +94,51 @@ def init_db_supabase():
     except Exception as e:
         print(f"[ERROR] Error al inicializar/insertar tipos de documento en Supabase: {e}")
 
+# NUEVO: Tabla para almacenar la última fecha de generación de tareas
+# Necesitarás crear una tabla en Supabase con una columna 'last_generation_date' (tipo: date)
+# y, opcionalmente, un 'id' (UUID) y 'app_identifier' (texto) si quieres múltiples apps o una única entrada.
+# Para este ejemplo, asumiremos una única entrada con un ID conocido o que la tabla solo tendrá una fila.
+# Por ejemplo, puedes crear una tabla llamada `app_settings` con una columna `last_task_generation_date`.
 
 def generate_tasks_for_today_from_routines():
     """
     Genera tareas para hoy a partir de las rutinas, adaptado para Supabase.
+    Ahora incluye un mecanismo para asegurar que se ejecuta solo una vez al día.
     """
     if supabase is None:
         print("[WARNING] Supabase no está inicializado. No se pueden generar tareas a partir de rutinas.")
         return
 
     today_date_str = datetime.now().strftime('%Y-%m-%d')
+    today_date_obj = datetime.now().date() # Obtener la fecha actual como objeto date
     today_day_of_week_py = datetime.now().weekday()
     # Mapear al formato HTML (0=Dom, 1=Lun, ..., 6=Sáb). Python weekday es 0=Lun, 6=Dom.
     today_day_of_week_html_format = (today_day_of_week_py + 1) % 7 # Lunes (0) -> 1, Domingo (6) -> 0
 
-    print(f"[{datetime.now()}] Iniciando la generación de tareas para hoy ({today_date_str}, día de la semana HTML: {today_day_of_week_html_format}) a partir de las rutinas.")
+    print(f"[{datetime.now()}] Intentando generar tareas para hoy ({today_date_str}, día de la semana HTML: {today_day_of_week_html_format}) a partir de las rutinas.")
 
     try:
+        # 1. Obtener la última fecha de generación
+        # Asumiendo una tabla 'app_settings' con una columna 'last_task_generation_date'
+        # Podrías usar un ID fijo para la única fila de configuración, por ejemplo, 'daily_tasks_setting_id'
+        settings_response = supabase.from_('app_settings').select('last_task_generation_date').limit(1).execute()
+        last_generation_date_str = settings_response.data[0]['last_task_generation_date'] if settings_response.data else None
+
+        last_generation_date_obj = None
+        if last_generation_date_str:
+            try:
+                last_generation_date_obj = datetime.strptime(last_generation_date_str, '%Y-%m-%d').date()
+            except ValueError:
+                print(f"[WARNING] Formato de fecha inválido en last_task_generation_date: {last_generation_date_str}. Se forzará la regeneración.")
+                last_generation_date_obj = None # Forzar regeneración si el formato es malo
+
+        # 2. Comprobar si ya se generaron tareas para hoy
+        if last_generation_date_obj == today_date_obj:
+            print(f"[{datetime.now()}] Las tareas para hoy ({today_date_str}) ya fueron generadas previamente. Saltando generación.")
+            return
+
+        print(f"[{datetime.now()}] Generando tareas para hoy ({today_date_str})...")
+
         response = supabase.from_('rutina').select('id,nombre,hora,dias_semana').execute()
         routines = response.data
 
@@ -146,9 +174,23 @@ def generate_tasks_for_today_from_routines():
                         print(f"[{datetime.now()}] Tarea '{routine_name}' generada para hoy a partir de la rutina {routine_id}. ID: {insert_response.data[0]['id']}.")
                     else:
                         print(f"[{datetime.now()}] Fallo al generar la tarea '{routine_name}' para hoy a partir de la rutina {routine_id}.")
-        print(f"[{datetime.now()}] Generación de tareas a partir de rutinas finalizada para hoy.")
+        
+        # 3. Actualizar la última fecha de generación después de la ejecución exitosa
+        if settings_response.data:
+            # Si ya existe una fila, actualiza
+            supabase.from_('app_settings').update({'last_task_generation_date': today_date_str}).eq('id', settings_response.data[0]['id']).execute()
+        else:
+            # Si no existe, inserta una nueva fila (asumiendo que solo habrá una)
+            # Podrías necesitar un ID fijo si no tienes un UUID autogenerado para esta tabla de configuración.
+            # Aquí asumimos que Supabase autogenerará un UUID si 'id' no se especifica y la columna es de tipo UUID.
+            supabase.from_('app_settings').insert({'last_task_generation_date': today_date_str}).execute()
+        
+        print(f"[{datetime.now()}] Generación de tareas a partir de rutinas finalizada y fecha de última generación actualizada a {today_date_str}.")
+
     except Exception as e:
         print(f"[ERROR] Error en generate_tasks_for_today_from_routines: {e}")
+        # En caso de error, no actualizamos la fecha de última generación para reintentar en el siguiente inicio.
+
 
 def manage_overdue_tasks():
     """
@@ -264,11 +306,19 @@ def get_tareas_by_date(fecha):
 def get_dias_con_tareas(year, month):
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
-    month_str = str(month).zfill(2)
-    search_pattern = f"{year}-{month_str}-"
+    
+    # Construir el rango de fechas para el mes
+    start_date = date(year, month, 1)
+    # calendar.monthrange(year, month)[1] devuelve el número de días en el mes
+    end_date = date(year, month, calendar.monthrange(year, month)[1])
 
     try:
-        response = supabase.from_('tarea').select('fecha').ilike('fecha', f'{search_pattern}%').execute()
+        # Consulta para obtener fechas dentro del rango de mes
+        # Esto es más robusto y usa comparaciones de fecha adecuadas
+        response = supabase.from_('tarea').select('fecha') \
+                                        .gte('fecha', str(start_date)) \
+                                        .lte('fecha', str(end_date)) \
+                                        .execute()
         
         fechas = sorted(list(set([row['fecha'] for row in response.data])))
         return jsonify(fechas)
@@ -445,11 +495,16 @@ def get_registros_importantes():
 def get_dias_con_registros(year, month):
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
-    month_str = str(month).zfill(2)
-    search_pattern = f"{year}-{month_str}-"
+    
+    # Construir el rango de fechas para el mes
+    start_date = date(year, month, 1)
+    end_date = date(year, month, calendar.monthrange(year, month)[1])
 
     try:
-        response = supabase.from_('registro_importante').select('fecha').ilike('fecha', f'{search_pattern}%').execute()
+        response = supabase.from_('registro_importante').select('fecha') \
+                                                        .gte('fecha', str(start_date)) \
+                                                        .lte('fecha', str(end_date)) \
+                                                        .execute()
         fechas = sorted(list(set([row['fecha'] for row in response.data])))
         return jsonify(fechas)
     except Exception as e:
@@ -557,11 +612,16 @@ def get_documentacion():
 def get_dias_con_documentos(year, month):
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
-    month_str = str(month).zfill(2)
-    search_pattern = f"{year}-{month_str}-"
+    
+    # Construir el rango de fechas para el mes
+    start_date = date(year, month, 1)
+    end_date = date(year, month, calendar.monthrange(year, month)[1])
 
     try:
-        response = supabase.from_('documentacion').select('fecha').ilike('fecha', f'{search_pattern}%').execute()
+        response = supabase.from_('documentacion').select('fecha') \
+                                                .gte('fecha', str(start_date)) \
+                                                .lte('fecha', str(end_date)) \
+                                                .execute()
         fechas = sorted(list(set([row['fecha'] for row in response.data])))
         return jsonify(fechas)
     except Exception as e:
