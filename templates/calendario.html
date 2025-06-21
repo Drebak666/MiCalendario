@@ -23,6 +23,10 @@
         /* Estilos de la cámara */
         .camera-modal-content {
             max-width: 700px;
+            /* Se ha añadido/modificado para permitir el desplazamiento en pantallas pequeñas */
+            max-height: 90vh; /* Limita la altura al 90% del alto de la ventana */
+            overflow-y: auto; /* Permite desplazamiento vertical si el contenido excede max-height */
+            margin: 20px auto; /* Ajusta el margen para dar más espacio vertical */
         }
         .camera-stream {
             width: 100%;
@@ -43,7 +47,7 @@
             margin: 5px;
         }
 
-        /* Nuevos estilos para ítems completados (aplicables a tareas, rutinas, citas) */
+        /* Nuevos estilos para ítems completados (aplicables a tareas, citas) */
         .completed-item .entry-text,
         .completed-item .entry-time,
         .completed-item .time-left {
@@ -90,6 +94,50 @@
             font-size: 0.7em;
             color: #00acc1; /* Color azul para el icono de cita */
         }
+
+        /* Estilo para los días con tareas */
+        .calendar-body .day.has-tasks::after {
+            content: '';
+            position: absolute;
+            bottom: 5px; /* Ajusta la posición del punto */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background-color: #3b82f6; /* Color azul para indicar tareas */
+            border-radius: 50%;
+        }
+
+        /* Estilo para el botón "Hoy" flotante */
+        .today-button-float {
+            position: fixed; /* O 'absolute' si está dentro de un contenedor con position:relative */
+            top: 20px; /* Distancia desde la parte superior */
+            right: 20px; /* Distancia desde la derecha */
+            z-index: 1000; /* Asegura que esté por encima de otros elementos */
+            /* Agrega estilos de botón si no los tiene ya */
+            background-color: #1A73E8; /* Color de ejemplo */
+            color: white;
+            padding: 10px 15px;
+            border-radius: 9999px; /* Para hacerlo redondo/pill-shaped */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .today-button-float:hover {
+            background-color: #0c5bbf; /* Color más oscuro al pasar el ratón */
+            transform: translateY(-2px);
+        }
+
+        /* Clases para el efecto de sombra en hover de los días */
+        .day-cell:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .no-records-message {
+            color: #ef4444; /* Rojo */
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans antialiased">
@@ -107,7 +155,7 @@
                     <select id="yearSelect" class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                         <!-- Años se llenarán con JS -->
                     </select>
-                    <button id="todayButton" class="boton today-btn bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-full shadow-md transition-colors duration-200">Hoy</button>
+                    <!-- El botón "Hoy" se moverá con CSS para ser flotante -->
                 </div>
             </div>
 
@@ -140,22 +188,21 @@
                     <label for="entryType" class="block text-gray-700 text-sm font-bold mb-2">Tipo:</label>
                     <select id="entryType" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                         <option value="tarea">Tarea</option>
-                        <option value="rutina">Rutina</option>
                         <option value="cita">Cita</option>
                     </select>
                 </div>
 
                 <div class="mb-4">
                     <label for="entryTextInput" id="entryTextLabel" class="block text-gray-700 text-sm font-bold mb-2">Descripción:</label>
-                    <input type="text" id="entryTextInput" placeholder="Añadir una nueva tarea, rutina o cita..." required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <input type="text" id="entryTextInput" placeholder="Añadir una nueva tarea o cita..." required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 </div>
 
                 <div class="mb-4">
-                    <label for="entryTimeInput" id="entryTimeLabel" class="block text-gray-700 text-sm font-bold mb-2">Hora:</label>
+                    <label for="entryTimeInput" id="entryTimeInputLabel" class="block text-gray-700 text-sm font-bold mb-2">Hora:</label>
                     <input type="time" id="entryTimeInput" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 </div>
 
-                <!-- Campos de Rutina (inicialmente ocultos) -->
+                <!-- Campos de Rutina (inicialmente ocultos y ahora no utilizados para creación) -->
                 <div id="routineFields" class="mb-4" style="display: none;">
                     <div class="form-group day-selector">
                         <p class="block text-gray-700 text-sm font-bold mb-2">Repetir los días (solo para crear nuevas rutinas globales):</p>
@@ -171,7 +218,7 @@
                     </div>
                 </div>
 
-                <!-- NUEVOS Campos de Cita (inicialmente ocultos) -->
+                <!-- Campos de Cita (inicialmente ocultos) -->
                 <div id="citaFields" style="display: none;">
                     <!-- La fecha de la cita será el día seleccionado, no se necesita un input adicional aquí. -->
                 </div>
@@ -207,6 +254,12 @@
             </a>
         </div>
     </div>
+
+    <!-- Botón "Hoy" flotante - Fuera del contenedor principal para posicionamiento fijo -->
+    <button id="todayButton" class="today-button-float flex items-center space-x-2">
+        <i class="fas fa-calendar-day"></i>
+        <span>Hoy</span>
+    </button>
 
     <!-- Modal para Captura de Foto -->
     <div id="cameraModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]" style="display:none;">
@@ -263,17 +316,17 @@
         const entryTextInput = document.getElementById('entryTextInput');
         const entryTextLabel = document.getElementById('entryTextLabel');
         const entryTimeInput = document.getElementById('entryTimeInput');
-        const entryTimeLabel = document.getElementById('entryTimeLabel'); // Nueva referencia para el label de hora
-        const routineFieldsDiv = document.getElementById('routineFields');
+        const entryTimeInputLabel = document.getElementById('entryTimeInputLabel'); // Renamed to avoid conflict
+        const routineFieldsDiv = document.getElementById('routineFields'); // Still exists but not used for creation
         const routineDayCheckboxes = document.querySelectorAll('input[name="routineDay"]');
-        const citaFieldsDiv = document.getElementById('citaFields'); // NUEVOS CAMPOS DE CITA
-        
+        const citaFieldsDiv = document.getElementById('citaFields'); // Campos de cita
+
         let currentYear, currentMonth; // 0-indexed month
         let selectedDayFormattedDate = null; // Para rastrear el día seleccionado y usarlo en el formulario
 
         // Variables para almacenar días con actividades
         let daysWithTasks = [];
-        let daysWithCitas = []; // NUEVA: Para almacenar días con citas
+        let daysWithCitas = []; // Para almacenar días con citas
 
         // Variable para el intervalo de actualización de tiempo restante
         let timeLeftUpdateInterval;
@@ -300,7 +353,10 @@
         let currentMimeType = null; // Variable para almacenar el tipo MIME
         let currentRegistroPhotoPreviewElement = null; // To reference the <img> tag in the saveRegistro modal
 
+
         // --- NEW: Set to store completed routine IDs for the CURRENTLY SELECTED DAY (retrieved from backend) ---
+        // This is still needed for displaying routines that might already be in the backend for the selected day,
+        // even if new routine creation is disabled.
         let completedRoutineIdsForSelectedDay = new Set();
 
 
@@ -321,8 +377,10 @@
 
                 if (tasksResponse.ok) {
                     daysWithTasks = await tasksResponse.json();
+                    console.log('Días con tareas (fetch):', daysWithTasks); // DEBUG
                 } else {
-                    console.error('Error al obtener días con tareas:', await tasksResponse.text());
+                    const errorText = await tasksResponse.text(); // Capturar el texto del error
+                    console.error('Error al obtener días con tareas:', errorText);
                     daysWithTasks = [];
                 }
 
@@ -340,9 +398,11 @@
                                     .map(cita => cita.fecha);
                     // Ensure unique dates in case multiple citas fall on the same day
                     daysWithCitas = Array.from(new Set(daysWithCitas));
+                    console.log('Días con citas (fetch):', daysWithCitas); // DEBUG
 
                 } else {
-                    console.error('Error al obtener días con citas:', await citasResponse.text());
+                    const errorText = await citasResponse.text(); // Capturar el texto del error
+                    console.error('Error al obtener días con citas:', errorText);
                     daysWithCitas = [];
                 }
 
@@ -357,7 +417,7 @@
             calendarBody.querySelectorAll('.day').forEach(day => day.remove()); // Limpiar días anteriores
 
             const firstDay = new Date(currentYear, currentMonth, 1);
-            const lastDay = new Date(currentYear, currentMonth + 1, 0);
+            const lastDay = new Date(currentYear, currentMonth + 1, 0); // Correctly gets last day (e.g., 31 for Jan, Mar, May, Jul, Aug, Oct, Dec; 28/29 for Feb)
             const numDaysInMonth = lastDay.getDate();
 
             const firstDayIndex = firstDay.getDay(); // 0 for Sunday, 1 for Monday, etc.
@@ -380,6 +440,9 @@
                 const dayDate = new Date(currentYear, currentMonth, i);
                 const formattedDayDate = formatFecha(dayDate);
 
+                // DEBUG: Log the formatted date and check if it's in daysWithTasks
+                console.log(`Día: ${formattedDayDate}, ¿Tiene tareas? ${daysWithTasks.includes(formattedDayDate)}`);
+
                 // Marcar si es hoy
                 const today = new Date();
                 if (dayDate.getDate() === today.getDate() &&
@@ -393,13 +456,14 @@
                     dayDiv.classList.add('selected', 'bg-blue-200', 'border-blue-700', 'shadow-md');
                 }
 
-                // Marcar días con tareas (se podría añadir un badge o icono)
+                // Marcar días con tareas (ahora usa la clase has-tasks y el pseudo-elemento CSS)
                 if (daysWithTasks.includes(formattedDayDate)) {
                     dayDiv.classList.add('has-tasks');
-                    // Opcional: añadir un pequeño círculo o punto para indicar tareas
-                    const taskIndicator = document.createElement('div');
-                    taskIndicator.classList.add('w-2', 'h-2', 'bg-red-500', 'rounded-full', 'absolute', 'bottom-1', 'left-1');
-                    dayDiv.appendChild(taskIndicator);
+                    // DEBUG: Añadir un indicador visible directamente para depuración, si el ::after no funciona
+                    const debugTaskIndicator = document.createElement('span');
+                    debugTaskIndicator.classList.add('absolute', 'top-0', 'right-0', 'text-xs', 'font-bold', 'text-red-500');
+                    debugTaskIndicator.textContent = '●'; // Un pequeño círculo rojo
+                    dayDiv.appendChild(debugTaskIndicator);
                 }
                 
                 // Marcar días con citas (con icono, como se definió en el <style>)
@@ -454,6 +518,7 @@
                 const tasks = await tasksResponse.json();
 
                 // Fetch de Rutinas (filtramos por el día de la semana de la fecha seleccionada)
+                // Aunque no se crean nuevas rutinas desde aquí, se pueden mostrar las existentes
                 const routinesResponse = await fetch('/api/rutinas');
                 if (!routinesResponse.ok) throw new Error('Error al cargar rutinas.');
                 const allRoutines = await routinesResponse.json();
@@ -645,6 +710,7 @@
                         actionsDiv.appendChild(saveRegistroButton);
 
                     } else if (activity.type === 'rutina') {
+                        // Keep routine buttons for existing routines, even if new creation is removed
                         const completeRoutineButton = document.createElement('button');
                         completeRoutineButton.classList.add('btn-completar', 'bg-blue-500', 'hover:bg-blue-700', 'text-white', 'py-1', 'px-3', 'rounded', 'text-sm', 'flex', 'items-center', 'space-x-1');
                         completeRoutineButton.dataset.id = activity.id; 
@@ -1012,7 +1078,7 @@
             stopCamera();
             // Update the preview in the saveRegistro modal if it's open
             if (currentRegistroPhotoPreviewElement && capturedImageBase64) {
-                currentRegistroPhotoPreviewElement.src = capturedImageBase64;
+                currentRegistroPhotoPreviewElement.src = capturedImageBase64; // Corregido: era capturedImageBase664
                 currentRegistroPhotoPreviewElement.style.display = 'block';
             }
             cameraStatus.textContent = '';
@@ -1293,29 +1359,23 @@
 
         // --- Lógica del Formulario de Adición ---
         entryTypeSelect.addEventListener('change', () => {
-            routineFieldsDiv.style.display = 'none';
+            // routineFieldsDiv.style.display = 'none'; // No longer needed as 'rutina' option is removed
             citaFieldsDiv.style.display = 'none'; // Ocultar campos de cita
             entryTimeInput.required = false;
-            entryTimeLabel.textContent = 'Hora:'; // Restaurar label
-            entryTextInput.placeholder = 'Añadir una nueva tarea, rutina o cita...';
+            entryTimeInputLabel.textContent = 'Hora:'; // Restaurar label
+            entryTextInput.placeholder = 'Añadir una nueva tarea o cita...'; // Adjusted placeholder
 
-            if (entryTypeSelect.value === 'rutina') {
-                routineFieldsDiv.style.display = 'block';
-                entryTextLabel.textContent = 'Nombre de la Rutina:';
-                entryTextInput.placeholder = 'Ej. Meditar, Correr, Estudiar Inglés';
-                entryTimeInput.required = true;
-                entryTimeLabel.textContent = 'Hora (obligatoria):';
-            } else if (entryTypeSelect.value === 'cita') { // Mostrar campos de cita
+            if (entryTypeSelect.value === 'cita') { // Mostrar campos de cita
                 citaFieldsDiv.style.display = 'block';
                 entryTextLabel.textContent = 'Nombre de la Cita:';
                 entryTextInput.placeholder = 'Ej. Cita con el médico, Entrevista de trabajo';
                 entryTimeInput.required = false; // Hora es opcional para citas
-                entryTimeLabel.textContent = 'Hora (opcional):';
+                entryTimeInputLabel.textContent = 'Hora (opcional):';
             } else { // type === 'tarea'
                 entryTextLabel.textContent = 'Descripción:';
                 entryTextInput.placeholder = 'Añadir una nueva tarea...';
             }
-            routineDayCheckboxes.forEach(checkbox => checkbox.checked = false);
+            // routineDayCheckboxes.forEach(checkbox => checkbox.checked = false); // No longer needed
         });
 
         unifiedEntryForm.addEventListener('submit', async (e) => {
@@ -1356,35 +1416,6 @@
                     console.error('Error al guardar la tarea:', error);
                     showCustomAlert(`No se pudo guardar la tarea. Inténtalo de nuevo. Error: ${error.message}`, 'Error de Guardado'); 
                 }
-            } else if (type === 'rutina') {
-                const diasSeleccionados = Array.from(routineDayCheckboxes)
-                                               .filter(checkbox => checkbox.checked)
-                                               .map(checkbox => dayNameToNumber[checkbox.value]);
-
-                if (!hora || diasSeleccionados.length === 0) {
-                    showCustomAlert('Para una rutina, la hora y al menos un día son obligatorios.', 'Campos Obligatorios'); 
-                    return;
-                }
-
-                try {
-                    const response = await fetch('/api/rutinas', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ nombre: text, hora, dias: diasSeleccionados }),
-                    });
-
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || 'Error desconocido al guardar la rutina.');
-                    }
-                    showCustomAlert('Rutina guardada con éxito.', 'Guardado Exitoso'); 
-                    renderCalendar(); 
-                } catch (error) {
-                    console.error('Error al guardar la rutina:', error);
-                    showCustomAlert(`No se pudo guardar la rutina. Inténtalo de nuevo. Error: ${error.message}`, 'Error de Guardado'); 
-                }
             } else if (type === 'cita') { // Manejo de nueva Cita
                 // La fecha de la cita es el día seleccionado en el calendario
                 const citaFecha = selectedDayFormattedDate; 
@@ -1414,14 +1445,14 @@
             // Restablecer el formulario
             entryTextInput.value = '';
             entryTimeInput.value = '';
-            routineDayCheckboxes.forEach(checkbox => checkbox.checked = false);
+            // routineDayCheckboxes.forEach(checkbox => checkbox.checked = false); // Not needed
             entryTypeSelect.value = 'tarea';
-            routineFieldsDiv.style.display = 'none';
+            // routineFieldsDiv.style.display = 'none'; // Not needed
             citaFieldsDiv.style.display = 'none'; // Asegurarse de ocultar campos de cita
             entryTextLabel.textContent = 'Descripción:';
             entryTextInput.placeholder = 'Añadir una nueva tarea...';
             entryTimeInput.required = false;
-            entryTimeLabel.textContent = 'Hora:';
+            entryTimeInputLabel.textContent = 'Hora:';
         });
 
         // Función para reiniciar el formulario y el panel
@@ -1435,7 +1466,7 @@
             entryTextLabel.textContent = 'Descripción:';
             entryTextInput.placeholder = 'Añadir una nueva tarea...';
             entryTimeInput.required = false;
-            entryTimeLabel.textContent = 'Hora:';
+            entryTimeInputLabel.textContent = 'Hora:';
 
             panelDateElem.textContent = 'Selecciona un día para ver los detalles';
             panelActivitiesList.innerHTML = ''; // Limpiamos la única lista
