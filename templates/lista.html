@@ -3,222 +3,1114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" xintegrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-</head>
-<body>
-    <div class="list-section">
-        <h2 class="list-title-header">Lista de la Compra</h2>
+    <title>Lista de la Compra</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/agenda_icon.png') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        /* Custom styles for count badges - kept for potential future use or consistency with other pages */
+        .button-count, .button-nav-count {
+            position: absolute;
+            top: 0;
+            right: 0;
+            transform: translate(50%, -50%);
+            background-color: #ef4444; /* Tailwind Red */
+            color: white;
+            border-radius: 9999px;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            min-width: 1.5rem;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .button-nav-count {
+            top: 8px;
+            right: 8px;
+            transform: none;
+        }
         
-        <!-- Formulario para añadir ítems: arriba, como entrada principal -->
-        <form id="addItemForm" class="form-group add-item-form-layout">
-            <input type="text" id="itemInput" placeholder="Añadir nuevo ítem (o varios separados por espacio)..." required>
-            <button type="submit" class="boton"><i class="fas fa-plus"></i> Añadir</button>
-        </form>
+        /* General button transition for a smoother feel */
+        .btn-transition {
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-transition:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
 
-        <!-- Nueva sección para la fecha y el botón de borrar, actuando como encabezado para los ítems -->
-        <div class="list-sub-header">
-            <div class="current-date-display-card" id="currentDateDisplay"></div> <!-- Recuadro para la fecha -->
-            <button type="button" class="boton btn-eliminar clear-list-button" id="clearListButton">
-                <i class="fas fa-trash-alt"></i> Borrar toda la lista
-            </button>
+        /* Specific styles for custom modal for better integration */
+        .custom-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none; /* Hidden by default */
+        }
+
+        .custom-modal-content {
+            background: white;
+            /* Changed padding from fixed px to responsive Tailwind classes */
+            @apply p-4 sm:p-6; /* Adjusted padding for better mobile responsiveness */
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            animation: fadeInScale 0.3s ease-out forwards;
+            position: relative;
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .custom-modal-title {
+            font-size: 1.75rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 0.75rem;
+        }
+
+        .custom-modal-message {
+            font-size: 1.125rem;
+            color: #555;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .custom-modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .custom-modal-actions button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .custom-modal-actions button.confirm-button {
+            background-color: #3B82F6; /* blue-600 */
+            color: white;
+        }
+
+        .custom-modal-actions button.confirm-button:hover {
+            background-color: #2563EB; /* blue-700 */
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .custom-modal-actions button.cancel-button {
+            background-color: #6B7280; /* gray-500 */
+            color: white;
+        }
+
+        .custom-modal-actions button.cancel-button:hover {
+            background-color: #4B5563; /* gray-700 */
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+    </style>
+</head>
+<body class="bg-blue-50 font-sans leading-normal tracking-normal min-h-screen flex flex-col pb-40"> <div class="flex-grow flex items-center justify-center p-4">
+        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl m-4 mx-auto max-w-lg w-full transform transition-all duration-300 hover:scale-[1.01]">
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-800 mb-7 text-center drop-shadow-sm">Lista de la Compra</h2>
+            
+            <div class="flex flex-col sm:flex-row justify-between items-center bg-blue-50 p-3 rounded-lg mb-4 shadow-inner">
+                <div class="flex flex-col items-center w-full sm:w-1/2">
+                    <label for="defaultSupermarketSelect" class="text-blue-700 text-xs font-bold mb-1 sm:mb-0">Supermercado Principal:</label>
+                    <select id="defaultSupermarketSelect" class="w-full text-center p-1 border border-blue-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+                        </select>
+                    <p class="mt-1 text-sm font-semibold">Total: <span id="defaultSupermarketPriceValue">0.00</span>€</p>
+                </div>
+                <div class="w-full sm:w-1/2 flex flex-col items-center mt-3 sm:mt-0 sm:ml-4">
+                    <label for="compareSupermarketSelect" class="text-blue-700 text-xs font-bold mb-1 sm:mb-0">Comparar con:</label>
+                    <select id="compareSupermarketSelect" class="w-full text-center p-1 border border-blue-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+                        </select>
+                    <p class="mt-1 text-sm font-semibold">Total: <span id="compareSupermarketPriceValue">0.00</span>€</p>
+                </div>
+                <div id="savingsDisplay" class="w-full text-center mt-3 text-lg font-bold">
+                    </div>
+            </div>
+
+            <form id="addItemForm" class="flex flex-col sm:flex-row gap-4 mb-6">
+                <input type="text" id="itemInput" placeholder="Añadir nuevo ítem (o varios separados por espacio)..." required
+                       class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-4 focus:ring-teal-200 text-gray-800 shadow-sm transition-all duration-200"
+                       list="ingredientSuggestions"> <datalist id="ingredientSuggestions"></datalist> <button type="submit" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-6 rounded-lg flex-shrink-0 flex items-center justify-center btn-transition shadow-lg">
+                    <i class="fas fa-plus mr-2"></i> Añadir
+                </button>
+            </form>
+
+            <div class="flex flex-col sm:flex-row justify-between items-center bg-gray-50 p-4 rounded-lg mb-5 shadow-inner">
+                <span id="currentDateDisplay" class="text-lg font-semibold text-gray-700 mb-2 sm:mb-0"></span>
+                <button id="clearListButton" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-5 rounded-full shadow-md btn-transition">
+                    <i class="fas fa-trash-alt mr-2"></i> Borrar toda la lista
+                </button>
+            </div>
+
+            <div id="shoppingListItems" class="space-y-4">
+                <div id="shoppingListHeader" class="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-gray-100 p-4 rounded-lg shadow-sm text-gray-700 font-bold hidden">
+                    <div class="flex-grow w-full sm:w-auto mb-2 sm:mb-0">
+                        <span class="text-base sm:text-lg">Ítem</span>
+                    </div>
+                    <div class="flex-shrink-0 flex items-center justify-end gap-x-4 sm:gap-x-8 text-sm sm:text-base font-bold text-gray-700 w-full sm:w-auto">
+                        <span id="headerDefaultSupermarketName" class="whitespace-nowrap w-1/2 text-right sm:w-auto">Principal</span>
+                        <span id="headerCompareSupermarketName" class="whitespace-nowrap w-1/2 text-right sm:w-auto">Comparar</span>
+                    </div>
+                    <div class="flex-shrink-0 w-full sm:w-auto mt-2 sm:mt-0" style="min-width: 90px; max-width: 120px;"></div>
+                </div>
+                </div>
+
+            <div id="totalPriceDisplay" class="mt-8 p-5 bg-teal-100 text-teal-800 font-bold text-xl rounded-lg text-center shadow-md hidden">
+                Total estimado: <span id="totalPriceValue">0.00</span>€
+            </div>
         </div>
-
-        <ul id="shoppingListItems">
-            <li class="mensaje-info">Cargando ítems...</li>
-        </ul>
     </div>
 
-    <div class="navigation">
-        <a href="/" class="boton"><i class="fas fa-home"></i> Volver al Inicio</a>
-        <a href="/calendario" class="boton"><i class="fas fa-calendar-alt"></i> Calendario</a>
-        <a href="/registros_importantes" class="boton"><i class="fas fa-file-alt"></i> Registros Importantes</a>
-        <a href="/alimentacion" class="boton"><i class="fas fa-utensils"></i> Alimentación</a>
-        <a href="/documentos" class="boton"><i class="fas fa-folder-open"></i> Documentos</a>
-        <a href="/gimnasio" class="boton"><i class="fas fa-dumbbell"></i> Gimnasio</a>
+    <div id="customModalOverlay" class="custom-modal-overlay">
+        <div class="custom-modal-content">
+            <h3 id="customModalTitle" class="custom-modal-title"></h3>
+            <p id="customModalMessage" class="custom-modal-message"></p>
+            <div id="customModalActions" class="custom-modal-actions">
+                </div>
+        </div>
     </div>
+
+    <nav class="w-full bg-transparent p-4 mt-8"> <div class="container mx-auto grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 place-items-center"> <a href="/alimentacion" class="relative text-center w-full text-white font-semibold py-3 px-2 rounded-lg transition-all duration-200 bg-blue-600 hover:opacity-90 shadow-md">
+                <i class="fas fa-apple-alt block text-xl mb-1"></i> 
+                <span class="text-xs">Alimentación</span>
+            </a>
+            <a href="/gimnasio" class="relative text-center w-full text-white font-semibold py-3 px-2 rounded-lg transition-all duration-200 bg-green-600 hover:opacity-90 shadow-md">
+                <i class="fas fa-dumbbell block text-xl mb-1"></i> 
+                <span class="text-xs">Gimnasio</span>
+            </a>
+            <a href="/lista" class="relative text-center w-full text-white font-semibold py-3 px-2 rounded-lg transition-all duration-200 bg-teal-700 hover:opacity-90 shadow-md">
+                <i class="fas fa-shopping-cart block text-xl mb-1"></i> 
+                <span class="text-xs">Lista</span>
+            </a>
+            <a href="/citas" class="relative text-center w-full text-white font-semibold py-3 px-2 rounded-lg transition-all duration-200 bg-indigo-600 hover:opacity-90 shadow-md">
+                <i class="fas fa-calendar-check block text-xl mb-1"></i> 
+                <span class="text-xs">Citas</span>
+            </a>
+            <a href="/notas" class="relative text-center w-full text-white font-semibold py-3 px-2 rounded-lg transition-all duration-200 bg-yellow-600 hover:opacity-90 shadow-md">
+                <i class="fas fa-clipboard block text-xl mb-1"></i> 
+                <span class="text-xs">Notas</span>
+            </a>
+            <a href="/documentacion" class="relative text-center w-full text-white font-semibold py-3 px-2 rounded-lg transition-all duration-200 bg-purple-600 hover:opacity-90 shadow-md">
+                <i class="fas fa-file-alt block text-xl mb-1"></i> 
+                <span class="text-xs">Docs</span>
+            </a>
+            <a href="/registros_importantes" class="relative text-center w-full text-white font-semibold py-3 px-2 rounded-lg transition-all duration-200 bg-orange-600 hover:opacity-90 shadow-md">
+                <i class="fas fa-star block text-xl mb-1"></i> 
+                <span class="text-xs">Registros</span>
+            </a>
+            <a href="/calendario" class="relative text-center w-full text-white font-semibold py-3 px-2 rounded-lg transition-all duration-200 bg-pink-600 hover:opacity-90 shadow-md">
+                <i class="fas fa-calendar-alt block text-xl mb-1"></i> 
+                <span class="text-xs">Calendario</span>
+            </a>
+        </div>
+    </nav>
 
     <script>
+        // Get references to DOM elements
         const itemInput = document.getElementById('itemInput');
-        const shoppingListItems = document.getElementById('shoppingListItems');
         const addItemForm = document.getElementById('addItemForm');
-        const currentDateDisplay = document.getElementById('currentDateDisplay');
+        const shoppingListItemsDiv = document.getElementById('shoppingListItems');
         const clearListButton = document.getElementById('clearListButton');
+        const currentDateDisplay = document.getElementById('currentDateDisplay');
+        const totalPriceDisplay = document.getElementById('totalPriceDisplay');
+        const totalPriceValue = document.getElementById('totalPriceValue');
+        const ingredientSuggestionsDatalist = document.getElementById('ingredientSuggestions'); 
 
-        // Función para mostrar la fecha actual
-        function displayCurrentDate() {
-            const today = new Date();
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            currentDateDisplay.textContent = `Lista de la Compra para hoy: ${today.toLocaleDateString('es-ES', options)}`;
-        }
+        // Supermarket comparison elements
+        const defaultSupermarketSelect = document.getElementById('defaultSupermarketSelect');
+        const compareSupermarketSelect = document.getElementById('compareSupermarketSelect');
+        const defaultSupermarketPriceValue = document.getElementById('defaultSupermarketPriceValue');
+        const compareSupermarketPriceValue = document.getElementById('compareSupermarketPriceValue');
+        const shoppingListHeader = document.getElementById('shoppingListHeader');
+        const headerDefaultSupermarketName = document.getElementById('headerDefaultSupermarketName');
+        const headerCompareSupermarketName = document.getElementById('headerCompareSupermarketName');
+        const savingsDisplay = document.getElementById('savingsDisplay');
 
-        async function fetchShoppingList() {
-            shoppingListItems.innerHTML = '<li class="mensaje-info">Cargando ítems...</li>';
-            try {
-                const response = await fetch('/api/lista_compra');
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Error desconocido al obtener la lista de la compra');
+
+        // --- Custom Modal Functions (Copied for consistency) ---
+        // Function to show a custom modal (alert or confirm)
+        function showCustomModal(message, title = 'Mensaje', type = 'alert') {
+            return new Promise((resolve) => {
+                const modalOverlay = document.getElementById('customModalOverlay');
+                const modalTitle = document.getElementById('customModalTitle');
+                const modalMessage = document.getElementById('customModalMessage');
+                const modalActions = document.getElementById('customModalActions');
+
+                modalTitle.textContent = title;
+                modalMessage.textContent = message;
+                modalActions.innerHTML = ''; // Clear previous buttons
+
+                if (type === 'alert') {
+                    const okButton = document.createElement('button');
+                    okButton.classList.add('confirm-button');
+                    okButton.textContent = 'OK';
+                    okButton.addEventListener('click', () => {
+                        modalOverlay.style.display = 'none';
+                        resolve(true);
+                    });
+                    modalActions.appendChild(okButton);
+                } else if (type === 'confirm') {
+                    const yesButton = document.createElement('button');
+                    yesButton.classList.add('confirm-button');
+                    yesButton.textContent = 'Sí';
+                    yesButton.addEventListener('click', () => {
+                        modalOverlay.style.display = 'none';
+                        resolve(true);
+                    });
+                    const noButton = document.createElement('button');
+                    noButton.classList.add('cancel-button');
+                    noButton.textContent = 'No';
+                    noButton.addEventListener('click', () => {
+                        modalOverlay.style.display = 'none';
+                        resolve(false);
+                    });
+                    modalActions.appendChild(yesButton);
+                    modalActions.appendChild(noButton);
                 }
-                const items = await response.json();
-                renderShoppingList(items);
-            } catch (error) {
-                console.error('Error al cargar la lista de la compra:', error);
-                shoppingListItems.innerHTML = `<li class="mensaje-info">No se pudo cargar la lista de la compra. Error: ${error.message}</li>`;
-            }
-        }
 
-        function renderShoppingList(items) {
-            shoppingListItems.innerHTML = '';
-            if (items.length === 0) {
-                shoppingListItems.innerHTML = '<li class="mensaje-info">La lista de la compra está vacía.</li>';
-                return;
-            }
-
-            items.forEach(item => {
-                const li = document.createElement('li');
-                li.classList.add('task-item'); // Reutilizamos estilos de tareas para ítems
-                if (item.comprado) {
-                    li.classList.add('completada');
-                }
-                li.dataset.id = item.id;
-
-                const textSpan = document.createElement('span');
-                textSpan.classList.add('entry-text'); // Reutilizamos estilo de texto
-                textSpan.textContent = item.item;
-                if (item.comprado) {
-                    textSpan.classList.add('completada');
-                }
-                li.appendChild(textSpan);
-
-                const actionsDiv = document.createElement('div');
-                actionsDiv.classList.add('entry-actions'); // Reutilizamos estilos de acciones
-
-                const toggleButton = document.createElement('button');
-                toggleButton.classList.add('btn-completar');
-                toggleButton.dataset.id = item.id;
-                toggleButton.textContent = item.comprado ? 'Desmarcar' : 'Marcar';
-                if (item.comprado) toggleButton.classList.add('completada');
-                toggleButton.addEventListener('click', toggleComprado);
-                actionsDiv.appendChild(toggleButton);
-
-                const deleteButton = document.createElement('button');
-                deleteButton.classList.add('btn-eliminar');
-                deleteButton.dataset.id = item.id;
-                deleteButton.textContent = 'Eliminar';
-                deleteButton.addEventListener('click', deleteItem);
-                actionsDiv.appendChild(deleteButton);
-
-                li.appendChild(actionsDiv);
-                shoppingListItems.appendChild(li);
+                modalOverlay.style.display = 'flex';
             });
         }
 
-        addItemForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const rawInput = itemInput.value.trim();
-            if (!rawInput) return;
+        // Helper function for custom alerts
+        function showCustomAlert(message, title = 'Mensaje') {
+            return showCustomModal(message, title, 'alert');
+        }
 
-            // Dividir el texto por espacios y filtrar cadenas vacías
-            const itemsToAdd = rawInput.split(' ').filter(item => item.trim() !== '');
+        // Helper function for custom confirms
+        async function showCustomConfirm(message, title = 'Confirmación') {
+            return await showCustomModal(message, title, 'confirm');
+        }
+        // --- End Custom Modal Functions ---
 
-            if (itemsToAdd.length === 0) {
-                alert('Por favor, introduce al menos un ítem.');
-                return;
+        // Function to format date
+        function formatFecha(date) {
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+            const dd = String(date.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        // Function to display current date
+        function displayCurrentDate() {
+            const today = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            currentDateDisplay.textContent = `Hoy: ${today.toLocaleDateString('es-ES', options)}`;
+        }
+
+        // --- Fetching and Rendering Shopping List ---
+        let allIngredients = []; // Cache for all ingredients fetched from /api/ingredients
+        let allSupermarkets = []; // Cache for unique supermarket names, including their IDs
+        let currentShoppingListItems = []; // Cache for the current shopping list items from /api/lista_compra
+
+        // Function to singularize Spanish words (basic implementation)
+        // This function attempts to convert common plural forms of Spanish words to their singular form.
+        // It's a basic implementation and might not cover all linguistic complexities.
+        function singularize(word) {
+            word = word.toLowerCase();
+            // Simple rules for common plurals
+            if (word.endsWith('es')) {
+                // Handle cases like "peces" -> "pez", "limones" -> "limón"
+                if (word.endsWith('ces')) return word.slice(0, -2) + 'z';
+                if (word.endsWith('nes')) return word.slice(0, -2) + 'n';
+                // Handle -res plurals like "flores" -> "flor"
+                if (word.endsWith('res') && word.length > 3) return word.slice(0, -1);
+                // Handle -des plurals like "paredes" -> "pared"
+                if (word.endsWith('des') && word.length > 3) return word.slice(0, -1);
+                // Most other -es plurals (e.g., "coches" -> "coche")
+                return word.slice(0, -2); 
             }
-
-            let allItemsAddedSuccessfully = true;
-            for (const item of itemsToAdd) {
-                try {
-                    const response = await fetch('/api/lista_compra', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ item: item })
-                    });
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || `Error al añadir "${item}"`);
-                    }
-                    console.log(`Ítem "${item}" añadido con éxito.`);
-                } catch (error) {
-                    console.error(`Error al añadir ítem "${item}":`, error);
-                    alert(`No se pudo añadir "${item}" a la lista: ${error.message}`);
-                    allItemsAddedSuccessfully = false;
-                }
+            // Most -s plurals (e.g., "patatas" -> "patata", "libros" -> "libro")
+            if (word.endsWith('s') && word.length > 1) {
+                return word.slice(0, -1);
             }
+            return word; // Return original word if no plural ending is found
+        }
 
-            itemInput.value = '';
-            fetchShoppingList();
-
-            if (allItemsAddedSuccessfully && itemsToAdd.length > 1) {
-                alert('Ítems añadidos a la lista con éxito.');
-            }
-        });
-
-        async function toggleComprado(event) {
-            const itemId = event.target.dataset.id;
+        // Fetches all ingredients from the API
+        async function fetchAllIngredients() {
             try {
-                const response = await fetch(`/api/lista_compra/${itemId}/toggle_comprado`, {
-                    method: 'PATCH'
-                });
+                const response = await fetch('/api/ingredients');
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Error al actualizar el ítem');
+                    let errorDetails = `HTTP error! status: ${response.status}`;
+                    try {
+                        const errorData = await response.json();
+                        errorDetails = errorData.error || JSON.stringify(errorData);
+                    } catch (jsonError) {
+                        errorDetails = response.statusText || `HTTP error! status: ${response.status} (non-JSON response)`;
+                    }
+                    throw new Error(`Failed to fetch ingredients: ${errorDetails}`);
                 }
-                fetchShoppingList();
+                allIngredients = await response.json();
+                populateIngredientSuggestions(); // Populate datalist
+                await fetchSupermarkets(); // Fetch and populate supermarket selectors
             } catch (error) {
-                console.error('Error al marcar ítem:', error);
-                alert(`No se pudo actualizar el ítem: ${error.message}`);
+                console.error('Error al cargar todos los ingredientes:', error);
+                showCustomAlert(`No se pudieron cargar los ingredientes: ${error.message}`, 'Error de Carga');
             }
         }
 
-        async function deleteItem(event) {
-            const itemId = event.target.dataset.id;
-            if (confirm('¿Estás seguro de que quieres eliminar este ítem?')) {
+        // Fetches all supermarkets from the API and populates the select elements
+        async function fetchSupermarkets() {
+            try {
+                const response = await fetch('/api/supermarkets');
+                if (!response.ok) {
+                    let errorDetails = `HTTP error! status: ${response.status}`;
+                    try {
+                        const errorData = await response.json();
+                        errorDetails = errorData.error || JSON.stringify(errorData);
+                    } catch (jsonError) {
+                        errorDetails = response.statusText || `HTTP error! status: ${response.status} (non-JSON response)`;
+                    }
+                    throw new Error(`Failed to fetch supermarkets: ${errorDetails}`);
+                }
+                allSupermarkets = await response.json(); // Store supermarkets with their IDs and names
+                populateSupermarketSelectors();
+            } catch (error) {
+                console.error('Error fetching supermarkets:', error);
+                showCustomAlert(`No se pudieron cargar los supermercados para los selectores: ${error.message}`, 'Error de Carga');
+            }
+        }
+
+
+        // Populates the datalist with ingredient suggestions
+        function populateIngredientSuggestions() {
+            ingredientSuggestionsDatalist.innerHTML = '';
+            if (allIngredients.length > 0) {
+                allIngredients.forEach(ingredient => {
+                    const option = document.createElement('option');
+                    option.value = ingredient.name;
+                    option.dataset.ingredientId = ingredient.id; 
+                    ingredientSuggestionsDatalist.appendChild(option);
+                });
+            }
+        }
+
+        // Populates the select elements for supermarket comparison
+        function populateSupermarketSelectors() {
+            // Clear existing options
+            defaultSupermarketSelect.innerHTML = '';
+            compareSupermarketSelect.innerHTML = '';
+
+            // Add a "Seleccionar" option first
+            const defaultPlaceholderOption = document.createElement('option');
+            defaultPlaceholderOption.value = '';
+            defaultPlaceholderOption.textContent = 'Seleccionar Supermercado';
+            defaultSupermarketSelect.appendChild(defaultPlaceholderOption);
+
+            const comparePlaceholderOption = document.createElement('option');
+            comparePlaceholderOption.value = '';
+            comparePlaceholderOption.textContent = 'Seleccionar Supermercado';
+            compareSupermarketSelect.appendChild(comparePlaceholderOption);
+
+
+            // Add options to both selectors from the fetched allSupermarkets
+            allSupermarkets.forEach(supermarket => {
+                const option1 = document.createElement('option');
+                option1.value = supermarket.id; // Use ID as value
+                option1.textContent = supermarket.name;
+                defaultSupermarketSelect.appendChild(option1);
+
+                const option2 = document.createElement('option');
+                option2.value = supermarket.id; // Use ID as value
+                option2.textContent = supermarket.name;
+                compareSupermarketSelect.appendChild(option2);
+            });
+
+            // Set default selections
+            // Try to set 'Lidl' as default for the main selector
+            const lidlSupermarket = allSupermarkets.find(s => s.name === 'Lidl');
+            if (lidlSupermarket) {
+                defaultSupermarketSelect.value = lidlSupermarket.id;
+            } else if (allSupermarkets.length > 0) {
+                defaultSupermarketSelect.value = allSupermarkets[0].id; // Fallback to first available
+            }
+
+            // Set a different default for comparison if available
+            if (allSupermarkets.length > 1) {
+                const defaultSupermarketId = defaultSupermarketSelect.value;
+                const otherSupermarkets = allSupermarkets.filter(s => s.id !== defaultSupermarketId);
+                if (otherSupermarkets.length > 0) {
+                    compareSupermarketSelect.value = otherSupermarkets[0].id; // Set to the first different supermarket
+                } else {
+                    compareSupermarketSelect.value = defaultSupermarketId; // If only one, select same
+                }
+            } else if (allSupermarkets.length === 1) {
+                compareSupermarketSelect.value = allSupermarkets[0].id; // If only one, select same
+            }
+
+            // Update prices based on initial selections
+            updateTotalPricesDisplay();
+        }
+
+        // Helper function to get the price of a specific item for a given supermarket
+        function getPriceForItemInSupermarket(item, supermarketId) {
+            if (!supermarketId) return null; // No supermarket selected
+
+            let price = null;
+
+            // 1. Try to find the price from the ingredient's 'prices' array (specific to supermarket)
+            if (item.ingredient_id) {
+                const ingredient = allIngredients.find(ing => ing.id === item.ingredient_id);
+                if (ingredient && ingredient.prices) {
+                    const priceEntry = ingredient.prices.find(p => p.supermarket_id === supermarketId);
+                    if (priceEntry && typeof priceEntry.price === 'number') {
+                        price = priceEntry.price;
+                    }
+                }
+            }
+
+            // 2. If no price found by ingredient_id + supermarket specific price,
+            //    and the item is NOT linked by ingredient_id, try to match by singularized item name
+            //    and then find a price entry for the specified supermarket.
+            if (price === null && !item.ingredient_id) {
+                const matchingIngredientBySingularName = allIngredients.find(ing => singularize(ing.name).toLowerCase() === singularize(item.item).toLowerCase());
+                if (matchingIngredientBySingularName && matchingIngredientBySingularName.prices) {
+                    const priceEntry = matchingIngredientBySingularName.prices.find(p => p.supermarket_id === supermarketId);
+                     if (priceEntry && typeof priceEntry.price === 'number') {
+                        price = priceEntry.price;
+                    }
+                }
+            }
+            return price;
+        }
+
+
+        // Calculates the total price of the current shopping list for a given supermarket ID
+        function calculateTotalPriceForList(supermarketId) {
+            let total = 0;
+            const selectedSupermarket = allSupermarkets.find(s => s.id === supermarketId);
+            if (!selectedSupermarket) {
+                return 0; // If no supermarket is selected or found, total is 0
+            }
+
+            currentShoppingListItems.forEach(item => {
+                if (item.comprada) return; // Skip completed items for total calculation
+                
+                const itemPrice = getPriceForItemInSupermarket(item, supermarketId);
+                if (itemPrice !== null) {
+                    total += itemPrice;
+                }
+            });
+            return total;
+        }
+
+
+        // Updates the displayed total prices for selected supermarkets
+        function updateTotalPricesDisplay() {
+            const defaultSupermarketId = defaultSupermarketSelect.value;
+            const compareSupermarketId = compareSupermarketSelect.value;
+
+            const defaultTotal = calculateTotalPriceForList(defaultSupermarketId);
+            const compareTotal = calculateTotalPriceForList(compareSupermarketId);
+
+            // Clear previous highlighting
+            defaultSupermarketPriceValue.classList.remove('text-green-600', 'text-orange-500', 'font-bold', 'text-red-600');
+            compareSupermarketPriceValue.classList.remove('text-green-600', 'text-orange-500', 'font-bold', 'text-red-600');
+            
+            savingsDisplay.textContent = ''; // Clear previous message
+            savingsDisplay.classList.remove('text-green-600', 'text-orange-500'); // Also remove color classes
+
+            if (defaultTotal < compareTotal) {
+                defaultSupermarketPriceValue.classList.add('text-green-600', 'font-bold');
+                compareSupermarketPriceValue.classList.add('text-red-600'); // Higher price in red
+                const savings = compareTotal - defaultTotal;
+                const defaultSupermarketName = allSupermarkets.find(s => s.id === defaultSupermarketId)?.name || 'Supermercado Principal';
+                savingsDisplay.textContent = `¡Te ahorras ${savings.toFixed(2)}€ en ${defaultSupermarketName}!`;
+                savingsDisplay.classList.add('text-green-600'); // Savings message in green
+            } else if (compareTotal < defaultTotal) {
+                compareSupermarketPriceValue.classList.add('text-green-600', 'font-bold');
+                defaultSupermarketPriceValue.classList.add('text-red-600'); // Higher price in red
+                const savings = defaultTotal - compareTotal;
+                const compareSupermarketName = allSupermarkets.find(s => s.id === compareSupermarketId)?.name || 'Supermercado a Comparar';
+                savingsDisplay.textContent = `¡Te ahorras ${savings.toFixed(2)}€ en ${compareSupermarketName}!`;
+                savingsDisplay.classList.add('text-green-600'); // Savings message in green
+            } else {
+                if (defaultTotal > 0) { // Only show orange if there are items and prices
+                    defaultSupermarketPriceValue.classList.add('text-orange-500', 'font-bold');
+                    compareSupermarketPriceValue.classList.add('text-orange-500', 'font-bold');
+                    savingsDisplay.textContent = `¡Ambos supermercados tienen el mismo precio total!`;
+                    savingsDisplay.classList.add('text-orange-500'); // Savings message in orange
+                }
+            }
+
+            defaultSupermarketPriceValue.textContent = defaultTotal.toFixed(2);
+            compareSupermarketPriceValue.textContent = compareTotal.toFixed(2);
+            
+            // Re-render the shopping list to update individual item prices
+            renderShoppingList(currentShoppingListItems);
+        }
+
+
+        // Fetches and renders the shopping list
+        async function fetchShoppingList() {
+            // Ensure ingredients and supermarkets are loaded before loading the shopping list
+            if (allIngredients.length === 0 || allSupermarkets.length === 0) {
+                await fetchAllIngredients(); 
+            }
+
+            try {
+                const response = await fetch('/api/lista_compra');
+                if (!response.ok) {
+                    let errorDetails = `HTTP error! status: ${response.status}`;
+                    try {
+                        const errorData = await response.json();
+                        errorDetails = errorData.error || JSON.stringify(errorData);
+                    } catch (jsonError) {
+                        errorDetails = response.statusText || `HTTP error! status: ${response.status} (non-JSON response)`;
+                    }
+                    throw new Error(`Failed to fetch shopping list: ${errorDetails}`);
+                }
+                currentShoppingListItems = await response.json(); // Store fetched items
+                renderShoppingList(currentShoppingListItems);
+                updateTotalPricesDisplay(); // Update prices after rendering list
+            } catch (error) {
+                console.error('Error al cargar la lista de la compra:', error);
+                showCustomAlert(`No se pudo cargar la lista de la compra: ${error.message}`, 'Error de Carga');
+            }
+        }
+
+        // Renders the shopping list items
+        function renderShoppingList(items) {
+            shoppingListItemsDiv.innerHTML = '';
+            
+            if (items.length === 0) {
+                shoppingListItemsDiv.innerHTML = '<p class="text-center text-gray-500 mt-4 p-4 bg-gray-50 rounded-lg shadow-inner">La lista de la compra está vacía. ¡Añade tus primeros ítems!</p>';
+                shoppingListHeader.classList.add('hidden'); // Hide header if list is empty
+                totalPriceDisplay.classList.add('hidden'); 
+                savingsDisplay.textContent = ''; // Clear savings message if list empty
+                savingsDisplay.classList.remove('text-green-600', 'text-orange-500'); // Also remove color classes
+                return;
+            }
+
+            // Get supermarket names for display in the item price columns
+            const defaultSupermarketId = defaultSupermarketSelect.value;
+            const compareSupermarketId = compareSupermarketSelect.value;
+            // CORRECTED: Ensure compareSupermarketName is correctly assigned
+            const defaultSupermarketName = allSupermarkets.find(s => s.id === defaultSupermarketId)?.name || 'Principal';
+            const compareSupermarketName = allSupermarkets.find(s => s.id === compareSupermarketId)?.name || 'Comparar';
+
+            // Update header names and show it
+            headerDefaultSupermarketName.textContent = defaultSupermarketName;
+            headerCompareSupermarketName.textContent = compareSupermarketName;
+            shoppingListHeader.classList.remove('hidden');
+
+            // Sort items: completed items go to the end
+            items.sort((a, b) => {
+                if (a.comprada && !b.comprada) return 1; 
+                if (!a.comprada && b.comprada) return -1; 
+                return 0; 
+            });
+
+            items.forEach(item => {
+                const listItemCard = document.createElement('div');
+                // Adjusted item card to stack vertically on small screens, horizontal on larger
+                listItemCard.classList.add('flex', 'flex-col', 'sm:flex-row', 'items-start', 'sm:items-center', 'justify-between', 'bg-white', 'p-4', 'rounded-lg', 'shadow-md', 'transition-all', 'duration-200', 'ease-in-out', 'border', 'border-gray-200');
+                if (item.comprada) { 
+                    listItemCard.classList.add('opacity-70', 'bg-emerald-50', 'border-emerald-200');
+                }
+
+                let ingredientIconHtml = '';
+                let addIngredientButtonHtml = ''; 
+                let standardQuantityDisplay = '';
+
+                // Get prices for the default and comparison supermarkets
+                const defaultItemPrice = getPriceForItemInSupermarket(item, defaultSupermarketId);
+                const compareItemPrice = getPriceForItemInSupermarket(item, compareSupermarketId);
+
+                const defaultItemPriceFormatted = defaultItemPrice !== null ? `${defaultItemPrice.toFixed(2)}€` : 'N/D';
+                const compareItemPriceFormatted = compareItemPrice !== null ? `${compareItemPrice.toFixed(2)}€` : 'N/D';
+
+                // Determine price text classes
+                let defaultPriceClass = 'text-gray-600';
+                let comparePriceClass = 'text-gray-600';
+
+                if (defaultItemPrice !== null && compareItemPrice !== null) {
+                    if (defaultItemPrice < compareItemPrice) {
+                        defaultPriceClass = 'text-green-600 font-bold';
+                        comparePriceClass = 'text-red-600'; // Make higher price red
+                    } else if (compareItemPrice < defaultItemPrice) {
+                        comparePriceClass = 'text-green-600 font-bold';
+                        defaultPriceClass = 'text-red-600'; // Make higher price red
+                    } else { // Prices are equal
+                        defaultPriceClass = 'text-orange-500 font-bold';
+                        comparePriceClass = 'text-orange-500 font-bold';
+                    }
+                } else if (defaultItemPrice !== null) { // Only default price is available
+                    defaultPriceClass = 'text-gray-700 font-bold';
+                } else if (compareItemPrice !== null) { // Only compare price is available
+                    comparePriceClass = 'text-gray-700 font-bold';
+                }
+
+
+                // Determine ingredient icon based on whether it's linked
+                if (item.ingredient_id) {
+                    const ingredient = allIngredients.find(ing => ing.id === item.ingredient_id);
+                    if (ingredient) {
+                        ingredientIconHtml = `<i class="fas fa-seedling text-emerald-600 mr-2" title="Asociado a ingrediente: ${ingredient.name}"></i>`;
+                        // Also get standard quantity if available from the linked ingredient's default details or a price entry
+                        const baseIngredientPriceEntry = ingredient.prices?.find(p => p.supermarket_id === defaultSupermarketId) || ingredient.prices?.[0]; // Fallback to first price if default not found
+                        if (baseIngredientPriceEntry && baseIngredientPriceEntry.cantidad_estandar && baseIngredientPriceEntry.unidad_medida) {
+                            standardQuantityDisplay = `(${baseIngredientPriceEntry.cantidad_estandar} ${baseIngredientPriceEntry.unidad_medida})`;
+                        } else if (ingredient.cantidad_estandar && ingredient.unidad_medida) { // Fallback to base ingredient properties
+                             standardQuantityDisplay = `(${ingredient.cantidad_estandar} ${ingredient.unidad_medida})`;
+                        }
+                    }
+                } else {
+                    // If not linked, check if it matches an ingredient by name for a potential icon
+                    const matchingIngredientByName = allIngredients.find(ing => singularize(ing.name).toLowerCase() === singularize(item.item).toLowerCase());
+                    if (matchingIngredientByName) {
+                        ingredientIconHtml = `<i class="fas fa-seedling text-gray-500 mr-2" title="Posible ingrediente: ${matchingIngredientByName.name}"></i>`;
+                        const baseIngredientPriceEntry = matchingIngredientByName.prices?.find(p => p.supermarket_id === defaultSupermarketId) || matchingIngredientByName.prices?.[0];
+                        if (baseIngredientPriceEntry && baseIngredientPriceEntry.cantidad_estandar && baseIngredientPriceEntry.unidad_medida) {
+                            standardQuantityDisplay = `(${baseIngredientPriceEntry.cantidad_estandar} ${baseIngredientPriceEntry.unidad_medida})`;
+                        } else if (matchingIngredientByName.cantidad_estandar && matchingIngredientByName.unidad_medida) {
+                             standardQuantityDisplay = `(${matchingIngredientByName.cantidad_estandar} ${matchingIngredientByName.unidad_medida})`;
+                        }
+                    }
+                }
+                
+                // Only render the "Add to Ingredients" button if the item name is not empty and not already linked
+                if (item.item && item.item.trim() !== '' && !item.ingredient_id) {
+                    addIngredientButtonHtml = `
+                        <button class="add-ingredient p-3 rounded-full bg-purple-200 text-purple-700 hover:bg-purple-300 btn-transition" data-item="${item.item}" data-list-item-id="${item.id}" title="Añadir a Ingredientes (Lidl)">
+                            <i class="fas fa-seedling text-lg"></i> 
+                        </button>
+                    `;
+                }
+
+                listItemCard.innerHTML = `
+                    <div class="flex-grow flex items-center w-full sm:w-auto mb-2 sm:mb-0">
+                        <span class="text-gray-900 font-medium text-lg flex-grow ${item.comprada ? 'line-through text-gray-500' : ''}">${ingredientIconHtml}${item.item} ${standardQuantityDisplay}</span>
+                    </div>
+                    <div class="flex-shrink-0 flex items-center justify-end gap-x-4 sm:gap-x-8 text-sm font-bold w-full sm:w-auto">
+                        <span class="whitespace-nowrap w-1/2 text-right sm:w-auto ${defaultPriceClass}">${defaultItemPriceFormatted}</span>
+                        <span class="whitespace-nowrap w-1/2 text-right sm:w-auto ${comparePriceClass}">${compareItemPriceFormatted}</span>
+                    </div>
+                    <div class="flex items-center justify-end gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+                        <button class="toggle-bought p-3 rounded-full ${item.comprada ? 'bg-emerald-200 text-emerald-700 hover:bg-emerald-300' : 'bg-blue-200 text-blue-700 hover:bg-blue-300'} btn-transition" data-id="${item.id}" title="${item.comprada ? 'Marcar como Pendiente' : 'Marcar como Comprado'}">
+                            <i class="${item.comprada ? 'fas fa-undo text-lg' : 'fas fa-check text-lg'}"></i>
+                        </button>
+                        ${addIngredientButtonHtml}
+                        <button class="delete-item p-3 rounded-full bg-red-200 text-red-700 hover:bg-red-300 btn-transition" data-id="${item.id}" title="Eliminar Ítem">
+                            <i class="fas fa-times text-lg"></i>
+                        </button>
+                    </div>
+                `;
+                shoppingListItemsDiv.appendChild(listItemCard);
+            });
+
+            // Add event listeners for new buttons
+            document.querySelectorAll('.toggle-bought').forEach(button => {
+                button.addEventListener('click', toggleItemComprada);
+            });
+            // NOTE: Listeners for add-ingredient will only be added if the button exists
+            document.querySelectorAll('.add-ingredient').forEach(button => {
+                button.addEventListener('click', addAsIngredient);
+            });
+            document.querySelectorAll('.delete-item').forEach(button => {
+                button.addEventListener('click', deleteItem);
+            });
+        }
+
+        // --- Event Handlers ---
+
+        addItemForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const rawInput = itemInput.value.trim(); 
+            
+            if (!rawInput) {
+                showCustomAlert('Por favor, introduce al menos un ítem válido.', 'Entrada Vacía');
+                return;
+            }
+
+            let identifiedItems = []; // Will store { item: "name", ingredient_id: "id" }
+            const words = rawInput.split(/\s+/).filter(word => word.length > 0); // Split by one or more spaces
+
+            // Sort ingredients by name length descending to prioritize multi-word matches
+            // We use a copy so we don't modify the original allIngredients array
+            const sortedIngredients = [...allIngredients].sort((a, b) => b.name.length - a.name.length);
+
+            let i = 0;
+            while (i < words.length) {
+                let foundMatch = false;
+
+                // 1. Try to match longest possible ingredient name (multi-word first)
+                for (const ingredient of sortedIngredients) {
+                    const ingNameLower = ingredient.name.toLowerCase();
+                    // Construct a phrase from current words to match against ingredient names
+                    const currentPhraseAttempt = words.slice(i, i + ingNameLower.split(/\s+/).length).join(' ').toLowerCase();
+
+                    // Check for direct match or singularized match
+                    if (currentPhraseAttempt === ingNameLower || singularize(currentPhraseAttempt) === ingNameLower) {
+                        identifiedItems.push({ item: ingredient.name, ingredient_id: ingredient.id });
+                        i += ingNameLower.split(/\s+/).length; // Skip words that formed this ingredient
+                        foundMatch = true;
+                        break; // Move to the next segment of the input
+                    }
+                }
+
+                if (!foundMatch) {
+                    // No direct ingredient match found for this segment.
+                    let currentWord = words[i];
+                    
+                    // Specific handling for "de" if it's not part of a recognized multi-word ingredient
+                    // This creates a compound phrase like "pan de molde" even if "pan de molde" isn't an ingredient itself,
+                    // but it does contain known words like "pan" and "molde".
+                    if (currentWord.toLowerCase() === 'de' && i > 0 && i + 1 < words.length) {
+                        // Check if the previous item was just added and combine if sensible
+                        if (identifiedItems.length > 0) {
+                            let lastItem = identifiedItems[identifiedItems.length - 1];
+                            const nextWord = words[i + 1];
+                            const combinedPhrase = `${lastItem.item} de ${nextWord}`;
+                            
+                            // Try to match this new combined phrase against known ingredients
+                            const combinedIngredientMatch = allIngredients.find(ing => ing.name.toLowerCase() === combinedPhrase.toLowerCase() || singularize(ing.name).toLowerCase() === singularize(combinedPhrase).toLowerCase());
+                            if (combinedIngredientMatch) {
+                                // If the combined phrase matches an ingredient, update the last item
+                                lastItem.item = combinedIngredientMatch.name;
+                                lastItem.ingredient_id = combinedIngredientMatch.id;
+                            } else {
+                                // Otherwise, just update the item name
+                                lastItem.item = combinedPhrase;
+                                lastItem.ingredient_id = null; // Ensure no ingredientId if it's just a general phrase
+                            }
+                            i += 2; // Consume "de" and the next word
+                        } else {
+                            // "de" at the beginning or without a preceding item, just treat as a word
+                            identifiedItems.push({ item: currentWord, ingredient_id: null });
+                            i++;
+                        }
+                    } else {
+                        // Regular word, not part of a matched ingredient, nor a "de" connector in this specific context
+                        // Try to find a single-word ingredient match (singularized)
+                        const singularizedWord = singularize(currentWord);
+                        const singleWordIngredient = allIngredients.find(ing => singularize(ing.name).toLowerCase() === singularizedWord.toLowerCase());
+                        
+                        if (singleWordIngredient) {
+                            identifiedItems.push({ item: singleWordIngredient.name, ingredient_id: singleWordIngredient.id });
+                        } else {
+                            identifiedItems.push({ item: currentWord, ingredient_id: null });
+                        }
+                        i++;
+                    }
+                }
+            }
+            
+            // Final cleanup: filter out empty items and ensure no pure separators
+            identifiedItems = identifiedItems.filter(itemData => itemData.item.trim().length > 0);
+            identifiedItems = identifiedItems.filter(itemData => !['y', 'e', 'o', 'u', 'con', 'sin', 'para', 'en', 'al', 'del', 'la', 'el', 'los', 'las', 'un', 'una', 'unos', 'unas'].includes(itemData.item.toLowerCase()));
+            
+            // Remove duplicates which might arise from complex parsing, keeping the first occurrence
+            const uniqueItems = [];
+            const seenKeys = new Set();
+            for (const item of identifiedItems) {
+                // A unique key based on item name and linked ingredient ID (if any)
+                const key = `${item.item.toLowerCase()}-${item.ingredient_id || 'null'}`;
+                if (!seenKeys.has(key)) {
+                    uniqueItems.push(item);
+                    seenKeys.add(key);
+                }
+            }
+            identifiedItems = uniqueItems;
+
+
+            if (identifiedItems.length === 0) {
+                showCustomAlert('Por favor, introduce al menos un ítem válido.', 'Entrada Vacía');
+                return;
+            }
+
+            try {
+                for (const itemData of identifiedItems) {
+                    const payload = { item: itemData.item, ingredient_id: itemData.ingredient_id };
+                    
+                    const response = await fetch('/api/lista_compra', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) {
+                        let errorDetails = `HTTP error! status: ${response.status}`;
+                        try {
+                            const errorData = await response.json();
+                            errorDetails = errorData.error || JSON.stringify(errorData);
+                        } catch (jsonError) {
+                            errorDetails = response.statusText || `HTTP error! status: ${response.status} (non-JSON response)`;
+                        }
+                        throw new Error(`Failed to add item: ${errorDetails}`);
+                    }
+                }
+                itemInput.value = '';
+                showCustomAlert('Ítem(s) añadido(s) con éxito.', 'Éxito');
+                fetchShoppingList(); 
+            }
+            catch (error) {
+                console.error('Error al añadir ítem a la lista:', error);
+                showCustomAlert(`No se pudo añadir el ítem: ${error.message}`, 'Error');
+            }
+        });
+
+        // Toggles the "comprada" status of a list item
+        async function toggleItemComprada(e) {
+            const itemId = e.currentTarget.dataset.id;
+            try {
+                const response = await fetch(`/api/lista_compra/${itemId}/toggle_comprada`, { 
+                    method: 'PATCH'
+                });
+                if (!response.ok) {
+                    let errorDetails = `HTTP error! status: ${response.status}`;
+                    try {
+                        const errorData = await response.json();
+                        errorDetails = errorData.error || JSON.stringify(errorData);
+                    } catch (jsonError) {
+                        errorDetails = response.statusText || `HTTP error! status: ${response.status} (non-JSON response)`;
+                    }
+                    throw new Error(`Failed to toggle bought status: ${errorDetails}`);
+                }
+                showCustomAlert('Estado del ítem actualizado.', 'Actualización Exitosa');
+                fetchShoppingList(); // Re-fetch and re-render to update all prices
+            } catch (error) {
+                console.error('Error al cambiar estado del ítem:', error);
+                showCustomAlert(`No se pudo actualizar el estado: ${error.message}`, 'Error');
+            }
+        }
+
+        // Deletes a list item
+        async function deleteItem(e) {
+            const itemId = e.currentTarget.dataset.id;
+            const confirmDelete = await showCustomConfirm('¿Estás seguro de que quieres eliminar este ítem?', 'Confirmar Eliminación');
+            if (confirmDelete) {
                 try {
                     const response = await fetch(`/api/lista_compra/${itemId}`, {
                         method: 'DELETE'
                     });
                     if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || 'Error al eliminar el ítem');
+                        let errorDetails = `HTTP error! status: ${response.status}`;
+                        try {
+                            const errorData = await response.json();
+                            errorDetails = errorData.error || JSON.stringify(errorData);
+                        } catch (jsonError) {
+                            errorDetails = response.statusText || `HTTP error! status: ${response.status} (non-JSON response)`;
+                        }
+                        throw new Error(`Failed to delete item: ${errorDetails}`);
                     }
-                    fetchShoppingList();
+                    showCustomAlert('Ítem eliminado con éxito.', 'Eliminación Exitosa');
+                    fetchShoppingList(); // Re-fetch and re-render to update all prices
                 } catch (error) {
                     console.error('Error al eliminar ítem:', error);
-                    alert(`No se pudo eliminar el ítem: ${error.message}`);
+                    showCustomAlert(`No se pudo eliminar el ítem: ${error.message}`, 'Error');
                 }
             }
         }
 
-        // Nueva función para borrar todos los ítems de la lista
+        // New function to clear all items from the list
         async function clearAllItems() {
-            if (confirm('¿Estás seguro de que quieres borrar TODA la lista de la compra? Esta acción no se puede deshacer.')) {
+            const confirmClear = await showCustomConfirm('¿Estás seguro de que quieres borrar TODA la lista de la compra? Esta acción no se puede deshacer.', 'Confirmar Borrado Total');
+            if (confirmClear) {
                 try {
-                    // MODIFICADO: Cambia la ruta a una que espera el backend
                     const response = await fetch('/api/lista_compra/clear_all', {
                         method: 'DELETE'
                     });
                     if (!response.ok) {
-                        const errorData = await response.json();
-                        // Manejar el caso donde el backend devuelve un error específico.
-                        const errorMessage = errorData.error || 'Error desconocido al borrar toda la lista.';
-                        throw new Error(errorMessage);
+                        let errorDetails = `HTTP error! status: ${response.status}`;
+                        try {
+                            const errorData = await response.json();
+                            errorDetails = errorData.error || JSON.stringify(errorData);
+                        } catch (jsonError) {
+                            errorDetails = response.statusText || `HTTP error! status: ${response.status} (non-JSON response)`;
+                        }
+                        throw new Error(`Failed to clear list: ${errorDetails}`);
                     }
-                    alert('Lista de la compra borrada con éxito.');
-                    fetchShoppingList();
+                    showCustomAlert('Lista de la compra borrada con éxito.', 'Lista Borrada');
+                    fetchShoppingList(); // Re-fetch and re-render to update all prices
                 } catch (error) {
                     console.error('Error al borrar la lista completa:', error);
-                    alert(`No se pudo borrar la lista completa: ${error.message}`);
+                    showCustomAlert(`No se pudo borrar la lista completa: ${error.message}`, 'Error al Borrar');
                 }
             }
         }
 
+        // Adds an item as an ingredient
+        async function addAsIngredient(e) {
+            // Ensure e.currentTarget is not null before accessing its properties
+            if (!e || !e.currentTarget) {
+                console.error("Error: Event or target element null/undefined in addAsIngredient.");
+                showCustomAlert("Error interno: No se pudo identificar el ítem para añadir como ingrediente.", "Error");
+                return;
+            }
+
+            const itemName = e.currentTarget.dataset.item;
+            const listItemId = e.currentTarget.dataset.listItemId; // Get the list item ID
+
+            // Validate if the ingredient name is empty (this was already there and is correct)
+            if (!itemName || itemName.trim() === '') {
+                showCustomAlert("El nombre del ingrediente no puede estar vacío. Por favor, edita el ítem en la lista o elimínalo si es un error.", "Error: Nombre Obligatorio");
+                return; 
+            }
+
+            const confirmAdd = await showCustomConfirm(`¿Quieres añadir "${itemName}" a tus ingredientes con Lidl como supermercado por defecto?`, 'Añadir Ingrediente');
+            
+            if (confirmAdd) {
+                // Find Lidl supermarket ID
+                const lidlSupermarket = allSupermarkets.find(s => s.name === 'Lidl');
+                const defaultSupermarketId = lidlSupermarket ? lidlSupermarket.id : null;
+
+                if (!defaultSupermarketId) {
+                    showCustomAlert('No se encontró el supermercado "Lidl" en la base de datos. Por favor, añádelo en la sección de alimentación primero.', 'Supermercado No Encontrado');
+                    return;
+                }
+
+                // Payload for adding a new ingredient (or updating existing base details)
+                const ingredientPayload = {
+                    name: itemName,
+                    calories_per_100g: 0, 
+                    proteins_per_100g: 0, 
+                    cantidad_estandar: 0.0, 
+                    unidad_medida: '' 
+                };
+
+                let newIngredientId = null;
+
+                try {
+                    // Try to find if an ingredient with this name already exists (singularized)
+                    const existingIngredient = allIngredients.find(ing => singularize(ing.name).toLowerCase() === singularize(itemName).toLowerCase());
+
+                    if (existingIngredient) {
+                        newIngredientId = existingIngredient.id;
+                        showCustomAlert(`"${itemName}" ya existía como ingrediente.`, 'Ingrediente Existente');
+                    } else {
+                        // If not existing, add the new base ingredient
+                        const response = await fetch('/api/ingredients', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(ingredientPayload)
+                        });
+                        if (!response.ok) {
+                            let errorDetails = `HTTP error! status: ${response.status}`;
+                            try {
+                                const errorData = await response.json();
+                                errorDetails = errorData.error || JSON.stringify(errorData);
+                            } catch (jsonError) {
+                                errorDetails = response.statusText || `HTTP error! status: ${response.status} (non-JSON response)`;
+                            }
+                            throw new Error(`Failed to add base ingredient: ${errorDetails}`);
+                        }
+                        const result = await response.json();
+                        newIngredientId = result.id;
+                        showCustomAlert(`"${itemName}" añadido a tus ingredientes.`, 'Ingrediente Añadido');
+                    }
+
+                    // Now, add the price for the default supermarket to this ingredient
+                    const pricePayload = {
+                        supermarket_id: defaultSupermarketId,
+                        price: 0.00, // Default price 0.00, user can change later in Alimentacion
+                        // Copy base nutritional values for the price entry, if not existing
+                        calories_per_100g: existingIngredient ? existingIngredient.calories_per_100g : 0,
+                        proteins_per_100g: existingIngredient ? existingIngredient.proteins_per_100g : 0,
+                        cantidad_estandar: existingIngredient ? existingIngredient.cantidad_estandar : 0.0,
+                        unidad_medida: existingIngredient ? existingIngredient.unidad_medida : ''
+                    };
+
+                    const priceResponse = await fetch(`/api/ingredients/${newIngredientId}/prices`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(pricePayload)
+                    });
+                    if (!priceResponse.ok) {
+                        // If price for this supermarket already exists, it's a 409 conflict
+                        if (priceResponse.status === 409) {
+                             showCustomAlert(`El precio de "${itemName}" para Lidl ya está registrado.`, 'Precio Existente');
+                        } else {
+                            let errorDetails = `HTTP error! status: ${priceResponse.status}`;
+                            try {
+                                const errorData = await priceResponse.json();
+                                errorDetails = errorData.error || JSON.stringify(errorData);
+                            } catch (jsonError) {
+                                errorDetails = priceResponse.statusText || `HTTP error! status: ${priceResponse.status} (non-JSON response)`;
+                            }
+                            throw new Error(`Failed to add supermarket price: ${errorDetails}`);
+                        }
+                    } else {
+                        // If a new price was successfully added
+                        showCustomAlert('Precio de Lidl añadido/actualizado para el ingrediente.', 'Precio de Supermercado Actualizado');
+                    }
+
+
+                    // Finally, update the shopping list item with the ingredient_id
+                    if (newIngredientId && listItemId) { 
+                        const updateResponse = await fetch(`/api/lista_compra/${listItemId}`, { 
+                            method: 'PATCH', 
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ ingredient_id: newIngredientId })
+                        });
+
+                        if (!updateResponse.ok) {
+                            let errorDetails = `HTTP error! status: ${updateResponse.status}`;
+                            try {
+                                const errorData = await updateResponse.json();
+                                errorDetails = errorData.error || JSON.stringify(errorData);
+                            } catch (jsonError) {
+                                errorDetails = updateResponse.statusText || `HTTP error! status: ${updateResponse.status} (non-JSON response)`;
+                            }
+                            throw new Error(`Failed to link ingredient with list item: ${errorDetails}`);
+                        }
+                        showCustomAlert('Ítem de la lista actualizado con el ingrediente.', 'Vínculo Exitoso');
+                    }
+
+                    // Refrescar la caché de ingredientes y volver a renderizar la lista de la compra para mostrar precio/icono
+                    await fetchAllIngredients(); 
+                    fetchShoppingList(); 
+                } catch (error) {
+                    console.error('Error al añadir como ingrediente:', error);
+                    let errorMessage = `No se pudo añadir "${itemName}" como ingrediente: ${error.message}`;
+                    showCustomAlert(errorMessage, 'Error');
+                }
+            }
+        }
+
+
         document.addEventListener('DOMContentLoaded', () => {
             displayCurrentDate();
-            fetchShoppingList();
+            // Load all ingredients initially (which also triggers supermarket fetching and selector population),
+            // then load and render the shopping list.
+            fetchAllIngredients().then(() => {
+                fetchShoppingList();
+            });
             clearListButton.addEventListener('click', clearAllItems);
+
+            // Add event listeners for supermarket selectors
+            defaultSupermarketSelect.addEventListener('change', updateTotalPricesDisplay);
+            compareSupermarketSelect.addEventListener('change', updateTotalPricesDisplay);
         });
     </script>
 </body>

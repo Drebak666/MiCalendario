@@ -142,6 +142,46 @@
             border-bottom: 1px solid #e2e8f0; /* border-b */
             padding-bottom: 0.5rem; /* pb-2 */
         }
+
+        /* Estilos para la sección de requisitos */
+        .requisitos-toggle-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #00acc1; /* Color similar al borde de la cita */
+            font-size: 1.2rem;
+            padding: 5px;
+            border-radius: 50%;
+            transition: all 0.2s ease-in-out;
+        }
+        .requisitos-toggle-btn:hover {
+            background-color: #b2ebf2; /* Light hover effect */
+        }
+        .requisitos-container {
+            width: 100%;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #b2ebf2; /* Light dashed border */
+        }
+        .requisitos-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #4a5568;
+        }
+        .requisitos-item input[type="checkbox"] {
+            margin-right: 8px;
+            transform: scale(1.2);
+            accent-color: #00acc1; /* Color del checkbox */
+        }
+        .requisitos-item.checked span {
+            text-decoration: line-through;
+            color: #888;
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans antialiased">
@@ -171,6 +211,17 @@
                     <label for="citaHoraInput" class="block text-gray-700 text-sm font-bold mb-2">Hora (opcional):</label>
                     <input type="time" id="citaHoraInput" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 </div>
+            </div>
+
+            <div class="mb-4 p-3 bg-blue-100 rounded-md">
+                <label for="citaRequisitoInput" class="block text-gray-700 text-sm font-bold mb-2">Requisitos para la Cita (uno a uno):</label>
+                <div class="flex gap-2 mb-2">
+                    <input type="text" id="citaRequisitoInput" placeholder="Ej. DNI, informes médicos" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <button type="button" id="addRequisitoBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-all duration-200">Añadir</button>
+                </div>
+                <ul id="requisitosListDisplay" class="list-disc list-inside text-gray-800 text-sm">
+                    <!-- Requisitos added dynamically here -->
+                </ul>
             </div>
 
             <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:shadow-lg w-full transition-all duration-200">Guardar Cita</button>
@@ -244,6 +295,18 @@
                 <label for="editCitaHora" class="block text-gray-700 text-sm font-bold mb-2">Hora (opcional):</label>
                 <input type="time" id="editCitaHora" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
             </div>
+            
+            <div class="mb-4 p-3 bg-blue-100 rounded-md">
+                <label for="editCitaRequisitoInput" class="block text-gray-700 text-sm font-bold mb-2">Requisitos para la Cita (uno a uno):</label>
+                <div class="flex gap-2 mb-2">
+                    <input type="text" id="editCitaRequisitoInput" placeholder="Ej. DNI, informes médicos" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <button type="button" id="editAddRequisitoBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-all duration-200">Añadir</button>
+                </div>
+                <ul id="editRequisitosListDisplay" class="list-disc list-inside text-gray-800 text-sm">
+                    <!-- Requisitos edited dynamically here -->
+                </ul>
+            </div>
+
             <div class="flex justify-center space-x-4">
                 <button id="saveEditCitaBtn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full">Guardar Cambios</button>
                 <button id="cancelEditCitaBtn" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-full">Cancelar</button>
@@ -262,12 +325,18 @@
         const citaFechaInput = document.getElementById('citaFechaInput');
         const citaHoraInput = document.getElementById('citaHoraInput');
 
+        // New elements for requirements
+        const citaRequisitoInput = document.getElementById('citaRequisitoInput');
+        const addRequisitoBtn = document.getElementById('addRequisitoBtn');
+        const requisitosListDisplay = document.getElementById('requisitosListDisplay');
+        let currentRequisitos = []; // Array to hold requirements for new cita
+
         // Elements for navigation count badges (assuming you'll fetch these counts)
         const navCitasCountElem = document.getElementById('navCitasCount');
         const navListCountElem = document.getElementById('navListCount');
         const navNotesCountElem = document.getElementById('navNotesCount');
 
-        // Modal de Edición
+        // Edit Modal elements
         const editCitaModal = document.getElementById('editCitaModal');
         const editCitaId = document.getElementById('editCitaId');
         const editCitaNombre = document.getElementById('editCitaNombre');
@@ -275,6 +344,12 @@
         const editCitaHora = document.getElementById('editCitaHora');
         const saveEditCitaBtn = document.getElementById('saveEditCitaBtn');
         const cancelEditCitaBtn = document.getElementById('cancelEditCitaBtn');
+
+        // New elements for edit requirements
+        const editCitaRequisitoInput = document.getElementById('editCitaRequisitoInput');
+        const editAddRequisitoBtn = document.getElementById('editAddRequisitoBtn');
+        const editRequisitosListDisplay = document.getElementById('editRequisitosListDisplay');
+        let editCurrentRequisitos = []; // Array to hold requirements for edited cita
 
 
         function formatFecha(date) {
@@ -289,6 +364,60 @@
             fechaActualDisplay.textContent = fechaActual.toLocaleDateString('es-ES', options);
         }
 
+        // Function to render requirements list (for add form)
+        function renderRequisitosList(requisitosArray, displayElement, isEditable = true, citaId = null) {
+            displayElement.innerHTML = '';
+            if (requisitosArray && requisitosArray.length > 0) {
+                requisitosArray.forEach((req, index) => {
+                    const li = document.createElement('li');
+                    li.classList.add('requisitos-item');
+                    if (req.checked) {
+                        li.classList.add('checked');
+                    }
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.checked = req.checked;
+                    checkbox.disabled = !isEditable; // Disable checkbox if not editable
+
+                    if (isEditable && citaId) { // Only add listener if editable and citaId exists
+                        checkbox.addEventListener('change', () => toggleRequisitoCompletado(citaId, index, req.text));
+                    } else if (isEditable && !citaId) { // For the add/edit modals before saving to DB
+                         checkbox.addEventListener('change', () => {
+                            req.checked = checkbox.checked;
+                            li.classList.toggle('checked', req.checked);
+                        });
+                    }
+
+                    const span = document.createElement('span');
+                    span.textContent = req.text;
+
+                    li.appendChild(checkbox);
+                    li.appendChild(span);
+
+                    if (isEditable && !citaId) { // Add remove button only for add/edit forms
+                        const removeBtn = document.createElement('button');
+                        removeBtn.innerHTML = '<i class="fas fa-times text-red-500 hover:text-red-700 ml-2"></i>';
+                        removeBtn.classList.add('ml-auto', 'text-sm');
+                        removeBtn.onclick = () => {
+                            if (displayElement === requisitosListDisplay) {
+                                currentRequisitos.splice(index, 1);
+                                renderRequisitosList(currentRequisitos, displayElement, isEditable, citaId);
+                            } else if (displayElement === editRequisitosListDisplay) {
+                                editCurrentRequisitos.splice(index, 1);
+                                renderRequisitosList(editCurrentRequisitos, displayElement, isEditable, citaId);
+                            }
+                        };
+                        li.appendChild(removeBtn);
+                    }
+                    displayElement.appendChild(li);
+                });
+            } else {
+                displayElement.innerHTML = '<li class="text-gray-500 italic">No hay requisitos.</li>';
+            }
+        }
+
+
         async function fetchCitas() {
             try {
                 // Fetch all citas, ordered by date and time
@@ -300,11 +429,11 @@
                 const citas = await response.json();
                 renderCitas(citas);
 
-                // Actualizar contadores de navegación (puedes ajustar estas llamadas API si tienes contadores específicos)
+                // Update navigation counters (you can adjust these API calls if you have specific counters)
                 navCitasCountElem.textContent = citas.filter(c => !c.completada && new Date(c.fecha + (c.hora || '')) >= new Date()).length;
                 
-                // Estos contadores tendrían que venir de APIs específicas si no se cargan aquí
-                // Por ejemplo: /api/lista_compra/count_uncompleted y /api/notas/count
+                // These counters would need to come from specific APIs if they are not loaded here
+                // For example: /api/lista_compra/count_uncompleted and /api/notas/count
                 const listCountResponse = await fetch('/api/lista_compra');
                 const listItems = await listCountResponse.json();
                 navListCountElem.textContent = listItems.filter(item => !item.comprado).length;
@@ -390,6 +519,20 @@
                 const dayFormatted = citaDateObj.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric' });
                 const horaFormateada = cita.hora ? cita.hora.substring(0, 5) : 'Sin hora';
 
+                // Check for requirements and parse them
+                let requisitos = [];
+                let hasRequirements = false;
+                if (cita.recordatorio) {
+                    try {
+                        requisitos = JSON.parse(cita.recordatorio);
+                        hasRequirements = requisitos.length > 0;
+                    } catch (e) {
+                        console.error('Error parsing recordatorio JSON:', e, 'Raw data:', cita.recordatorio);
+                        requisitos = []; // Fallback to empty array if parsing fails
+                    }
+                }
+
+
                 li.innerHTML = `
                     <div class="flex-grow">
                         <span class="cita-text">${cita.nombre}</span>
@@ -398,7 +541,12 @@
                         </div>
                     </div>
                     <div class="dias-restantes ${isPast ? 'vencida' : ''}">${daysRemainingText}</div>
-                    <div class="cita-actions">
+                    <div class="cita-actions flex items-center">
+                        ${hasRequirements ? `
+                            <button class="requisitos-toggle-btn" data-id="${cita.id}" aria-expanded="false">
+                                <i class="fas fa-paperclip"></i>
+                            </button>
+                        ` : ''}
                         <button class="btn-completar bg-blue-500 hover:bg-blue-700 text-white" data-id="${cita.id}">
                             <i class="fas ${cita.completada ? 'fa-undo' : 'fa-check'}"></i> 
                             <span>${cita.completada ? 'Descompletar' : 'Completar'}</span>
@@ -410,15 +558,55 @@
                             <i class="fas fa-trash-alt"></i> <span>Eliminar</span>
                         </button>
                     </div>
+                    <div id="requisitos-${cita.id}" class="requisitos-container hidden">
+                        <!-- Requirements will be rendered here by JS -->
+                    </div>
                 `;
 
+                // Add event listeners for main buttons
                 li.querySelector('.btn-completar').addEventListener('click', () => toggleCitaCompletada(cita.id));
                 li.querySelector('.btn-editar').addEventListener('click', () => openEditCitaModal(cita));
                 li.querySelector('.btn-eliminar').addEventListener('click', () => deleteCita(cita.id));
 
+                // Add event listener for requirements toggle button
+                if (hasRequirements) {
+                    const toggleBtn = li.querySelector('.requisitos-toggle-btn');
+                    const requisitosContainer = li.querySelector(`#requisitos-${cita.id}`);
+                    toggleBtn.addEventListener('click', () => {
+                        const isExpanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+                        toggleBtn.setAttribute('aria-expanded', !isExpanded);
+                        requisitosContainer.classList.toggle('hidden', isExpanded);
+                        if (!isExpanded) {
+                            renderRequisitosList(requisitos, requisitosContainer, true, cita.id); // Render with interactivity
+                        } else {
+                            requisitosContainer.innerHTML = ''; // Clear on collapse
+                        }
+                    });
+                }
+
                 citasList.appendChild(li);
             });
         }
+
+        // Add requirement for new cita form
+        addRequisitoBtn.addEventListener('click', () => {
+            const reqText = citaRequisitoInput.value.trim();
+            if (reqText) {
+                currentRequisitos.push({ text: reqText, checked: false });
+                citaRequisitoInput.value = '';
+                renderRequisitosList(currentRequisitos, requisitosListDisplay, false); // Render in form, not editable checkbox
+            }
+        });
+
+        // Add requirement for edit cita form
+        editAddRequisitoBtn.addEventListener('click', () => {
+            const reqText = editCitaRequisitoInput.value.trim();
+            if (reqText) {
+                editCurrentRequisitos.push({ text: reqText, checked: false });
+                editCitaRequisitoInput.value = '';
+                renderRequisitosList(editCurrentRequisitos, editRequisitosListDisplay, false); // Render in form, not editable checkbox
+            }
+        });
 
         citaForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -435,7 +623,12 @@
                 const response = await fetch('/api/citas', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nombre, fecha, hora: hora || null })
+                    body: JSON.stringify({ 
+                        nombre, 
+                        fecha, 
+                        hora: hora || null,
+                        recordatorio: JSON.stringify(currentRequisitos) // Send requirements as JSON string
+                    })
                 });
 
                 if (!response.ok) {
@@ -446,6 +639,8 @@
                 citaNombreInput.value = '';
                 citaHoraInput.value = '';
                 citaFechaInput.value = formatFecha(fechaActual); // Reset to today's date
+                currentRequisitos = []; // Clear requirements list
+                renderRequisitosList(currentRequisitos, requisitosListDisplay, false); // Clear display
                 fetchCitas();
             } catch (error) {
                 console.error('Error saving cita:', error);
@@ -469,6 +664,27 @@
                 showCustomAlert(`No se pudo actualizar la cita. Error: ${error.message}`, 'Error de Actualización');
             }
         }
+
+        // NEW: Function to toggle individual requirement checkbox
+        async function toggleRequisitoCompletado(citaId, requisitoIndex, requisitoText) {
+            try {
+                const response = await fetch(`/api/citas/${citaId}/toggle_requisito_completado`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ index: requisitoIndex })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error desconocido al actualizar el requisito.');
+                }
+                fetchCitas(); // Re-fetch to update all UI
+            } catch (error) {
+                console.error('Error al cambiar estado del requisito:', error);
+                showCustomAlert(`No se pudo actualizar el requisito "${requisitoText}". Error: ${error.message}`, 'Error de Actualización');
+            }
+        }
+
 
         async function deleteCita(citaId) {
             const confirmAction = await showCustomConfirm('¿Estás seguro de que quieres eliminar esta cita?');
@@ -495,6 +711,20 @@
             editCitaNombre.value = cita.nombre;
             editCitaFecha.value = cita.fecha;
             editCitaHora.value = cita.hora ? cita.hora.substring(0, 5) : '';
+            
+            // Populate edit requirements
+            editCurrentRequisitos = [];
+            if (cita.recordatorio) {
+                try {
+                    editCurrentRequisitos = JSON.parse(cita.recordatorio);
+                } catch (e) {
+                    console.error('Error parsing recordatorio for edit modal:', e, 'Raw data:', cita.recordatorio);
+                    editCurrentRequisitos = [];
+                }
+            }
+            renderRequisitosList(editCurrentRequisitos, editRequisitosListDisplay, false); // Render editable in modal
+            editCitaRequisitoInput.value = ''; // Clear input
+
             editCitaModal.style.display = 'flex';
 
             // Ensure min date is today for the edit modal as well
@@ -517,7 +747,12 @@
                 const response = await fetch(`/api/citas/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nombre, fecha, hora: hora || null })
+                    body: JSON.stringify({ 
+                        nombre, 
+                        fecha, 
+                        hora: hora || null,
+                        recordatorio: JSON.stringify(editCurrentRequisitos) // Send updated requirements
+                    })
                 });
 
                 if (!response.ok) {
@@ -566,14 +801,17 @@
 
                 modalTitle.textContent = title;
                 modalMessage.textContent = message;
-                modalActions.innerHTML = ''; 
+                modalActions.innerHTML = ''; // Clear previous buttons
+                
+                // Ensure the modal is initially hidden when setting up, and then displayed
+                modalOverlay.style.display = 'none';
 
                 if (type === 'alert') {
                     const okButton = document.createElement('button');
                     okButton.classList.add('bg-blue-500', 'hover:bg-blue-700', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded-full');
                     okButton.textContent = 'Aceptar';
                     okButton.addEventListener('click', () => {
-                        modalOverlay.style.display = 'none';
+                        modalOverlay.style.display = 'none'; // Correctly reference modalOverlay
                         resolve(true);
                     });
                     modalActions.appendChild(okButton);
@@ -582,21 +820,21 @@
                     yesButton.classList.add('bg-green-500', 'hover:bg-green-700', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded-full');
                     yesButton.textContent = 'Sí';
                     yesButton.addEventListener('click', () => {
-                        modalOverlay.style.display = 'none';
+                        modalOverlay.style.display = 'none'; // Correctly reference modalOverlay
                         resolve(true);
                     });
                     const noButton = document.createElement('button');
                     noButton.classList.add('bg-gray-500', 'hover:bg-gray-700', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded-full');
                     noButton.textContent = 'No';
                     noButton.addEventListener('click', () => {
-                        modalOverlay.style.display = 'none';
+                        modalOverlay.style.display = 'none'; // Correctly reference modalOverlay
                         resolve(false);
                     });
                     modalActions.appendChild(yesButton);
                     modalActions.appendChild(noButton);
                 }
 
-                modalOverlay.style.display = 'flex';
+                modalOverlay.style.display = 'flex'; // Display the modal after setting up buttons
             });
         }
 

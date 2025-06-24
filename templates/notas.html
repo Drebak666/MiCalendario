@@ -6,66 +6,189 @@
     <title>Notas Rápidas</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" xintegrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Estilos básicos para las notas */
+        body {
+            background-color: #f7fafc; /* Color de fondo claro de Tailwind */
+            font-family: 'Inter', sans-serif; /* Fuente recomendada */
+            color: #2d3748; /* Color de texto oscuro de Tailwind */
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-size: 2.25rem; /* text-4xl */
+            font-weight: bold;
+            color: #1a202c; /* text-gray-900 */
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #edf2f7; /* border-b-2 border-gray-200 */
+        }
+        .date-heading { /* Nuevo estilo para los títulos de fecha */
+            font-size: 1.75rem; /* text-3xl */
+            font-weight: 700; /* font-extrabold */
+            color: #4a5568; /* text-gray-700 */
+            margin-top: 25px;
+            margin-bottom: 15px;
+            padding-left: 10px;
+            border-left: 5px solid #63b3ed; /* border-l-4 border-blue-400 */
+        }
         .notes-list {
             list-style: none;
             padding: 0;
-            margin-top: 20px;
+            margin-top: 10px;
+            display: grid; /* Usar grid para un diseño de post-it */
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Columnas responsivas */
+            gap: 15px; /* Espacio entre post-its */
         }
         .note-item {
-            background-color: #fff;
             border-radius: 8px;
             padding: 15px;
-            margin-bottom: 10px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             display: flex;
             flex-direction: column;
             gap: 5px;
+            min-height: 120px; /* Altura mínima para post-its */
+            justify-content: space-between; /* Para empujar el botón de eliminar hacia abajo */
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .note-item:hover {
+            transform: translateY(-5px); /* Efecto hover */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
         }
         .note-header {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            justify-content: flex-end; /* Alinear botón de eliminar a la derecha */
             margin-bottom: 5px;
         }
-        .note-date {
-            font-size: 0.9em;
-            color: #666;
-        }
+        /* Eliminada .note-date ya que no se usará individualmente */
         .note-text {
             font-size: 1.1em;
             word-wrap: break-word; /* Para asegurar que el texto largo se ajuste */
             color: #333;
+            flex-grow: 1; /* Para que el texto ocupe el espacio disponible */
         }
         .btn-delete-note {
-            background-color: #dc3545;
+            background-color: #ef4444; /* red-500 */
             color: white;
             border: none;
-            border-radius: 5px;
-            padding: 5px 10px;
+            border-radius: 50%; /* Hacerlo circular */
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            font-size: 0.8em;
-            transition: background-color 0.2s;
+            font-size: 0.9em;
+            transition: background-color 0.2s, transform 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         .btn-delete-note:hover {
-            background-color: #c82333;
+            background-color: #dc2626; /* red-600 */
+            transform: scale(1.1);
         }
         .navigation-notes {
-            margin-top: 20px;
+            margin-top: 30px;
             text-align: center;
         }
         .navigation-notes .boton {
-            background-color: #007bff;
+            background-color: #4299e1; /* blue-500 */
             color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 12px 25px;
+            border-radius: 8px;
             text-decoration: none;
-            display: inline-block;
-            margin: 0 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 10px;
+            font-weight: 600;
+            transition: background-color 0.2s, transform 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         .navigation-notes .boton:hover {
-            background-color: #0056b3;
+            background-color: #3182ce; /* blue-600 */
+            transform: translateY(-2px);
+        }
+
+        /* Custom Modal Styles (Tailwind-compatible) */
+        .custom-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        .custom-modal-content {
+            background-color: white;
+            padding: 2.5rem; /* p-10 */
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            animation: fadeInScale 0.3s ease-out;
+        }
+        .custom-modal-content h3 {
+            font-size: 1.875rem; /* text-3xl */
+            font-weight: bold;
+            margin-bottom: 1rem; /* mb-4 */
+            color: #2d3748; /* text-gray-800 */
+        }
+        .custom-modal-content p {
+            font-size: 1.125rem; /* text-lg */
+            color: #4a5568; /* text-gray-700 */
+            margin-bottom: 1.5rem; /* mb-6 */
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem; /* gap-4 */
+        }
+        .modal-actions .boton {
+            padding: 0.75rem 1.5rem; /* px-6 py-3 */
+            border-radius: 9999px; /* rounded-full */
+            font-weight: 600; /* font-semibold */
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .modal-actions .boton:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .modal-actions .boton:first-child {
+            background-color: #48bb78; /* green-500 */
+        }
+        .modal-actions .boton:first-child:hover {
+            background-color: #38a169; /* green-600 */
+        }
+        .modal-actions .cancel-button {
+            background-color: #a0aec0; /* gray-500 */
+        }
+        .modal-actions .cancel-button:hover {
+            background-color: #718096; /* gray-600 */
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
     </style>
 </head>
@@ -77,7 +200,10 @@
         </ul>
 
         <div class="navigation-notes">
-            <a href="/" class="boton"><i class="fas fa-home"></i> Volver a la Agenda</a>
+            <a href="/" class="boton">
+                <i class="fas fa-home"></i>
+                <span>Volver a la Agenda</span>
+            </a>
         </div>
     </div>
 
@@ -149,6 +275,13 @@
             return await showCustomModal(message, title, 'confirm');
         }
 
+        // Función para generar un color pastel aleatorio
+        function getRandomPastelColor() {
+            const hue = Math.floor(Math.random() * 360); // 0-359
+            const saturation = Math.floor(Math.random() * 20) + 70; // 70-90% para colores no demasiado saturados
+            const lightness = Math.floor(Math.random() * 10) + 80; // 80-90% para tonos claros
+            return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+        }
 
         async function fetchNotas() {
             notesList.innerHTML = '<li class="mensaje-info">Cargando notas...</li>';
@@ -174,34 +307,55 @@
                 return;
             }
 
+            // Agrupar notas por fecha
+            const notasAgrupadasPorFecha = {};
             notas.forEach(nota => {
-                const li = document.createElement('li');
-                li.classList.add('note-item');
-                li.dataset.id = nota.id;
+                if (!notasAgrupadasPorFecha[nota.fecha]) {
+                    notasAgrupadasPorFecha[nota.fecha] = [];
+                }
+                notasAgrupadasPorFecha[nota.fecha].push(nota);
+            });
 
-                const headerDiv = document.createElement('div');
-                headerDiv.classList.add('note-header');
+            // Obtener las fechas ordenadas (más reciente primero)
+            const fechasOrdenadas = Object.keys(notasAgrupadasPorFecha).sort((a, b) => new Date(b) - new Date(a));
 
-                const dateSpan = document.createElement('span');
-                dateSpan.classList.add('note-date');
-                dateSpan.textContent = nota.fecha; // Formato YYYY-MM-DD
+            fechasOrdenadas.forEach(fecha => {
+                // Crear el título de la fecha
+                const fechaTitle = document.createElement('h2');
+                fechaTitle.classList.add('date-heading');
+                // Formatear la fecha para una mejor lectura
+                const dateObj = new Date(fecha + 'T00:00:00'); // Añadir T00:00:00 para evitar problemas de zona horaria
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                fechaTitle.textContent = dateObj.toLocaleDateString('es-ES', options);
+                notesList.appendChild(fechaTitle);
 
-                const deleteButton = document.createElement('button');
-                deleteButton.classList.add('btn-delete-note');
-                deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
-                deleteButton.title = 'Eliminar Nota';
-                deleteButton.addEventListener('click', () => deleteNota(nota.id));
+                const notasDelDia = notasAgrupadasPorFecha[fecha];
+                notasDelDia.forEach(nota => {
+                    const li = document.createElement('li');
+                    li.classList.add('note-item');
+                    li.dataset.id = nota.id;
+                    li.style.backgroundColor = getRandomPastelColor(); // Asignar color aleatorio
 
-                headerDiv.appendChild(dateSpan);
-                headerDiv.appendChild(deleteButton);
+                    const headerDiv = document.createElement('div');
+                    headerDiv.classList.add('note-header');
 
-                const textP = document.createElement('p');
-                textP.classList.add('note-text');
-                textP.textContent = nota.texto;
+                    // La fecha individual se elimina aquí, solo el botón de eliminar
+                    const deleteButton = document.createElement('button');
+                    deleteButton.classList.add('btn-delete-note');
+                    deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
+                    deleteButton.title = 'Eliminar Nota';
+                    deleteButton.addEventListener('click', () => deleteNota(nota.id));
 
-                li.appendChild(headerDiv);
-                li.appendChild(textP);
-                notesList.appendChild(li);
+                    headerDiv.appendChild(deleteButton);
+
+                    const textP = document.createElement('p');
+                    textP.classList.add('note-text');
+                    textP.textContent = nota.texto;
+
+                    li.appendChild(headerDiv);
+                    li.appendChild(textP);
+                    notesList.appendChild(li);
+                });
             });
         }
 
