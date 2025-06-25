@@ -1,26 +1,16 @@
 # app.py
 import os
-<<<<<<< HEAD
 from dotenv import load_dotenv
 load_dotenv()
-=======
-from dotenv import load_dotenv # Añade esta línea
-load_dotenv() # Añade esta línea
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
 import json
 from datetime import datetime, date, timedelta
 from supabase import create_client, Client
 from flask import Flask, request, jsonify, send_from_directory, render_template
 from flask_cors import CORS
-<<<<<<< HEAD
-=======
-from flask_apscheduler import APScheduler
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
 import uuid
 import calendar
 import base64
 import traceback
-<<<<<<< HEAD
 
 # Importaciones para notificaciones push
 from pywebpush import WebPushException, webpush 
@@ -44,42 +34,10 @@ SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXV
 
 supabase: Client = None
 
-=======
-
-# Importaciones para notificaciones push
-from pywebpush import WebPushException, webpush 
-
-app = Flask(__name__) # ¡La instancia de Flask debe definirse primero!
-app.secret_key = os.environ.get("FLASK_SECRET_KEY", "super_secreto_y_cambiar_en_produccion")
-CORS(app)
-
-# Configuración de APScheduler (MOVIDO AQUÍ, DESPUÉS DE LA DEFINICIÓN DE 'app')
-class Config:
-    SCHEDULER_API_ENABLED = True
-
-app.config.from_object(Config())
-scheduler = APScheduler()
-scheduler.init_app(app)
-scheduler.start()
-
-
-# !IMPORTANTE!: Reemplaza "TU_SUPABASE_URL_AQUI" y "TU_SUPABASE_KEY_AQUI"
-# con los valores reales de tu proyecto Supabase.
-# Es preferible usar variables de entorno en producción.
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://ugpqqmcstqtywyrzfnjq.supabase.co")
-# IMPORTANTE: Asegúrate de reemplazar esta clave con tu clave real de Supabase.
-# Puedes encontrarla en la configuración de tu proyecto Supabase (API Settings).\
-# Utiliza la 'anon public' key o 'service_role' key (¡con precaución!).
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVncHFxbWNzdHF0eXd5cnpmbmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3Mzk2ODgsImV4cCI6MjA2NTMxNTY4OH0.nh56rQQliOnX5AZzePaZv_RB05uRIlUbfQPkWJPvKcE") # <--- ¡ACTUALIZA ESTA LÍNEA CON TU CLAVE REAL!
-
-supabase: Client = None
-
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
 # Verifica si las variables de entorno están configuradas. Si no, imprime un error y sale.
 if not SUPABASE_URL or not SUPABASE_KEY:
     print("[ERROR] Fallo crítico: Las variables de entorno SUPABASE_URL y SUPABASE_KEY no están configuradas.")
     print("[ERROR] Asegúrate de definirlas en tu entorno de despliegue (ej., Render) o localmente.")
-<<<<<<< HEAD
 else:
     try:
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -117,59 +75,15 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         # Implementa aquí tu lógica de autenticación real si es necesario
-=======
-    # exit(1) # No salir, para que la app pueda iniciar aunque el DB falle.
-    # Se recomienda no salir completamente en producción, sino gestionar el error de otra forma.
-
-# Intenta crear el cliente de Supabase. Si falla, imprime un error.
-try:
-    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-    print("Supabase conectado y cliente inicializado correctamente.")
-except Exception as e:
-    print(f"[ERROR] Fallo crítico al conectar o inicializar Supabase: {e}")
-    supabase = None # Asegurarse de que Supabase es None si la conexión falla
-
-# VAPID Key Management para notificaciones Push
-VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY")
-VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY")
-# IMPORTANTE: Reemplaza "mailto:your_email@example.com" con un correo electrónico real
-# Este correo se utiliza para identificar al remitente de las notificaciones en caso de abuso.
-VAPID_CLAIMS = {"sub": "mailto:your_email@example.com"} 
-
-# Ahora requerimos que las claves VAPID existan como variables de entorno
-if not VAPID_PRIVATE_KEY or not VAPID_PUBLIC_KEY:
-    print("[ERROR] Fallo crítico: Las claves VAPID (VAPID_PRIVATE_KEY y VAPID_PUBLIC_KEY) no están configuradas.")
-    print("[ERROR] Por favor, genera estas claves (ver instrucciones abajo) y configúralas como variables de entorno.")
-    # exit(1) # No salir completamente, permitir que la app se inicie pero sin notificaciones.
-else:
-    print("[INFO] Usando claves VAPID existentes desde las variables de entorno.")
-
-
-def login_required(f):
-    from functools import wraps # Import wraps here to ensure it's available
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        # Implementa aquí tu lógica de autenticación real si es necesario
-        # Por ahora, se asume que no hay un sistema de sesión robusto si no se usa Flask-Login
-        # Esta función es un placeholder si no hay login implementado en el frontend
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         return f(*args, **kwargs)
     return decorated_function
 
 def init_db_supabase():
-<<<<<<< HEAD
-=======
-    # Verifica si supabase está inicializado antes de intentar operaciones de base de datos
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     if supabase is None:
         print("[WARNING] Supabase no está inicializado. No se pueden insertar tipos de registro/documento predeterminados.")
         return
 
     try:
-<<<<<<< HEAD
-=======
-        # Intenta obtener el conteo de registros en 'tipo_registro'
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         response = supabase.from_('tipo_registro').select('count', count='exact').execute()
         count_registro = response.count
         if count_registro == 0:
@@ -188,10 +102,6 @@ def init_db_supabase():
         print(f"[ERROR] Error al inicializar/insertar tipos de registro en Supabase: {e}")
 
     try:
-<<<<<<< HEAD
-=======
-        # Intenta obtener el conteo de documentos en 'tipo_documento'
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         response = supabase.from_('tipo_documento').select('count', count='exact').execute()
         count_documento = response.count
         if count_documento == 0:
@@ -211,10 +121,6 @@ def init_db_supabase():
 
 def generate_tasks_for_today_from_routines():
     """Genera tareas de rutina para hoy basadas en las rutinas definidas."""
-<<<<<<< HEAD
-=======
-    # Verifica si supabase está inicializado antes de generar tareas
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     if supabase is None:
         print("[WARNING] Supabase no está inicializado. No se pueden generar tareas a partir de rutinas.")
         return
@@ -222,11 +128,7 @@ def generate_tasks_for_today_from_routines():
     today_date_str = datetime.now().strftime('%Y-%m-%d')
     today_date_obj = datetime.now().date()
     today_day_of_week_py = datetime.now().weekday()
-<<<<<<< HEAD
     today_day_of_week_html_format = (today_day_of_week_py + 1) % 7
-=======
-    today_day_of_week_html_format = (today_day_of_week_py + 1) % 7 # 0=Dom, 1=Lun, ..., 6=Sab
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
 
     print(f"[{datetime.now()}] Intentando generar tareas para hoy ({today_date_str}, día de la semana HTML: {today_day_of_week_html_format}) a partir de las rutinas.")
 
@@ -284,21 +186,12 @@ def generate_tasks_for_today_from_routines():
                         print(f"[{datetime.now()}] Tarea '{routine_name}' generada para hoy a partir de la rutina {routine_id}. ID: {insert_response.data[0]['id']}.")
                     else:
                         print(f"[{datetime.now()}] Fallo al generar la tarea '{routine_name}' para hoy a partir de la rutina {routine_id}.")
-<<<<<<< HEAD
 
-=======
-        
-        # Actualiza la fecha de la última generación de tareas en la tabla 'app_settings'
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         if settings_response.data:
             supabase.from_('app_settings').update({'last_task_generation_date': today_date_str}).eq('id', settings_response.data[0]['id']).execute()
         else:
             supabase.from_('app_settings').insert({'last_task_generation_date': today_date_str}).execute()
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         print(f"[{datetime.now()}] Generación de tareas a partir de rutinas finalizada y fecha de última generación actualizada a {today_date_str}.")
 
     except Exception as e:
@@ -306,10 +199,6 @@ def generate_tasks_for_today_from_routines():
 
 def manage_overdue_tasks():
     """Gestiona tareas atrasadas (elimina completadas, mueve incompletas a hoy)."""
-<<<<<<< HEAD
-=======
-    # Verifica si supabase está inicializado antes de gestionar tareas
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     if supabase is None:
         print("[WARNING] Supabase no está inicializado. No se pueden gestionar tareas atrasadas.")
         return
@@ -318,12 +207,10 @@ def manage_overdue_tasks():
     print(f"[{datetime.now()}] Iniciando la gestión de tareas atrasadas para el día: {today_str}")
 
     try:
-        # Elimina tareas completadas de días anteriores
         delete_response = supabase.from_('tarea').delete().lt('fecha', today_str).eq('completada', True).execute()
         deleted_count = len(delete_response.data) if delete_response.data else 0
         print(f"[{datetime.now()}] Eliminadas {deleted_count} tareas completadas de días anteriores.")
 
-        # Mueve tareas incompletas de días anteriores al día actual
         update_response = supabase.from_('tarea').update({'fecha': today_str}).lt('fecha', today_str).eq('completada', False).execute()
         moved_count = len(update_response.data) if update_response.data else 0
         print(f"[{datetime.now()}] Movidas {moved_count} tareas incompletas de días anteriores al día actual.")
@@ -332,7 +219,6 @@ def manage_overdue_tasks():
     except Exception as e:
         print(f"[ERROR] Error en manage_overdue_tasks: {e}")
 
-<<<<<<< HEAD
 # NUEVO: Función para enviar notificaciones push a todos los suscriptores
 def _send_push_notification_to_all(title, body, icon='/static/icons/notification-icon.png'):
     if supabase is None:
@@ -504,13 +390,10 @@ def check_and_send_notifications_job():
             print(f"[ERROR] Error al recuperar citas para notificación: {e}")
             traceback.print_exc()
 
-=======
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
 # Rutas de la aplicación
 @app.route('/')
 def index():
-    # Esta ruta servirá 'index.html' desde la carpeta 'templates'.
-    return render_template('index.html') 
+    return render_template('index.html')
 
 @app.route('/calendario')
 def calendario():
@@ -538,10 +421,6 @@ def documentacion_page():
 
 @app.route('/alimentacion')
 def alimentacion_page():
-<<<<<<< HEAD
-=======
-    # Esta ruta servirá 'alimentacion.html' desde la carpeta 'templates'.
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     return render_template('alimentacion.html')
 
 @app.route('/gimnasio')
@@ -556,20 +435,12 @@ def login():
     data = request.json
     pin = data.get('pin')
     if pin == '1234':
-<<<<<<< HEAD
-=======
-        # Considera usar sesiones más seguras o Supabase Auth para producción.
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         return jsonify({'message': 'Inicio de sesión exitoso'}), 200
     else:
         return jsonify({'error': 'PIN incorrecto'}), 401
 
 @app.route('/api/logout', methods=['POST'])
 def logout():
-<<<<<<< HEAD
-=======
-    # En un entorno real con Flask-Login o JWT, aquí se limpiaría el token/sesión.
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     return jsonify({'message': 'Sesión cerrada'}), 200
 
 # --- API Routes for Tasks ---
@@ -603,11 +474,7 @@ def get_tareas_by_date(fecha):
 def get_dias_con_tareas(year, month):
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     start_date = date(year, month, 1)
     end_date = date(year, month, calendar.monthrange(year, month)[1])
 
@@ -616,11 +483,7 @@ def get_dias_con_tareas(year, month):
                                         .gte('fecha', str(start_date)) \
                                         .lte('fecha', str(end_date)) \
                                         .execute()
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         fechas = sorted(list(set([row['fecha'] for row in response.data])))
         return jsonify(fechas)
     except Exception as e:
@@ -645,11 +508,7 @@ def add_tarea():
             datetime.strptime(hora, '%H:%M')
     except ValueError:
         return jsonify({'error': 'Formato de fecha u hora inválido. Usar (YYYY-MM-DD) y HH:MM'}), 400
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     hora_para_db = hora if hora else None
 
     try:
@@ -658,34 +517,7 @@ def add_tarea():
         response = supabase.from_('tarea').insert(insert_data).execute()
         new_tarea = response.data[0]
 
-<<<<<<< HEAD
         return jsonify({'id': new_tarea['id'], 'fecha': new_tarea['fecha'], 'texto': new_tarea['texto'], 'completada': new_tarea['completada'], 'hora': new_tarea['hora'], 'notified': new_tarea.get('notified')}), 201
-=======
-        # Si la tarea tiene hora, programar un recordatorio
-        if hora_para_db:
-            # Combinar fecha y hora para obtener un objeto datetime
-            task_datetime_str = f"{fecha} {hora_para_db}"
-            task_datetime_obj = datetime.strptime(task_datetime_str, '%Y-%m-%d %H:%M')
-            
-            # Calcular la hora de la notificación (15 minutos antes)
-            notification_time = task_datetime_obj - timedelta(minutes=15)
-
-            # Solo programar si la hora de la notificación es en el futuro
-            if notification_time > datetime.now():
-                scheduler.add_job(
-                    id=f'task_reminder_{new_tarea["id"]}', # ID único para el job
-                    func=send_task_reminder,
-                    args=[str(new_tarea['id']), new_tarea['texto']],
-                    trigger='date',
-                    run_date=notification_time,
-                    replace_existing=True # Para reemplazar si se actualiza la tarea
-                )
-                print(f"[{datetime.now()}] Recordatorio programado para la tarea '{new_tarea['texto']}' a las {notification_time}.")
-            else:
-                print(f"[{datetime.now()}] No se pudo programar recordatorio para la tarea '{new_tarea['texto']}': la hora de recordatorio ya pasó.")
-
-        return jsonify({'id': new_tarea['id'], 'fecha': new_tarea['fecha'], 'texto': new_tarea['texto'], 'completada': new_tarea['completada'], 'hora': new_tarea['hora']}), 201
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     except Exception as e:
         print(f"Error al añadir tarea a Supabase: {e}")
         return jsonify({'error': f'Error al añadir tarea: {str(e)}'}), 500
@@ -744,11 +576,7 @@ def aplazar_task(task_id):
             datetime.strptime(new_hora, '%H:%M')
     except ValueError:
         return jsonify({'error': 'Formato de fecha u hora inválido. Usar (YYYY-MM-DD) y HH:MM'}), 400
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     new_hora_for_db = new_hora if new_hora else None
 
     try:
@@ -758,33 +586,6 @@ def aplazar_task(task_id):
 
         if not update_response.data:
             return jsonify({"error": "Tarea no encontrada para aplazar"}), 404
-<<<<<<< HEAD
-=======
-        
-        # Reprogramar el recordatorio si la tarea tiene hora
-        if new_hora_for_db:
-            task_datetime_str = f"{new_fecha} {new_hora_for_db}"
-            task_datetime_obj = datetime.strptime(task_datetime_str, '%Y-%m-%d %H:%M')
-            notification_time = task_datetime_obj - timedelta(minutes=15)
-
-            if notification_time > datetime.now():
-                scheduler.add_job(
-                    id=f'task_reminder_{str(task_id)}',
-                    func=send_task_reminder,
-                    args=[str(task_id), update_response.data[0]['texto']], # Obtener texto actualizado si es necesario
-                    trigger='date',
-                    run_date=notification_time,
-                    replace_existing=True
-                )
-                print(f"[{datetime.now()}] Recordatorio reprogramado para la tarea '{update_response.data[0]['texto']}' (ID: {task_id}) a las {notification_time}.")
-            else:
-                print(f"[{datetime.now()}] No se pudo reprogramar recordatorio para la tarea '{str(task_id)}': la hora de recordatorio ya pasó.")
-                # Si ya pasó, puedes eliminar el job existente si lo hubiera
-                # Asegúrate de que el job exista antes de intentar eliminarlo
-                if scheduler.get_job(f'task_reminder_{str(task_id)}'):
-                    scheduler.remove_job(f'task_reminder_{str(task_id)}')
-
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         return jsonify({"message": "Tarea aplazada exitosamente."}), 200
     except Exception as e:
         print(f"Error de base de datos al aplazar tarea en Supabase: {e}")
@@ -854,10 +655,6 @@ def get_registros_importantes():
         print(f"Error al obtener registros importantes de Supabase: {e}")
         return jsonify({'error': f'Error al obtener registros importantes: {str(e)}'}), 500
 
-<<<<<<< HEAD
-=======
-# NEW: GET a specific record by ID
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
 @app.route('/api/registros_importantes/<uuid:registro_id>', methods=['GET'])
 def get_registro_importante_by_id(registro_id):
     if supabase is None:
@@ -869,11 +666,7 @@ def get_registro_importante_by_id(registro_id):
             return jsonify({'error': 'Registro importante no encontrado.'}), 404
         return jsonify({
             'id': registro['id'],
-<<<<<<< HEAD
             'nombre': registro['titulo'], 
-=======
-            'nombre': registro['titulo'], # Se corrige de 'nombre' a 'titulo' para ser consistente con la API.
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
             'fecha': registro['fecha'],
             'descripcion': registro['descripcion'],
             'tipo': registro['tipo'],
@@ -885,11 +678,6 @@ def get_registro_importante_by_id(registro_id):
         print(f"Error al obtener registro importante por ID de Supabase: {e}")
         return jsonify({'error': f'Error al obtener registro importante: {str(e)}'}), 500
 
-<<<<<<< HEAD
-=======
-
-# NEW: UPDATE a specific record by ID
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
 @app.route('/api/registros_importantes/<uuid:registro_id>', methods=['PUT'])
 def update_registro_importante(registro_id):
     if supabase is None:
@@ -923,7 +711,6 @@ def update_registro_importante(registro_id):
             'mime_type': mime_type
         }
         response = supabase.from_('registro_importante').update(update_data).eq('id', str(registro_id)).execute()
-<<<<<<< HEAD
 
         if not response.data:
             return jsonify({'error': 'Registro importante no encontrado para actualizar.'}), 404
@@ -931,15 +718,6 @@ def update_registro_importante(registro_id):
         updated_registro = response.data[0]
         return jsonify({
             'message': 'Registro importante actualizado',
-=======
-        
-        if not response.data:
-            return jsonify({'error': 'Registro importante no encontrado para actualizar.'}), 404
-        
-        updated_registro = response.data[0]
-        return jsonify({
-            'message': 'Registro importante actualizado', 
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
             'id': updated_registro['id'],
             'fecha': updated_registro['fecha'],
             'titulo': updated_registro['titulo'],
@@ -953,19 +731,11 @@ def update_registro_importante(registro_id):
         print(f"Error al actualizar registro importante en Supabase: {e}")
         return jsonify({'error': f'Error al actualizar registro importante: {str(e)}'}), 500
 
-<<<<<<< HEAD
-=======
-
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
 @app.route('/api/registros_importantes/dias_con_registros/<int:year>/<int:month>', methods=['GET'])
 def get_dias_con_registros(year, month):
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     start_date = date(year, month, 1)
     end_date = date(year, month, calendar.monthrange(year, month)[1])
 
@@ -1012,10 +782,6 @@ def get_tipos_registro():
 
 # --- API Routes for Documentation ---
 @app.route('/api/documentacion', methods=['POST'])
-<<<<<<< HEAD
-=======
-# @login_required # Comentar o eliminar si no se usa autenticación en el frontend
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
 def add_documento():
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
@@ -1056,10 +822,6 @@ def add_documento():
         return jsonify({'error': f'Error al guardar documento: {str(e)}'}), 500
 
 @app.route('/api/documentacion', methods=['GET'])
-<<<<<<< HEAD
-=======
-# @login_required # Comentar o eliminar si no se usa autenticación en el frontend
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
 def get_documentacion():
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
@@ -1083,18 +845,10 @@ def get_documentacion():
         return jsonify({'error': f'Error al obtener documentación: {str(e)}'}), 500
 
 @app.route('/api/documentacion/dias_con_documentos/<int:year>/<int:month>', methods=['GET'])
-<<<<<<< HEAD
 def get_dias_con_documentos(year, month):
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
 
-=======
-# @login_required # Comentar o eliminar si no se usa autenticación en el frontend
-def get_dias_con_documentos(year, month):
-    if supabase is None:
-        return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
-    
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     start_date = date(year, month, 1)
     end_date = date(year, month, calendar.monthrange(year, month)[1])
 
@@ -1110,10 +864,6 @@ def get_dias_con_documentos(year, month):
         return jsonify({'error': f'Error al obtener días con documentos: {str(e)}'}), 500
 
 @app.route('/api/documentacion/<uuid:documento_id>', methods=['DELETE'])
-<<<<<<< HEAD
-=======
-# @login_required # Comentar o eliminar si no se usa autenticación en el frontend
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
 def delete_documento(documento_id):
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
@@ -1127,10 +877,6 @@ def delete_documento(documento_id):
         return jsonify({'error': f'Error al eliminar documento: {str(e)}'}), 500
 
 @app.route('/api/tipos_documento', methods=['GET'])
-<<<<<<< HEAD
-=======
-# @login_required # Comentar o eliminar si no se usa autenticación en el frontend
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
 def get_tipos_documento():
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
@@ -1160,11 +906,7 @@ def add_rutina():
 
     if not nombre or not dias:
         return jsonify({'error': 'El nombre y los días de la semana de la rutina son obligatorios.'}), 400
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     if not isinstance(dias, list) or not all(isinstance(d, int) and 0 <= d <= 6 for d in dias):
         return jsonify({'error': 'Los días deben ser una lista de enteros entre 0 y 6.'}), 400
 
@@ -1173,21 +915,13 @@ def add_rutina():
             datetime.strptime(hora, '%H:%M')
         except ValueError:
             return jsonify({'error': 'Formato de hora inválido para la hora de inicio. Usar HH:MM'}), 400
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     if hora_fin:
         try:
             datetime.strptime(hora_fin, '%H:%M')
         except ValueError:
             return jsonify({'error': 'Formato de hora inválido para la hora de fin. Usar HH:MM'}), 400
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     hora_para_db = hora if hora else None
     hora_fin_para_db = hora_fin if hora_fin else None
 
@@ -1283,43 +1017,23 @@ def get_lista_compra():
     try:
         response = supabase.from_('lista_compra').select('id, item, comprada, ingredient_id').order('id', desc=True).execute()
         items = response.data
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         processed_items = []
         for item in items:
             ingredient_name = None
             price_per_unit = 0.0
             cantidad_estandar = None
             unidad_medida = None
-<<<<<<< HEAD
 
             if item['ingredient_id']:
-=======
-            
-            if item['ingredient_id']:
-                # Optimización: Cargar los precios junto con el ingrediente si es posible o hacer una única llamada para todos los precios.
-                # Por ahora, esta es la forma más directa.
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
                 ingredient_response = supabase.from_('ingredients').select('name').eq('id', item['ingredient_id']).single().execute()
                 ingredient_data = ingredient_response.data
 
                 if ingredient_data:
                     ingredient_name = ingredient_data['name']
-<<<<<<< HEAD
                     prices_response = supabase.from_('ingredient_prices').select('price, calories_per_100g, proteins_per_100g, cantidad_estandar, unidad_medida').eq('ingredient_id', item['ingredient_id']).order('price').limit(1).execute()
                     if prices_response.data:
                         price_per_unit = prices_response.data[0]['price']
-=======
-                    # Buscar el precio más bajo del ingrediente en cualquier supermercado
-                    # y obtener también la cantidad_estandar y unidad_medida del precio elegido.
-                    prices_response = supabase.from_('ingredient_prices').select('price, calories_per_100g, proteins_per_100g, cantidad_estandar, unidad_medida').eq('ingredient_id', item['ingredient_id']).order('price').limit(1).execute()
-                    if prices_response.data:
-                        # Corrected: Access price from prices_response.data, not a global 'prices' variable
-                        price_per_unit = prices_response.data[0]['price'] 
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
                         cantidad_estandar = prices_response.data[0].get('cantidad_estandar')
                         unidad_medida = prices_response.data[0].get('unidad_medida')
 
@@ -1354,10 +1068,6 @@ def add_item_lista_compra():
         response = supabase.from_('lista_compra').insert(insert_data).execute()
         new_item = response.data[0]
 
-<<<<<<< HEAD
-=======
-        # Corregido: Usar 'comprada' en lugar de 'completada' en la respuesta JSON
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         return jsonify({'id': new_item['id'], 'item': new_item['item'], 'comprada': new_item['comprada'], 'ingredient_id': new_item['ingredient_id']}), 201
     except Exception as e:
         print(f"Error al añadir ítem a la lista de la compra en Supabase: {e}")
@@ -1376,11 +1086,7 @@ def toggle_item_comprada(item_id):
 
         new_state = not item['comprada']
         update_response = supabase.from_('lista_compra').update({'comprada': new_state}).eq('id', str(item_id)).execute()
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         if not update_response.data:
             return jsonify({'error': 'Ítem no encontrado o no se pudo actualizar.'}), 404
 
@@ -1394,11 +1100,7 @@ def update_lista_compra_item(item_id):
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
     data = request.json
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     update_data = {}
     if 'ingredient_id' in data:
         update_data['ingredient_id'] = data['ingredient_id']
@@ -1412,11 +1114,7 @@ def update_lista_compra_item(item_id):
 
     try:
         update_response = supabase.from_('lista_compra').update(update_data).eq('id', str(item_id)).execute()
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         if not update_response.data:
             return jsonify({'error': 'Ítem no encontrado o no se pudo actualizar.'}), 404
         return jsonify({'message': 'Ítem actualizado exitosamente.', 'id': str(item_id)}), 200
@@ -1443,11 +1141,7 @@ def clear_all_shopping_list_items():
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
     try:
         delete_response = supabase.from_('lista_compra').delete().neq('id', '00000000-0000-0000-0000-000000000000').execute()
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         if delete_response.data is None:
              return jsonify({'message': 'Lista de la compra borrada exitosamente.'}), 200
         else:
@@ -1531,7 +1225,6 @@ def add_cita():
         if hora:
             datetime.strptime(hora, '%H:%M')
     except ValueError:
-<<<<<<< HEAD
         return jsonify({'error': 'Formato de fecha u hora inválido. Usar (YYYY-MM-DD) y HH:MM'}), 400
 
     hora_para_db = hora if hora else None
@@ -1542,17 +1235,6 @@ def add_cita():
         response = supabase.from_('cita').insert(insert_data).execute()
         new_cita = response.data[0]
         return jsonify({'id': new_cita['id'], 'nombre': new_cita['nombre'], 'fecha': new_cita['fecha'], 'hora': new_cita['hora'], 'completada': new_cita['completada'], 'recordatorio': new_cita.get('recordatorio'), 'notified': new_cita.get('notified')}), 201
-=======
-        return jsonify({'error': 'Formato de fecha u hora inválido. Usar (YYYY-M-D) y HH:MM'}), 400
-    
-    hora_para_db = hora if hora else None
-
-    try:
-        insert_data = {'nombre': nombre, 'fecha': fecha, 'hora': hora_para_db, 'completada': False, 'recordatorio': recordatorio}
-        response = supabase.from_('cita').insert(insert_data).execute()
-        new_cita = response.data[0]
-        return jsonify({'id': new_cita['id'], 'nombre': new_cita['nombre'], 'fecha': new_cita['fecha'], 'hora': new_cita['hora'], 'completada': new_cita['completada'], 'recordatorio': new_cita.get('recordatorio')}), 201
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     except Exception as e:
         print(f"Error al añadir cita a Supabase: {e}")
         return jsonify({'error': f'Error al añadir cita: {str(e)}'}), 500
@@ -1562,11 +1244,7 @@ def get_all_citas():
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
     try:
-<<<<<<< HEAD
         response = supabase.from_('cita').select('id,nombre,fecha,hora,completada,recordatorio,notified').order('fecha').order('hora').execute()
-=======
-        response = supabase.from_('cita').select('id,nombre,fecha,hora,completada,recordatorio').order('fecha').order('hora').execute()
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         citas = response.data
         return jsonify([
             {
@@ -1575,12 +1253,8 @@ def get_all_citas():
                 'fecha': cita['fecha'],
                 'hora': cita['hora'],
                 'completada': cita['completada'],
-<<<<<<< HEAD
                 'recordatorio': cita.get('recordatorio'),
                 'notified': cita.get('notified', False) 
-=======
-                'recordatorio': cita.get('recordatorio')
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
             } for cita in citas
         ])
     except Exception as e:
@@ -1597,11 +1271,7 @@ def get_citas_by_date(fecha):
         return jsonify({'error': 'Formato de fecha inválido. Usar (YYYY-MM-DD)'}), 400
 
     try:
-<<<<<<< HEAD
         response = supabase.from_('cita').select('id,nombre,fecha,hora,completada,recordatorio,notified').eq('fecha', fecha).order('hora').execute()
-=======
-        response = supabase.from_('cita').select('id,nombre,fecha,hora,completada,recordatorio').eq('fecha', fecha).order('hora').execute()
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         citas = response.data
         return jsonify([
             {
@@ -1610,12 +1280,8 @@ def get_citas_by_date(fecha):
                 'fecha': cita['fecha'],
                 'hora': cita['hora'],
                 'completada': cita['completada'],
-<<<<<<< HEAD
                 'recordatorio': cita.get('recordatorio'),
                 'notified': cita.get('notified', False) 
-=======
-                'recordatorio': cita.get('recordatorio')
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
             } for cita in citas
         ])
     except Exception as e:
@@ -1626,32 +1292,20 @@ def get_citas_by_date(fecha):
 def get_citas_for_month(year, month):
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     today = datetime.now().date()
     start_date = date(year, month, 1)
     end_date = date(year, month, calendar.monthrange(year, month)[1])
 
     try:
-<<<<<<< HEAD
         response = supabase.from_('cita').select('id,nombre,fecha,hora,completada,recordatorio,notified').gte('fecha', str(start_date)).lte('fecha', str(end_date)).order('fecha').order('hora').execute()
-=======
-        response = supabase.from_('cita').select('id,nombre,fecha,hora,completada,recordatorio').gte('fecha', str(start_date)).lte('fecha', str(end_date)).order('fecha').order('hora').execute()
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         citas = response.data
 
         processed_citas = []
         for cita in citas:
             cita_date = datetime.strptime(cita['fecha'], '%Y-%m-%d').date()
             diff_days = (cita_date - today).days
-<<<<<<< HEAD
 
-=======
-            
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
             processed_citas.append({
                 'id': cita['id'],
                 'nombre': cita['nombre'],
@@ -1659,12 +1313,8 @@ def get_citas_for_month(year, month):
                 'hora': cita['hora'],
                 'completada': cita['completada'],
                 'dias_restantes': diff_days,
-<<<<<<< HEAD
                 'recordatorio': cita.get('recordatorio'),
                 'notified': cita.get('notified', False) 
-=======
-                'recordatorio': cita.get('recordatorio')
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
             })
         return jsonify(processed_citas)
     except Exception as e:
@@ -1678,11 +1328,7 @@ def get_proximas_citas(year, month):
 
     today = datetime.now().date()
     try:
-<<<<<<< HEAD
         response = supabase.from_('cita').select('id,nombre,fecha,hora,completada,recordatorio,notified').gte('fecha', str(today)).order('fecha').order('hora').execute()
-=======
-        response = supabase.from_('cita').select('id,nombre,fecha,hora,completada,recordatorio').gte('fecha', str(today)).order('fecha').order('hora').execute()
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         citas = response.data
 
         processed_citas = []
@@ -1697,12 +1343,8 @@ def get_proximas_citas(year, month):
                 'hora': cita['hora'],
                 'completada': cita['completada'],
                 'dias_restantes': diff_days,
-<<<<<<< HEAD
                 'recordatorio': cita.get('recordatorio'),
                 'notified': cita.get('notified', False) 
-=======
-                'recordatorio': cita.get('recordatorio')
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
             })
         return jsonify(processed_citas)
     except Exception as e:
@@ -1714,11 +1356,7 @@ def get_cita_by_id(cita_id):
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
     try:
-<<<<<<< HEAD
         response = supabase.from_('cita').select('id,nombre,fecha,hora,completada,recordatorio,notified').eq('id', str(cita_id)).limit(1).execute()
-=======
-        response = supabase.from_('cita').select('id,nombre,fecha,hora,completada,recordatorio').eq('id', str(cita_id)).limit(1).execute()
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         cita = response.data[0] if response.data else None
         if not cita:
             return jsonify({'error': 'Cita no encontrada.'}), 404
@@ -1728,12 +1366,8 @@ def get_cita_by_id(cita_id):
             'fecha': cita['fecha'],
             'hora': cita['hora'],
             'completada': cita['completada'],
-<<<<<<< HEAD
             'recordatorio': cita.get('recordatorio'),
             'notified': cita.get('notified', False) 
-=======
-            'recordatorio': cita.get('recordatorio')
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         }), 200
     except Exception as e:
         print(f"Error al obtener cita por ID de Supabase: {e}")
@@ -1758,20 +1392,12 @@ def update_cita(cita_id):
             datetime.strptime(hora, '%H:%M')
     except ValueError:
         return jsonify({'error': 'Formato de fecha u hora inválido. Usar (YYYY-MM-DD) y HH:MM'}), 400
-<<<<<<< HEAD
 
     hora_para_db = hora if hora else None
 
     try:
         # Al actualizar una cita, la marcamos como no notificada de nuevo
         update_data = {'nombre': nombre, 'fecha': fecha, 'hora': hora_para_db, 'recordatorio': recordatorio, 'notified': False}
-=======
-    
-    hora_para_db = hora if hora else None
-
-    try:
-        update_data = {'nombre': nombre, 'fecha': fecha, 'hora': hora_para_db, 'recordatorio': recordatorio}
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         update_response = supabase.from_('cita').update(update_data).eq('id', str(cita_id)).execute()
 
         if not update_response.data:
@@ -1822,11 +1448,7 @@ def toggle_requisito_completado(cita_id):
             return jsonify({'error': 'Cita no encontrada.'}), 404
 
         current_recordatorio_json_str = cita.get('recordatorio')
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         requisitos = []
         if current_recordatorio_json_str:
             try:
@@ -1843,11 +1465,7 @@ def toggle_requisito_completado(cita_id):
         updated_recordatorio_json_str = json.dumps(requisitos)
 
         update_response = supabase.from_('cita').update({'recordatorio': updated_recordatorio_json_str}).eq('id', str(cita_id)).execute()
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         if not update_response.data:
             return jsonify({'error': 'Cita no encontrada o no se pudo actualizar el requisito.'}), 404
 
@@ -1856,10 +1474,6 @@ def toggle_requisito_completado(cita_id):
         print(f"Error al alternar el estado del requisito en Supabase: {e}")
         return jsonify({'error': f'Error al actualizar requisito: {str(e)}'}), 500
 
-<<<<<<< HEAD
-=======
-
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
 @app.route('/api/citas/<uuid:cita_id>', methods=['DELETE'])
 def delete_cita(cita_id):
     if supabase is None:
@@ -1883,11 +1497,7 @@ def add_supermarket():
 
     if not name:
         return jsonify({'error': 'El nombre del supermercado es obligatorio.'}), 400
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     try:
         response = supabase.from_('supermarkets').insert({"name": name}).execute()
         return jsonify(response.data[0]), 201
@@ -1921,10 +1531,6 @@ def delete_supermarket(supermarket_id):
         print(f"Error al eliminar supermercado de Supabase: {e}")
         return jsonify({'error': f'Error al eliminar supermercado: {str(e)}'}), 500
 
-<<<<<<< HEAD
-=======
-
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
 # --- API para Ingredientes (Modificado para usar la tabla ingredient_prices) ---
 @app.route('/api/ingredients', methods=['GET'])
 def get_ingredients():
@@ -1940,7 +1546,6 @@ def get_ingredients():
         for ingredient in ingredients_data:
             ingredient_id_str = None
             try:
-<<<<<<< HEAD
                 if 'id' not in ingredient or ingredient['id'] is None:
                     print(f"Error: El ingrediente no tiene 'id': {ingredient}")
                     continue
@@ -1957,38 +1562,13 @@ def get_ingredients():
                     prices_data = []
 
                 ingredient_copy = ingredient.copy()
-=======
-                # Ensure 'id' exists and can be converted to string
-                if 'id' not in ingredient or ingredient['id'] is None:
-                    print(f"Error: El ingrediente no tiene 'id': {ingredient}")
-                    continue # Skip this malformed ingredient
-
-                ingredient_id_str = str(ingredient['id'])
-                
-                prices_data = []
-                try:
-                    # Explicitly check for column existence if they were added recently or might be missing
-                    prices_response = supabase.from_('ingredient_prices').select('supermarket_id, price, calories_per_100g, proteins_per_100g, cantidad_estandar, unidad_medida').eq('ingredient_id', ingredient_id_str).execute()
-                    prices_data = prices_response.data if prices_response.data is not None else []
-                    # print(f"[{datetime.now()}] Fetched {len(prices_data)} prices for ingredient {ingredient_id_str}: {prices_data}")
-                except Exception as price_e:
-                    print(f"Error al obtener precios para el ingrediente {ingredient_id_str}: {price_e}")
-                    traceback.print_exc()
-                    prices_data = [] # Ensure prices are empty on error
-
-                ingredient_copy = ingredient.copy() # Make a copy to add 'prices' safely
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
                 ingredient_copy['prices'] = prices_data
                 ingredients_with_prices.append(ingredient_copy)
 
             except Exception as inner_e:
                 print(f"Error al procesar ingrediente {ingredient.get('id', 'N/A')}: {inner_e}")
                 traceback.print_exc()
-<<<<<<< HEAD
                 continue
-=======
-                continue # Try to continue processing other ingredients
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
 
         print(f"[{datetime.now()}] Ingredientes procesados exitosamente. Retornando {len(ingredients_with_prices)} ingredientes con precios.")
         return jsonify(ingredients_with_prices), 200
@@ -2015,11 +1595,7 @@ def add_ingredient():
 
     if not name:
         return jsonify({'error': 'El nombre del ingrediente es obligatorio.'}), 400
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     try:
         existing_ingredient_response = supabase.from_('ingredients').select('id, name').eq('name', name).limit(1).execute()
         if existing_ingredient_response.data:
@@ -2051,13 +1627,8 @@ def handle_ingredient(ingredient_id):
 
             update_data = {
                 'name': data.get('name'),
-<<<<<<< HEAD
                 'calories_per_100g': float(data['calories_per_100g']) if data.get('calories_100g') is not None else None,
                 'proteins_per_100g': float(data['proteins_per_100g']) if data.get('proteins_per_100g') is not None else None,
-=======
-                'calories_per_100g': float(data['calories_per_100g']) if data.get('calories_per_100g') is not None else None, # Corrected: 'calories_100g' to 'calories_per_100g'
-                'proteins_per_100g': float(data['proteins_per_100g']) if data.get('proteins_per_100g') is not None else None, # Corrected: 'proteins_100g' to 'proteins_per_100g'
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
                 'cantidad_estandar': float(data['cantidad_estandar']) if data.get('cantidad_estandar') is not None else None,
                 'unidad_medida': data.get('unidad_medida') if data.get('unidad_medida') is not None else None
             }
@@ -2072,14 +1643,8 @@ def handle_ingredient(ingredient_id):
             return jsonify(update_response.data[0]), 200
 
         elif request.method == 'DELETE':
-<<<<<<< HEAD
             supabase.from_('ingredient_prices').delete().eq('ingredient_id', str(ingredient_id)).execute()
 
-=======
-            # Eliminar precios asociados antes del ingrediente
-            supabase.from_('ingredient_prices').delete().eq('ingredient_id', str(ingredient_id)).execute()
-            
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
             delete_response = supabase.from_('ingredients').delete().eq('id', str(ingredient_id)).execute()
             if not delete_response.data:
                 return jsonify({'error': 'Ingrediente no encontrado.'}), 404
@@ -2102,10 +1667,6 @@ def add_ingredient_price(ingredient_id):
     cantidad_estandar = data.get('cantidad_estandar')
     unidad_medida = data.get('unidad_medida')
 
-<<<<<<< HEAD
-=======
-    # Default values if not provided
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     calories_per_100g = calories_per_100g if calories_per_100g is not None else 0.0
     proteins_per_100g = proteins_per_100g if proteins_per_100g is not None else 0.0
     cantidad_estandar = cantidad_estandar if cantidad_estandar is not None else 0.0
@@ -2166,13 +1727,8 @@ def add_recipe():
     description = data.get('description')
     ingredients = data.get('ingredients')
     total_cost = data.get('total_cost')
-<<<<<<< HEAD
     total_calories = data.get('calories_total')
     total_proteins = data.get('proteins_total')
-=======
-    total_calories = data.get('total_calories')
-    total_proteins = data.get('total_proteins')
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     total_carbs = data.get('total_carbs', 0.0)
     total_fats = data.get('total_fats', 0.0)
 
@@ -2205,23 +1761,14 @@ def get_recipes():
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
     try:
         response = supabase.from_('recipes').select('*').order('name').execute()
-<<<<<<< HEAD
 
         recipes_list = []
         for recipe in response.data:
             recipe_copy = recipe.copy()
-=======
-        
-        recipes_list = []
-        for recipe in response.data:
-            recipe_copy = recipe.copy()
-            # Ensure ingredients field is a string before attempting to load
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
             if isinstance(recipe_copy.get('ingredients'), str):
                 try:
                     recipe_copy['ingredients'] = json.loads(recipe_copy['ingredients'])
                 except json.JSONDecodeError:
-<<<<<<< HEAD
                     print(f"Error al decodificar JSON de ingredientes para la receta {recipe_copy.get('id')}: {recipe_copy.get('ingredients')}. Se establecerá una lista vacía por defecto.")
                     recipe_copy['ingredients'] = []
             else:
@@ -2229,17 +1776,6 @@ def get_recipes():
 
             recipes_list.append(recipe_copy)
 
-=======
-                    # If JSON is malformed, default to an empty list
-                    print(f"Error al decodificar JSON de ingredientes para la receta {recipe_copy.get('id')}: {recipe_copy.get('ingredients')}. Se establecerá una lista vacía por defecto.")
-                    recipe_copy['ingredients'] = []
-            else:
-                # If ingredients field is not a string (e.g., None), default to empty list
-                recipe_copy['ingredients'] = recipe_copy.get('ingredients', []) if recipe_copy.get('ingredients') is not None else []
-            
-            recipes_list.append(recipe_copy)
-        
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         return jsonify(recipes_list), 200
     except Exception as e:
         print(f"Error al obtener recetas de Supabase: {e}")
@@ -2264,30 +1800,17 @@ def update_recipe(recipe_id):
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
     data = request.get_json()
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     update_data = {
         'name': data.get('name'),
         'description': data.get('description'),
         'total_cost': float(data['total_cost']) if data.get('total_cost') is not None else None,
-<<<<<<< HEAD
         'total_calories': float(data['calories_total']) if data.get('calories_total') is not None else None,
         'total_proteins': float(data['proteins_total']) if data.get('proteins_total') is not None else None,
         'total_carbs': float(data.get('total_carbs', 0.0)) if data.get('total_carbs') is not None else None,
         'total_fats': float(data.get('total_fats', 0.0)) if data.get('total_fats') is not None else None
     }
 
-=======
-        'total_calories': float(data['total_calories']) if data.get('total_calories') is not None else None,
-        'total_proteins': float(data['total_proteins']) if data.get('total_proteins') is not None else None, # Corrected: should be total_proteins, not proteins_per_100g
-        'total_carbs': float(data.get('total_carbs', 0.0)) if data.get('total_carbs') is not None else None,
-        'total_fats': float(data.get('total_fats', 0.0)) if data.get('total_fats') is not None else None
-    }
-    
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     ingredients = data.get('ingredients')
     if ingredients is not None:
         update_data['ingredients'] = json.dumps(ingredients)
@@ -2301,14 +1824,8 @@ def update_recipe(recipe_id):
         response = supabase.from_('recipes').update(update_data_filtered).eq('id', str(recipe_id)).execute()
         if not response.data:
             return jsonify({'error': 'Receta no encontrada o no se pudo actualizar.'}), 404
-<<<<<<< HEAD
 
         updated_recipe = response.data[0]
-=======
-        
-        updated_recipe = response.data[0]
-        # Ensure ingredients field is a string before attempting to load after update
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         if isinstance(updated_recipe.get('ingredients'), str):
             try:
                 updated_recipe['ingredients'] = json.loads(updated_recipe['ingredients'])
@@ -2323,10 +1840,6 @@ def update_recipe(recipe_id):
         traceback.print_exc()
         return jsonify({'error': f'Error al actualizar receta: {str(e)}'}), 500
 
-<<<<<<< HEAD
-=======
-
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
 # API para Menú Semanal (Singleton)
 @app.route('/api/weekly_menu', methods=['GET', 'POST', 'PUT'])
 def handle_weekly_menu_save():
@@ -2338,71 +1851,41 @@ def handle_weekly_menu_save():
             response = supabase.from_('weekly_menu').select('*').limit(1).execute()
             menu_data = response.data[0] if response.data else None
 
-<<<<<<< HEAD
-=======
-            # Ensure menu field is a string before attempting to load
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
             if menu_data and isinstance(menu_data.get('menu'), str):
                 try:
                     menu_data['menu'] = json.loads(menu_data['menu'])
                 except json.JSONDecodeError:
-<<<<<<< HEAD
                     print(f"Error al decodificar JSON del menú para el menú semanal {menu_data.get('id')}. Se establecerá un diccionario vacío por defecto.")
                     menu_data['menu'] = {}
             elif menu_data and menu_data.get('menu') is None:
                 menu_data['menu'] = {}
 
-=======
-                    # If JSON is malformed, default to an empty dictionary
-                    print(f"Error al decodificar JSON del menú para el menú semanal {menu_data.get('id')}. Se establecerá un diccionario vacío por defecto.")
-                    menu_data['menu'] = {}
-            elif menu_data and menu_data.get('menu') is None:
-                # If menu field is None, default to an empty dictionary
-                menu_data['menu'] = {}
-            
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
             return jsonify(menu_data), 200
         except Exception as e:
             print(f"Error al obtener el menú semanal de Supabase: {e}")
             traceback.print_exc()
             return jsonify({'error': f'Error al obtener el menú semanal: {str(e)}'}), 500
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     data = request.get_json()
     menu = data.get('menu')
     menu_id = data.get('id')
 
     if not menu:
         return jsonify({'error': 'Los datos del menú son obligatorios.'}), 400
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     menu_json_str = json.dumps(menu)
 
     try:
         if request.method == 'PUT':
             if not menu_id:
                 return jsonify({'error': 'ID del menú semanal es obligatorio para la actualización (PUT).'}), 400
-<<<<<<< HEAD
 
-=======
-            
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
             existing_menu_response = supabase.from_('weekly_menu').select('id').eq('id', str(menu_id)).limit(1).execute()
             if not existing_menu_response.data:
                 return jsonify({'error': 'Menú semanal no encontrado para actualizar.'}), 404
 
             update_response = supabase.from_('weekly_menu').update({'menu': menu_json_str}).eq('id', str(menu_id)).execute()
             updated_menu = update_response.data[0]
-<<<<<<< HEAD
-=======
-            # Ensure menu field is a string before attempting to load after update
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
             if isinstance(updated_menu.get('menu'), str):
                 try:
                     updated_menu['menu'] = json.loads(updated_menu['menu'])
@@ -2412,11 +1895,7 @@ def handle_weekly_menu_save():
             else:
                 updated_menu['menu'] = updated_menu.get('menu', {}) if updated_menu.get('menu') is not None else {}
             return jsonify(updated_menu), 200
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         elif request.method == 'POST':
             existing_menu_response = supabase.from_('weekly_menu').select('id').limit(1).execute()
             if existing_menu_response.data:
@@ -2424,10 +1903,6 @@ def handle_weekly_menu_save():
 
             insert_response = supabase.from_('weekly_menu').insert({'menu': menu_json_str}).execute()
             new_menu = insert_response.data[0]
-<<<<<<< HEAD
-=======
-            # Ensure menu field is a string before attempting to load after insert
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
             if isinstance(new_menu.get('menu'), str):
                 try:
                     new_menu['menu'] = json.loads(new_menu['menu'])
@@ -2437,11 +1912,7 @@ def handle_weekly_menu_save():
             else:
                 new_menu['menu'] = new_menu.get('menu', {}) if new_menu.get('menu') is not None else {}
             return jsonify(new_menu), 201
-<<<<<<< HEAD
 
-=======
-            
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     except Exception as e:
         print(f"Error al actualizar/añadir menú semanal en Supabase: {e}")
         traceback.print_exc()
@@ -2460,11 +1931,7 @@ def add_gym_log():
 
     if not activity or duration_minutes is None:
         return jsonify({'error': 'La actividad y la duración son obligatorias.'}), 400
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     try:
         insert_data = {
             'activity': activity,
@@ -2518,11 +1985,7 @@ def notificaciones_page():
 def subscribe():
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     data = request.json
     endpoint = data.get('endpoint')
     p256dh = data.get('keys', {}).get('p256dh')
@@ -2532,17 +1995,9 @@ def subscribe():
         return jsonify({'error': 'Datos de suscripción incompletos.'}), 400
 
     try:
-<<<<<<< HEAD
         existing_subscription = supabase.from_('push_subscriptions').select('id').eq('endpoint', endpoint).limit(1).execute()
         if existing_subscription.data:
             print(f"[INFO] Suscripción existente detectada para endpoint: {endpoint}")
-=======
-        # Check if already subscribed to avoid duplicates (Supabase unique constraint helps too)
-        existing_subscription = supabase.from_('push_subscriptions').select('id').eq('endpoint', endpoint).limit(1).execute()
-        if existing_subscription.data:
-            print(f"[INFO] Suscripción existente detectada para endpoint: {endpoint}")
-            # Si ya existe, simplemente retorna éxito. Podrías implementar una lógica de actualización si los datos de la suscripción pueden cambiar.
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
             return jsonify({'message': 'Suscripción ya existe y/o actualizada.'}), 200
 
         insert_data = {
@@ -2557,7 +2012,6 @@ def subscribe():
         traceback.print_exc()
         return jsonify({'error': f'Error al guardar suscripción: {str(e)}'}), 500
 
-<<<<<<< HEAD
 # NEW: API to send a notification (for demonstration/testing)
 @app.route('/api/send_notification', methods=['POST'])
 def send_notification():
@@ -2578,100 +2032,6 @@ def send_notification():
         'message': f'Notificaciones enviadas. Éxito: {successful_sends}, Fallo: {failed_sends}',
         'invalid_subscriptions_removed': len(invalid_subscriptions)
     }), 200
-=======
-# --- Utility function to actually send notifications to all subscribers ---
-def _send_push_notification_to_all_subscribers(title, body, icon, url=None):
-    """Función auxiliar interna para enviar una notificación push a todos los dispositivos suscritos."""
-    if supabase is None or not VAPID_PRIVATE_KEY or not VAPID_PUBLIC_KEY:
-        print(f"[{datetime.now()}] No se puede enviar notificación: Servicio no disponible o VAPID no configurado.")
-        return {'success': False, 'message': 'Servicio de notificación no disponible.'}
-
-    try:
-        subscriptions_response = supabase.from_('push_subscriptions').select('*').execute()
-        subscriptions = subscriptions_response.data
-
-        if not subscriptions:
-            return {'success': True, 'message': 'No hay suscriptores para enviar notificaciones.'}
-
-        successful_sends = 0
-        failed_sends = 0
-        invalid_subscriptions = []
-
-        for sub in subscriptions:
-            try:
-                webpush(
-                    subscription_info={
-                        "endpoint": sub['endpoint'],
-                        "keys": {
-                            "p256dh": sub['p256dh'],
-                            "auth": sub['auth']
-                        }
-                    },
-                    data=json.dumps({
-                        "title": title,
-                        "body": body,
-                        "icon": icon,
-                        "url": url # Incluir URL si se proporciona
-                    }),
-                    vapid_private_key=VAPID_PRIVATE_KEY,
-                    vapid_claims=VAPID_CLAIMS
-                )
-                successful_sends += 1
-            except WebPushException as e:
-                print(f"Error al enviar push a {sub['endpoint']}: {e}")
-                if e.response.status_code in [404, 410]:
-                    invalid_subscriptions.append(sub['id'])
-                failed_sends += 1
-            except Exception as e:
-                print(f"Error inesperado al enviar push a {sub['endpoint']}: {e}")
-                traceback.print_exc()
-                failed_sends += 1
-
-        if invalid_subscriptions:
-            supabase.from_('push_subscriptions').delete().in_('id', invalid_subscriptions).execute()
-            print(f"[{datetime.now()}] Eliminadas {len(invalid_subscriptions)} suscripciones inválidas.")
-
-        print(f"[{datetime.now()}] Envío de notificación finalizado. Éxito: {successful_sends}, Fallo: {failed_sends}")
-        return {
-            'success': True,
-            'message': f'Notificaciones enviadas. Éxito: {successful_sends}, Fallo: {failed_sends}',
-            'invalid_subscriptions_removed': len(invalid_subscriptions)
-        }
-
-    except Exception as e:
-        print(f"[{datetime.now()}] Error al recuperar suscripciones o al enviar notificaciones en masa: {e}")
-        traceback.print_exc()
-        return {'success': False, 'error': f'Error al enviar notificaciones: {str(e)}'}
-
-# --- Función para enviar recordatorios de tareas (llamada por APScheduler) ---
-def send_task_reminder(task_id, task_text):
-    """Función que envía una notificación de recordatorio para una tarea específica."""
-    title = "Recordatorio de Tarea Próxima"
-    body = f"La tarea '{task_text}' está programada para pronto (en 15 minutos)."
-    icon = '/static/icons/notification-icon.png' # Icono específico para recordatorios
-    # Puedes querer una URL más específica para la tarea, por ejemplo, a una página de detalles
-    url = f'http://127.0.0.1:5000/calendario' # Ejemplo: enlace a la página del calendario
-
-    _send_push_notification_to_all_subscribers(title, body, icon, url)
-
-# NEW: API to send a notification (for demonstration/testing)
-@app.route('/api/send_notification', methods=['POST'])
-def send_notification_endpoint(): # Renombrado para evitar conflicto con la función utilitaria
-    if supabase is None:
-        return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
-    
-    data = request.json
-    title = data.get('title', 'Notificación de tu App')
-    body = data.get('body', '¡Tienes una nueva notificación!')
-    icon = data.get('icon', '/static/icons/notification-icon.png') # Ruta del icono de la notificación
-    url = data.get('url', 'http://127.0.0.1:5000/') # URL por defecto para notificaciones generales
-
-    result = _send_push_notification_to_all_subscribers(title, body, icon, url)
-    if result['success']:
-        return jsonify(result), 200
-    else:
-        return jsonify({'error': result['error']}), 500
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
 
 # NEW: Route for Service Worker file
 @app.route('/service-worker.js')
@@ -2681,7 +2041,6 @@ def service_worker():
 
 # Punto de entrada de la aplicación
 if __name__ == '__main__':
-<<<<<<< HEAD
     # Antes de ejecutar la app, inicializa la base de datos (tipos de registro/documento)
     init_db_supabase()
     
@@ -2701,14 +2060,6 @@ if __name__ == '__main__':
     # Ejecuta la gestión de tareas atrasadas
     manage_overdue_tasks()
 
-=======
-    init_db_supabase()
-    # Descomenta la línea de abajo si quieres que las tareas se generen automáticamente
-    # a partir de las rutinas al iniciar la aplicación (una vez al día).
-    # generate_tasks_for_today_from_routines()
-    manage_overdue_tasks()
-    
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     port = int(os.environ.get("PORT", 5000))
     # Para desarrollo local, use_reloader=False evita que el scheduler se inicie dos veces
     app.run(host='0.0.0.0', port=port, debug=True, use_reloader=False) 
