@@ -23,7 +23,11 @@ self.addEventListener('push', (event) => {
         icon: data.icon || '/static/icons/notification-icon.png', // Asegúrate de que este icono existe en tu carpeta static/icons
         badge: '/static/icons/badge.png', // Un pequeño icono que se muestra en Android, si lo tienes
         data: {
+<<<<<<< HEAD
             url: data.url || '/' // Si data.url no está definida, usa la raíz de la aplicación
+=======
+            url: data.url || 'http://127.0.0.1:5000/' // URL a abrir al hacer clic en la notificación
+>>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         }
     };
 
@@ -36,6 +40,7 @@ self.addEventListener('notificationclick', (event) => {
 
     const urlToOpen = event.notification.data.url;
     event.waitUntil(
+<<<<<<< HEAD
         clients.matchAll({ type: 'window' }).then((windowClients) => {
             for (let i = 0; i < windowClients.length; i++) {
                 const client = windowClients[i];
@@ -47,5 +52,8 @@ self.addEventListener('notificationclick', (event) => {
                 return clients.openWindow(urlToOpen);
             }
         })
+=======
+        clients.openWindow(urlToOpen)
+>>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
     );
 });
