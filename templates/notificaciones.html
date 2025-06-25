@@ -22,11 +22,7 @@
             border-radius: 12px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             text-align: center;
-<<<<<<< HEAD
             max-width: 450px; /* Aumentado para acomodar los nuevos campos */
-=======
-            max-width: 400px;
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
             width: 90%;
         }
         h1 {
@@ -35,7 +31,6 @@
             margin-bottom: 1.5rem;
             color: #2c3e50;
         }
-<<<<<<< HEAD
         .form-group {
             margin-bottom: 1rem;
             text-align: left;
@@ -56,8 +51,6 @@
             font-size: 1rem;
             box-sizing: border-box; /* Incluir padding en el ancho */
         }
-=======
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         button {
             background-color: #4CAF50; /* Green */
             color: white;
@@ -99,7 +92,6 @@
 <body>
     <div class="container">
         <h1>Configuración de Notificaciones</h1>
-<<<<<<< HEAD
         <p class="mb-4">Activa las notificaciones para recibir recordatorios importantes de tu agenda.</p>
         <button id="enableNotifications">Activar Notificaciones</button>
 
@@ -121,10 +113,6 @@
             <p class="text-sm text-gray-500 mt-1">Este valor se incluirá en el mensaje, pero la notificación se envía de inmediato al pulsar el botón.</p>
         </div>
 
-=======
-        <p>Activa las notificaciones para recibir recordatorios importantes de tu agenda.</p>
-        <button id="enableNotifications">Activar Notificaciones</button>
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
         <button id="sendTestNotification" class="bg-blue-500 hover:bg-blue-600">Enviar Notificación de Prueba</button>
         <div id="notificationMessage" class="message"></div>
     </div>
@@ -174,12 +162,8 @@
                 // 1. Obtener la clave pública VAPID de tu backend
                 const response = await fetch('/api/vapid_public_key');
                 if (!response.ok) {
-<<<<<<< HEAD
                     const errorDetails = await response.json();
                     throw new Error('Fallo al obtener la clave pública VAPID: ' + (errorDetails.error || response.statusText));
-=======
-                    throw new Error('Fallo al obtener la clave pública VAPID.');
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
                 }
                 const data = await response.json();
                 const vapidPublicKey = data.publicKey; 
@@ -234,7 +218,6 @@
 
         // Función de ejemplo para enviar una notificación de prueba (para tus propósitos de desarrollo)
         async function sendTestNotification() {
-<<<<<<< HEAD
             const customTitle = document.getElementById('notificationTitle').value || 'Notificación de Prueba';
             let customBody = document.getElementById('notificationBody').value || 'Esta es una notificación de prueba desde tu aplicación.';
             const minutesBefore = document.getElementById('minutesBefore').value;
@@ -246,8 +229,6 @@
                 customBody = `Recordatorio: ${customBody} (ahora)`;
             }
 
-=======
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
             try {
                 const response = await fetch('/api/send_notification', {
                     method: 'POST',
@@ -255,13 +236,8 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-<<<<<<< HEAD
                         title: customTitle,
                         body: customBody,
-=======
-                        title: '¡Prueba de Notificación!',
-                        body: 'Esta es una notificación de prueba desde tu aplicación.',
->>>>>>> c8853f80c8488571bc9f45caddfc6993c3aca4a7
                         icon: '/static/icons/notification-icon.png' // Asegúrate de que este icono exista
                     })
                 });
