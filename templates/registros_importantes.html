@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registros Importantes</title>
-    <!-- Favicon para el icono del acceso directo en móvil -->
+    <!-- Favicon for mobile shortcut icon -->
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/agenda_icon.png') }}">
     
     <!-- Tailwind CSS CDN -->
@@ -12,18 +12,18 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" xintegrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        /* Estilos generales para el contenedor principal */
+        /* General styles for the main container */
         .container-wrapper {
-            max-width: 4xl; /* Equivalente a max-w-4xl */
-            margin: auto; /* Equivalente a mx-auto */
-            padding: 1rem; /* Equivalente a p-4 */
+            max-width: 4xl; /* Equivalent to max-w-4xl */
+            margin: auto; /* Equivalent to mx-auto */
+            padding: 1rem; /* Equivalent to p-4 */
             background-color: #ffffff; /* bg-white */
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
             border-radius: 0.5rem; /* rounded-lg */
             margin-top: 1.5rem; /* mt-6 */
         }
 
-        /* Estilos de la cámara */
+        /* Camera styles */
         .camera-modal-content {
             max-width: 700px;
         }
@@ -46,8 +46,8 @@
             margin: 5px;
         }
         .registro-item {
-            background-color: #f0f9ff; /* Un azul muy claro */
-            border-left: 5px solid #0ea5e9; /* Border azul de Tailwind */
+            background-color: #f0f9ff; /* A very light blue */
+            border-left: 5px solid; /* Border will now be dynamic */
             padding: 1rem;
             margin-bottom: 0.75rem;
             border-radius: 0.5rem;
@@ -72,7 +72,11 @@
         .registro-item-description {
             color: #374151; /* gray-700 */
         }
-        .registro-item-image img {
+        .registro-item-file a {
+            color: #0ea5e9; /* Tailwind blue */
+            text-decoration: underline;
+        }
+        .registro-item-file img {
             max-width: 100%;
             height: auto;
             border-radius: 0.375rem; /* rounded-md */
@@ -82,7 +86,7 @@
             display: flex;
             gap: 0.5rem;
             margin-top: 0.5rem;
-            justify-content: flex-end; /* Alinea los botones a la derecha */
+            justify-content: flex-end; /* Align buttons to the right */
         }
         .registro-actions button {
             padding: 0.5rem 1rem;
@@ -98,6 +102,46 @@
         }
         .btn-eliminar:hover {
             background-color: #dc2626; /* red-600 */
+        }
+        .btn-editar {
+            background-color: #f97316; /* orange-500 */
+            color: white;
+        }
+        .btn-editar:hover {
+            background-color: #ea580c; /* orange-600 */
+        }
+        .btn-filter {
+            background-color: #16a34a; /* green-700 */
+            color: white;
+        }
+        .btn-filter:hover {
+            background-color: #15803d; /* green-800 */
+        }
+
+        /* Styles for the attachment display area */
+        #attachmentDisplay {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        #attachmentDisplay.hidden {
+            display: none;
+        }
+        .month-heading {
+            background-color: #e0f2fe; /* light blue */
+            color: #0c4a6e; /* dark blue text */
+            padding: 0.75rem 1rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 700; /* font-bold */
+            text-align: center;
         }
     </style>
 </head>
@@ -115,8 +159,9 @@
         </div>
 
         <div class="add-registro-section mb-8 p-4 bg-purple-50 rounded-lg shadow-inner">
-            <h2 class="text-xl font-semibold text-gray-700 mb-4">Añadir Nuevo Registro</h2>
+            <h2 class="text-xl font-semibold text-gray-700 mb-4" id="formTitle">Añadir Nuevo Registro</h2>
             <form id="addRegistroForm">
+                <input type="hidden" id="registroIdToEdit"> <!-- Hidden field for storing ID when editing -->
                 <div class="mb-4">
                     <label for="registroAddFecha" class="block text-gray-700 text-sm font-bold mb-2">Fecha:</label>
                     <input type="date" id="registroAddFecha" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
@@ -130,26 +175,66 @@
                     <textarea id="registroAddDescripcion" placeholder="Detalles del registro..." class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-24"></textarea>
                 </div>
                 
-                <div class="mb-4 text-center">
-                    <p class="text-gray-700 text-sm font-bold mb-2">Opcional: Adjuntar una foto o documento</p>
-                    <button type="button" id="openCameraForRegistro" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full flex items-center justify-center mx-auto space-x-2">
-                        <i class="fas fa-camera"></i> <span>Tomar Foto</span>
-                    </button>
-                    <img id="registroPhotoPreview" class="photo-preview mt-4 mx-auto" style="display:none;">
-                    <span id="registroFileName" class="text-sm text-gray-600 mt-2 block"></span>
+                <!-- Document Type Selection -->
+                <div class="mb-4">
+                    <label for="registroAddTipo" class="block text-gray-700 text-sm font-bold mb-2">Tipo de Documento:</label>
+                    <div class="flex items-center space-x-2">
+                        <select id="registroAddTipo" class="shadow border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline flex-grow">
+                            <!-- Options will be dynamically loaded -->
+                        </select>
+                        <button type="button" id="addNewTipoBtn" class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-full text-sm">
+                            <i class="fas fa-plus mr-1"></i>Añadir Tipo
+                        </button>
+                    </div>
                 </div>
 
-                <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:shadow-lg w-full transition-all duration-200">Guardar Registro</button>
+                <!-- File Attachment Section -->
+                <div class="mb-4">
+                    <label for="registroAddArchivo" class="block text-gray-700 text-sm font-bold mb-2">Adjuntar Archivo (Opcional):</label>
+                    <input type="file" id="registroAddArchivo" class="block w-full text-sm text-gray-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-full file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-violet-50 file:text-violet-700
+                        hover:file:bg-violet-100
+                    "/>
+                    <div id="attachmentDisplay" class="hidden mt-2">
+                        <span id="attachedFileName" class="text-sm text-gray-600"></span>
+                        <button type="button" id="clearAttachmentBtn" class="ml-2 text-red-500 hover:text-red-700">
+                            <i class="fas fa-times-circle"></i>
+                        </button>
+                    </div>
+                    <div class="text-center mt-4">
+                        <button type="button" id="openCameraForRegistro" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full flex items-center justify-center mx-auto space-x-2">
+                            <i class="fas fa-camera"></i> <span>Tomar Foto</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:shadow-lg w-full transition-all duration-200" id="saveRegistroBtn">Guardar Registro</button>
+                <button type="button" id="cancelEditBtn" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:shadow-lg w-full transition-all duration-200 mt-2" style="display:none;">Cancelar Edición</button>
             </form>
         </div>
 
         <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Todos los Registros</h2>
+        <!-- Filter Section -->
+        <div class="mb-6 p-4 bg-blue-50 rounded-lg shadow-inner flex items-center space-x-2">
+            <label for="filterTipo" class="block text-gray-700 text-sm font-bold">Filtrar por Tipo:</label>
+            <select id="filterTipo" class="shadow border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline flex-grow">
+                <option value="all">Todos</option>
+                <!-- Types will be dynamically loaded -->
+            </select>
+            <button type="button" id="applyFilterBtn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md">
+                <i class="fas fa-filter mr-1"></i>Aplicar Filtro
+            </button>
+        </div>
+
         <div id="registrosList" class="space-y-4">
             <p class="text-gray-500 italic">Cargando registros...</p>
         </div>
     </div>
 
-    <!-- Modal para Captura de Foto (Mismo que index.html, pero con id único si se usa como modal individual) -->
+    <!-- Modal para Captura de Foto -->
     <div id="cameraModalRegistro" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display:none;">
         <div class="bg-white p-6 rounded-lg shadow-xl camera-modal-content">
             <h3 class="text-xl font-bold mb-4 text-center">Tomar Foto para Registro</h3>
@@ -187,13 +272,25 @@
 
     <script>
         const addRegistroForm = document.getElementById('addRegistroForm');
+        const registroIdToEdit = document.getElementById('registroIdToEdit');
         const registroAddFecha = document.getElementById('registroAddFecha');
         const registroAddTitulo = document.getElementById('registroAddTitulo');
         const registroAddDescripcion = document.getElementById('registroAddDescripcion');
+        const registroAddTipo = document.getElementById('registroAddTipo');
+        const registroAddArchivo = document.getElementById('registroAddArchivo');
+        const attachedFileNameSpan = document.getElementById('attachedFileName');
+        const attachmentDisplay = document.getElementById('attachmentDisplay');
+        const clearAttachmentBtn = document.getElementById('clearAttachmentBtn');
         const registrosList = document.getElementById('registrosList');
         const clearAllRegistrosBtn = document.getElementById('clearAllRegistrosBtn');
+        const saveRegistroBtn = document.getElementById('saveRegistroBtn');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+        const formTitle = document.getElementById('formTitle');
+        const addNewTipoBtn = document.getElementById('addNewTipoBtn');
+        const filterTipo = document.getElementById('filterTipo');
+        const applyFilterBtn = document.getElementById('applyFilterBtn');
 
-        // Camera elements (prefixed with Registro to avoid conflicts if this script were merged)
+        // Camera elements
         const cameraModal = document.getElementById('cameraModalRegistro');
         const videoStream = document.getElementById('videoStreamRegistro');
         const photoCanvas = document.getElementById('photoCanvasRegistro');
@@ -203,15 +300,27 @@
         const confirmPhotoButton = document.getElementById('confirmPhotoButtonRegistro');
         const closeCameraModalButton = document.getElementById('closeCameraModalRegistroButton');
         const cameraStatus = document.getElementById('cameraStatusRegistro');
-        const openCameraForRegistroButton = document.getElementById('openCameraForRegistro');
-        const registroPhotoPreview = document.getElementById('registroPhotoPreview');
-        const registroFileName = document.getElementById('registroFileName');
+        const openCameraForRegistroButton = document.getElementById('openCameraForRegistro'); 
 
-        let currentStream;
-        let capturedImageBase64 = null;
-        let currentFileName = null;
-        let currentMimeType = null;
+        let currentAttachedFileBase64 = null;
+        let currentAttachedFileName = null;
+        let currentAttachedMimeType = null;
+        let isEditing = false; 
 
+        let currentStream; 
+        let tempCameraImageBase64 = null; 
+        let tempCameraFileName = null;
+        let tempCameraMimeType = null;
+
+        const LOCAL_STORAGE_TYPES_KEY = 'documentTypes';
+        const LOCAL_STORAGE_COLORS_KEY = 'documentTypeColors'; // New key for colors
+        const DEFAULT_TYPES = ['General']; 
+        let typeColors = {}; // Stores type -> color mapping
+
+        const MONTH_NAMES = [
+            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        ];
 
         // --- Utility Functions ---
         function formatFecha(date) {
@@ -273,6 +382,141 @@
             return await showCustomModal(message, title, 'confirm');
         }
 
+        // --- Document Type and Color Management ---
+        function loadDocumentTypes() {
+            let storedTypes = JSON.parse(localStorage.getItem(LOCAL_STORAGE_TYPES_KEY));
+            let uniqueTypes = new Set(DEFAULT_TYPES); 
+
+            if (Array.isArray(storedTypes)) {
+                storedTypes.forEach(type => {
+                    if (!DEFAULT_TYPES.includes(type)) {
+                        uniqueTypes.add(type);
+                    }
+                });
+            }
+            
+            let finalTypes = Array.from(uniqueTypes);
+            if (finalTypes.includes('General')) {
+                finalTypes = finalTypes.filter(type => type !== 'General');
+                finalTypes.unshift('General');
+            }
+
+            localStorage.setItem(LOCAL_STORAGE_TYPES_KEY, JSON.stringify(finalTypes));
+            return finalTypes;
+        }
+
+        function saveDocumentTypes(types) {
+            localStorage.setItem(LOCAL_STORAGE_TYPES_KEY, JSON.stringify(types));
+        }
+
+        function loadTypeColors() {
+            const storedColors = JSON.parse(localStorage.getItem(LOCAL_STORAGE_COLORS_KEY));
+            if (storedColors) {
+                typeColors = storedColors;
+            } else {
+                typeColors = {};
+            }
+        }
+
+        function saveTypeColors() {
+            localStorage.setItem(LOCAL_STORAGE_COLORS_KEY, JSON.stringify(typeColors));
+        }
+
+        function getRandomColorForType(type) {
+            if (typeColors[type]) {
+                return typeColors[type];
+            }
+
+            // Generate a random HSL color for better control over vibrancy
+            const hue = Math.floor(Math.random() * 360);
+            const saturation = Math.floor(Math.random() * (90 - 70) + 70); // 70-90%
+            const lightness = Math.floor(Math.random() * (70 - 50) + 50); // 50-70%
+            const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+            
+            typeColors[type] = color;
+            saveTypeColors();
+            return color;
+        }
+
+        function populateDocumentTypesSelects() {
+            const types = loadDocumentTypes();
+            registroAddTipo.innerHTML = '';
+            filterTipo.innerHTML = '<option value="all">Todos</option>'; 
+
+            types.forEach(type => {
+                const optionAdd = document.createElement('option');
+                optionAdd.value = type;
+                optionAdd.textContent = type;
+                registroAddTipo.appendChild(optionAdd);
+
+                const optionFilter = document.createElement('option');
+                optionFilter.value = type;
+                optionFilter.textContent = type;
+                filterTipo.appendChild(optionFilter);
+            });
+        }
+
+        addNewTipoBtn.addEventListener('click', async () => {
+            const newType = prompt('Introduce el nuevo tipo de documento:').trim();
+            if (newType) {
+                let types = loadDocumentTypes(); 
+                if (!types.includes(newType)) {
+                    types.push(newType);
+                    saveDocumentTypes(types);
+                    // Get a random color for the new type immediately
+                    getRandomColorForType(newType); 
+                    populateDocumentTypesSelects();
+                    registroAddTipo.value = newType; 
+                    showCustomAlert(`Tipo "${newType}" añadido correctamente.`, 'Tipo Añadido');
+                } else {
+                    showCustomAlert(`El tipo "${newType}" ya existe.`, 'Tipo Existente');
+                }
+            } else {
+                showCustomAlert('El tipo de documento no puede estar vacío.', 'Entrada Inválida');
+            }
+        });
+
+        // --- File Attachment Logic (for both file input and camera) ---
+        registroAddArchivo.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    currentAttachedFileBase64 = e.target.result;
+                    currentAttachedFileName = file.name;
+                    currentAttachedMimeType = file.type;
+                    displayAttachmentPreview(file.name);
+                    tempCameraImageBase64 = null;
+                    tempCameraFileName = null;
+                    tempCameraMimeType = null;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                clearAttachment();
+            }
+        });
+
+        clearAttachmentBtn.addEventListener('click', () => {
+            clearAttachment();
+        });
+
+        function displayAttachmentPreview(fileName) {
+            attachedFileNameSpan.textContent = fileName;
+            attachmentDisplay.classList.remove('hidden');
+        }
+
+        function clearAttachment() {
+            currentAttachedFileBase64 = null;
+            currentAttachedFileName = null;
+            currentAttachedMimeType = null;
+            registroAddArchivo.value = ''; 
+            attachmentDisplay.classList.add('hidden');
+            attachedFileNameSpan.textContent = '';
+            tempCameraImageBase64 = null;
+            tempCameraFileName = null;
+            tempCameraMimeType = null;
+        }
+
         // --- Camera Logic ---
         async function initCamera() {
             cameraStatus.textContent = 'Iniciando cámara...';
@@ -289,7 +533,7 @@
             try {
                 currentStream = await navigator.mediaDevices.getUserMedia({
                     video: {
-                        facingMode: { exact: 'environment' } // Prefer rear camera
+                        facingMode: { exact: 'environment' } 
                     }
                 });
                 videoStream.srcObject = currentStream;
@@ -301,7 +545,7 @@
                 try {
                     currentStream = await navigator.mediaDevices.getUserMedia({
                         video: {
-                            facingMode: 'user' // Fallback to front camera
+                            facingMode: 'user' 
                         }
                     });
                     videoStream.srcObject = currentStream;
@@ -325,11 +569,11 @@
         }
 
         openCameraForRegistroButton.addEventListener('click', () => {
+            tempCameraImageBase64 = null;
+            tempCameraFileName = null;
+            tempCameraMimeType = null;
+
             cameraModal.style.display = 'flex';
-            capturedImageBase64 = null; // Clear any previous image
-            currentFileName = null;
-            currentMimeType = null;
-            clearFilePreview(); // Clear UI
             initCamera();
         });
 
@@ -340,11 +584,11 @@
                 const context = photoCanvas.getContext('2d');
                 context.drawImage(videoStream, 0, 0, photoCanvas.width, photoCanvas.height);
                 
-                capturedImageBase64 = photoCanvas.toDataURL('image/png');
-                currentFileName = `registro_foto_${Date.now()}.png`; // Generic filename
-                currentMimeType = 'image/png';
+                tempCameraImageBase64 = photoCanvas.toDataURL('image/png');
+                tempCameraFileName = `foto_camara_${Date.now()}.png`; 
+                tempCameraMimeType = 'image/png';
 
-                photoPreview.src = capturedImageBase64;
+                photoPreview.src = tempCameraImageBase64;
 
                 videoStream.style.display = 'none';
                 photoPreview.style.display = 'block';
@@ -359,9 +603,9 @@
         });
 
         retakePhotoButton.addEventListener('click', () => {
-            capturedImageBase64 = null;
-            currentFileName = null;
-            currentMimeType = null;
+            tempCameraImageBase64 = null;
+            tempCameraFileName = null;
+            tempCameraMimeType = null;
             photoPreview.style.display = 'none';
             initCamera();
         });
@@ -369,10 +613,15 @@
         confirmPhotoButton.addEventListener('click', () => {
             cameraModal.style.display = 'none';
             stopCamera();
-            if (capturedImageBase64) {
-                registroPhotoPreview.src = capturedImageBase64;
-                registroPhotoPreview.style.display = 'block';
-                registroFileName.textContent = currentFileName || '';
+            if (tempCameraImageBase64) {
+                currentAttachedFileBase64 = tempCameraImageBase64;
+                currentAttachedFileName = tempCameraFileName;
+                currentAttachedMimeType = tempCameraMimeType;
+                displayAttachmentPreview(currentAttachedFileName);
+                tempCameraImageBase64 = null;
+                tempCameraFileName = null;
+                tempCameraMimeType = null;
+                registroAddArchivo.value = '';
             }
             cameraStatus.textContent = '';
         });
@@ -380,24 +629,16 @@
         closeCameraModalButton.addEventListener('click', () => {
             cameraModal.style.display = 'none';
             stopCamera();
-            capturedImageBase64 = null; // Discard photo if modal closed without confirming
-            currentFileName = null;
-            currentMimeType = null;
-            clearFilePreview();
+            tempCameraImageBase64 = null;
+            tempCameraFileName = null;
+            tempCameraMimeType = null;
             cameraStatus.textContent = '';
         });
 
-        function clearFilePreview() {
-            registroPhotoPreview.src = '';
-            registroPhotoPreview.style.display = 'none';
-            registroFileName.textContent = '';
-        }
-
 
         // --- Fetch and Render Registros ---
-        async function fetchAndRenderAllData() {
+        async function fetchAndRenderAllData(filterByType = 'all') {
             try {
-                // Borrar todos los registros existentes en la UI para evitar duplicados
                 registrosList.innerHTML = '<p class="text-gray-500 italic">Cargando registros...</p>'; 
 
                 const response = await fetch('/api/registros_importantes');
@@ -405,27 +646,55 @@
                     const errorData = await response.json();
                     throw new Error(errorData.error || 'Error al cargar registros.');
                 }
-                const registros = await response.json();
+                let registros = await response.json();
+
+                // Apply filter
+                if (filterByType !== 'all') {
+                    registros = registros.filter(registro => registro.tipo === filterByType);
+                }
 
                 if (registros.length === 0) {
                     registrosList.innerHTML = '<p class="text-gray-500 italic">No hay registros importantes guardados.</p>';
                     return;
                 }
 
+                // Sort records by date in ascending order
+                registros.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+
                 registrosList.innerHTML = ''; // Clear loading message
+
+                let currentMonthYear = '';
+
                 registros.forEach(registro => {
+                    const registroDate = new Date(registro.fecha);
+                    const monthName = MONTH_NAMES[registroDate.getMonth()];
+                    const year = registroDate.getFullYear();
+                    const monthYearString = `${monthName} ${year}`;
+
+                    // Check if a new month heading is needed
+                    if (monthYearString !== currentMonthYear) {
+                        currentMonthYear = monthYearString;
+                        const monthHeading = document.createElement('div');
+                        monthHeading.classList.add('month-heading');
+                        monthHeading.textContent = `Registros de ${monthYearString}`;
+                        registrosList.appendChild(monthHeading);
+                    }
+
                     const li = document.createElement('div');
                     li.classList.add('registro-item');
                     li.dataset.id = registro.id;
+                    // Set the border-left color based on the type
+                    li.style.borderLeftColor = getRandomColorForType(registro.tipo || 'General'); 
 
                     const fechaFormateada = new Date(registro.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-                    let imageHtml = '';
+                    let fileHtml = '';
                     if (registro.imagen_base64 && registro.mime_type && registro.nombre_archivo) {
-                        imageHtml = `
-                            <div class="registro-item-image">
-                                <img src="${registro.imagen_base64}" alt="Imagen de registro" class="w-full h-auto rounded-md mt-2">
-                                <p class="text-xs text-gray-500 text-center mt-1">Archivo: ${registro.nombre_archivo}</p>
+                        const isImage = registro.mime_type.startsWith('image/');
+                        fileHtml = `
+                            <div class="registro-item-file mt-2">
+                                ${isImage ? `<img src="${registro.imagen_base64}" alt="Archivo adjunto" class="w-full h-auto rounded-md">` : ''}
+                                <p class="text-xs text-gray-500 text-center mt-1">Archivo: <a href="${registro.imagen_base64}" download="${registro.nombre_archivo}" class="hover:underline">${registro.nombre_archivo}</a></p>
                             </div>
                         `;
                     }
@@ -437,8 +706,9 @@
                         </div>
                         <p class="registro-item-description">${registro.descripcion || 'Sin descripción'}</p>
                         <p class="registro-item-type text-sm text-gray-500">Tipo: ${registro.tipo || 'General'}</p>
-                        ${imageHtml}
+                        ${fileHtml}
                         <div class="registro-actions">
+                            <button class="btn-editar" data-id="${registro.id}">Editar</button>
                             <button class="btn-eliminar" data-id="${registro.id}">Eliminar</button>
                         </div>
                     `;
@@ -448,6 +718,9 @@
                 document.querySelectorAll('.btn-eliminar').forEach(button => {
                     button.addEventListener('click', deleteRegistro);
                 });
+                document.querySelectorAll('.btn-editar').forEach(button => {
+                    button.addEventListener('click', editRegistro);
+                });
 
             } catch (error) {
                 console.error('Error al cargar registros importantes:', error);
@@ -456,53 +729,117 @@
             }
         }
 
-        // --- Add Registro ---
+        // --- Add/Edit Registro ---
         addRegistroForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const fecha = registroAddFecha.value;
             const titulo = registroAddTitulo.value.trim();
             const descripcion = registroAddDescripcion.value.trim();
-            const tipo = 'General'; // Siempre "General" según la nueva especificación
+            const tipo = registroAddTipo.value;
+            const registroId = registroIdToEdit.value; 
 
             if (!titulo || !fecha) {
                 showCustomAlert('El título y la fecha son obligatorios.', 'Campos Obligatorios');
                 return;
             }
 
+            const registroData = { 
+                fecha: fecha, 
+                titulo: titulo, 
+                descripcion: descripcion, 
+                tipo: tipo,
+                imagen_base64: currentAttachedFileBase64,
+                nombre_archivo: currentAttachedFileName,
+                mime_type: currentAttachedMimeType
+            };
+
             try {
-                const response = await fetch('/api/registros_importantes/add_from_task', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        fecha: fecha, 
-                        titulo: titulo, 
-                        descripcion: descripcion, 
-                        tipo: tipo,
-                        imagen_base64: capturedImageBase64,
-                        nombre_archivo: currentFileName,
-                        mime_type: currentMimeType
-                    })
-                });
+                let response;
+                if (isEditing && registroId) {
+                    response = await fetch(`/api/registros_importantes/${registroId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(registroData)
+                    });
+                } else {
+                    response = await fetch('/api/registros_importantes/add_from_task', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(registroData)
+                    });
+                }
 
                 if (!response.ok) {
                     const errorData = await response.json();
                     throw new Error(errorData.error || 'Error desconocido al guardar el registro.');
                 }
-                showCustomAlert('Registro guardado con éxito.', 'Guardado Exitoso');
-                // Limpiar formulario
-                addRegistroForm.reset();
-                capturedImageBase64 = null;
-                currentFileName = null;
-                currentMimeType = null;
-                clearFilePreview();
-                // Actualizar la lista de registros
-                fetchAndRenderAllData(); 
+                
+                showCustomAlert(`Registro ${isEditing ? 'actualizado' : 'guardado'} con éxito.`, `Guardado Exitoso`);
+                resetForm();
+                fetchAndRenderAllData(filterTipo.value); 
             } catch (error) {
                 console.error('Error al guardar el registro:', error);
                 showCustomAlert(`No se pudo guardar el registro: ${error.message}`, 'Error de Guardado');
             }
         });
+
+        // --- Edit Registro Functionality ---
+        async function editRegistro(event) {
+            const registroId = event.target.dataset.id;
+            try {
+                const response = await fetch(`/api/registros_importantes/${registroId}`);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error al obtener el registro para editar.');
+                }
+                const registro = await response.json();
+
+                registroIdToEdit.value = registro.id;
+                registroAddFecha.value = registro.fecha;
+                registroAddTitulo.value = registro.titulo;
+                registroAddDescripcion.value = registro.descripcion;
+                registroAddTipo.value = registro.tipo || 'General'; 
+
+                // Handle attached file for editing
+                if (registro.imagen_base64 && registro.nombre_archivo && registro.mime_type) {
+                    currentAttachedFileBase64 = registro.imagen_base64;
+                    currentAttachedFileName = registro.nombre_archivo;
+                    currentAttachedMimeType = registro.mime_type;
+                    displayAttachmentPreview(registro.nombre_archivo);
+                } else {
+                    clearAttachment();
+                }
+
+                formTitle.textContent = 'Editar Registro';
+                saveRegistroBtn.textContent = 'Actualizar Registro';
+                cancelEditBtn.style.display = 'block';
+                isEditing = true;
+
+                // Scroll to the form
+                addRegistroForm.scrollIntoView({ behavior: 'smooth' });
+
+            } catch (error) {
+                console.error('Error al cargar el registro para edición:', error);
+                showCustomAlert(`No se pudo cargar el registro para edición: ${error.message}`, 'Error de Edición');
+            }
+        }
+
+        cancelEditBtn.addEventListener('click', resetForm);
+
+        function resetForm() {
+            addRegistroForm.reset();
+            registroIdToEdit.value = '';
+            formTitle.textContent = 'Añadir Nuevo Registro';
+            saveRegistroBtn.textContent = 'Guardar Registro';
+            cancelEditBtn.style.display = 'none';
+            isEditing = false;
+            clearAttachment(); 
+            const today = new Date();
+            registroAddFecha.value = formatFecha(today); 
+            registroAddTipo.value = 'General'; 
+        }
+
 
         // --- Delete Registro ---
         async function deleteRegistro(event) {
@@ -518,7 +855,7 @@
                         throw new Error(errorData.error || 'Error al eliminar el registro');
                     }
                     showCustomAlert('Registro eliminado exitosamente.', 'Eliminación Exitosa');
-                    fetchAndRenderAllData();
+                    fetchAndRenderAllData(filterTipo.value); 
                 } catch (error) {
                     console.error('Error al eliminar el registro:', error);
                     showCustomAlert(`No se pudo eliminar el registro: ${error.message}`, 'Error de Eliminación');
@@ -531,14 +868,6 @@
             const confirmAction = await showCustomConfirm('¿Estás seguro de que quieres borrar TODOS los registros? Esta acción es irreversible.');
             if (confirmAction) {
                 try {
-                    // Primero, obtener todos los IDs de los registros para eliminarlos uno por uno.
-                    // Supabase DELETE sin filtros puede ser problemático si la tabla es grande.
-                    // Es más seguro iterar si la operación de borrar todos no está expuesta en una API específica.
-                    // Para simplificar aquí, se podría hacer una nueva API en Flask para borrar todos.
-                    // Por ahora, como no hay una API específica de "borrar todo" para registros, simularemos.
-                    // *NOTA: En una aplicación real, se preferiría una API de backend para "borrar todo" si es una operación frecuente.*
-                    
-                    // Simulación de "borrar todo" cliente-lado (menos eficiente pero funcional con API actual)
                     const getAllResponse = await fetch('/api/registros_importantes');
                     if (!getAllResponse.ok) {
                         const errorData = await getAllResponse.json();
@@ -554,7 +883,6 @@
                         if (!deleteResponse.ok) {
                             console.error(`Fallo al eliminar registro ${registro.id}`);
                             deletionSuccess = false;
-                            // Continuar con los demás para intentar borrar tantos como sea posible
                         }
                     }
 
@@ -563,7 +891,7 @@
                     } else {
                         showCustomAlert('Algunos registros no pudieron ser borrados. Consulta la consola.', 'Borrado Parcial');
                     }
-                    fetchAndRenderAllData(); // Re-render to show empty list
+                    fetchAndRenderAllData(filterTipo.value); 
                 } catch (error) {
                     console.error('Error al borrar todos los registros:', error);
                     showCustomAlert(`No se pudieron borrar todos los registros: ${error.message}`, 'Error de Borrado');
@@ -571,11 +899,20 @@
             }
         });
 
+        // --- Filter Functionality ---
+        applyFilterBtn.addEventListener('click', () => {
+            fetchAndRenderAllData(filterTipo.value);
+        });
+
 
         // --- Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
+            // Load existing types and their colors
+            loadDocumentTypes();
+            loadTypeColors(); 
+            populateDocumentTypesSelects();
             const today = new Date();
-            registroAddFecha.value = formatFecha(today); // Set default date to today
+            registroAddFecha.value = formatFecha(today); 
             fetchAndRenderAllData(); 
         });
 

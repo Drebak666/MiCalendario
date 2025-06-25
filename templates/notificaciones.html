@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración de Notificaciones</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 450px; /* Aumentado para acomodar los nuevos campos */
+            width: 90%;
+        }
+        h1 {
+            font-size: 1.875rem; /* 30px */
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #2c3e50;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 0.4rem;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="number"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box; /* Incluir padding en el ancho */
+        }
+        button {
+            background-color: #4CAF50; /* Green */
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            margin-top: 1rem;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .message {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            display: none; /* Hidden by default */
+        }
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Configuración de Notificaciones</h1>
+        <p class="mb-4">Activa las notificaciones para recibir recordatorios importantes de tu agenda.</p>
+        <button id="enableNotifications">Activar Notificaciones</button>
+
+        <h2 class="text-xl font-bold mt-8 mb-4 text-gray-700">Enviar Notificación de Prueba Personalizada</h2>
+        
+        <div class="form-group">
+            <label for="notificationTitle">Título de la Notificación:</label>
+            <input type="text" id="notificationTitle" placeholder="Recordatorio de Tarea" class="focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        
+        <div class="form-group">
+            <label for="notificationBody">Cuerpo del Mensaje:</label>
+            <input type="text" id="notificationBody" placeholder="¡No olvides tu tarea pendiente!" class="focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div class="form-group">
+            <label for="minutesBefore">Recordatorio (Minutos antes - solo texto):</label>
+            <input type="number" id="minutesBefore" value="15" min="0" class="focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <p class="text-sm text-gray-500 mt-1">Este valor se incluirá en el mensaje, pero la notificación se envía de inmediato al pulsar el botón.</p>
+        </div>
+
+        <button id="sendTestNotification" class="bg-blue-500 hover:bg-blue-600">Enviar Notificación de Prueba</button>
+        <div id="notificationMessage" class="message"></div>
+    </div>
+
+    <script>
+        // Función de utilidad para convertir la clave pública VAPID a Uint8Array
+        function urlBase64ToUint8Array(base64String) {
+            // Asegurarse de eliminar cualquier comilla extra que pudiera venir de la variable de entorno
+            const cleanBase64String = base64String.replace(/"/g, '').trim(); 
+            const padding = '='.repeat((4 - cleanBase64String.length % 4) % 4);
+            const base64 = (cleanBase64String + padding)
+                .replace(/\-/g, '+')
+                .replace(/_/g, '/');
+
+            const rawData = window.atob(base64); 
+            const outputArray = new Uint8Array(rawData.length);
+
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+
+        function showMessage(message, type) {
+            const msgDiv = document.getElementById('notificationMessage');
+            msgDiv.textContent = message;
+            msgDiv.className = `message ${type}`;
+            msgDiv.style.display = 'block';
+            setTimeout(() => {
+                msgDiv.style.display = 'none';
+            }, 5000); // Ocultar después de 5 segundos
+        }
+
+        async function subscribeUserForNotifications() {
+            if (!('serviceWorker' in navigator)) {
+                console.warn('Service Worker no soportado en este navegador.');
+                showMessage('Las notificaciones push no son compatibles con este navegador.', 'error');
+                return;
+            }
+            if (!('PushManager' in window)) {
+                console.warn('Push API no soportada en este navegador.');
+                showMessage('Las notificaciones push no son compatibles con este navegador.', 'error');
+                return;
+            }
+
+            try {
+                // 1. Obtener la clave pública VAPID de tu backend
+                const response = await fetch('/api/vapid_public_key');
+                if (!response.ok) {
+                    const errorDetails = await response.json();
+                    throw new Error('Fallo al obtener la clave pública VAPID: ' + (errorDetails.error || response.statusText));
+                }
+                const data = await response.json();
+                const vapidPublicKey = data.publicKey; 
+                // Aquí llamamos a la función que ahora intenta limpiar las comillas
+                const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+
+                // 2. Registrar un Service Worker
+                const registration = await navigator.serviceWorker.register('/service-worker.js');
+                console.log('Service Worker registrado con éxito:', registration);
+
+                // Esperar a que el service worker esté activo
+                await navigator.serviceWorker.ready;
+
+                // 3. Solicitar permiso de notificación
+                const permissionState = await Notification.requestPermission();
+                if (permissionState !== 'granted') {
+                    console.warn('Permiso de notificación no concedido.');
+                    showMessage('Permiso de notificaciones denegado. No podrás recibir notificaciones.', 'error');
+                    return;
+                }
+
+                // 4. Suscribir al usuario
+                const subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: convertedVapidKey
+                });
+                console.log('Suscripción Push creada:', subscription);
+
+                // 5. Enviar la suscripción a tu backend
+                const subscribeResponse = await fetch('/api/subscribe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(subscription)
+                });
+
+                if (subscribeResponse.ok) {
+                    console.log('Suscripción enviada al backend con éxito.');
+                    showMessage('¡Notificaciones activadas con éxito!', 'success');
+                } else {
+                    const errorData = await subscribeResponse.json();
+                    console.error('Error al enviar la suscripción al backend:', errorData);
+                    showMessage('Error al enviar la suscripción al servidor: ' + (errorData.error || subscribeResponse.statusText), 'error');
+                }
+
+            } catch (error) {
+                console.error('Error al suscribirse a notificaciones push:', error);
+                showMessage('Hubo un error al configurar las notificaciones. Por favor, inténtalo de nuevo más tarde o verifica la consola.', 'error');
+            }
+        }
+
+        // Función de ejemplo para enviar una notificación de prueba (para tus propósitos de desarrollo)
+        async function sendTestNotification() {
+            const customTitle = document.getElementById('notificationTitle').value || 'Notificación de Prueba';
+            let customBody = document.getElementById('notificationBody').value || 'Esta es una notificación de prueba desde tu aplicación.';
+            const minutesBefore = document.getElementById('minutesBefore').value;
+
+            // Añadir el texto "X minutos antes" al cuerpo si se ha especificado un número
+            if (minutesBefore && parseInt(minutesBefore) > 0) {
+                customBody = `Recordatorio: ${customBody} (aprox. ${minutesBefore} minutos antes)`;
+            } else if (minutesBefore === "0") {
+                customBody = `Recordatorio: ${customBody} (ahora)`;
+            }
+
+            try {
+                const response = await fetch('/api/send_notification', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: customTitle,
+                        body: customBody,
+                        icon: '/static/icons/notification-icon.png' // Asegúrate de que este icono exista
+                    })
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    console.log('Resultado de envío de notificación de prueba:', result);
+                    showMessage(result.message, 'success');
+                } else {
+                    console.error('Fallo al enviar notificación de prueba:', result);
+                    showMessage('Error al enviar notificación de prueba: ' + (result.error || result.message), 'error');
+                }
+            } catch (error) {
+                console.error('Error al enviar notificación de prueba:', error);
+                showMessage('Error inesperado al enviar la notificación de prueba.', 'error');
+            }
+        }
+
+        // Llama a esta función cuando el usuario quiera habilitar las notificaciones
+        document.addEventListener('DOMContentLoaded', () => {
+            const enableNotificationsButton = document.getElementById('enableNotifications');
+            if (enableNotificationsButton) {
+                enableNotificationsButton.addEventListener('click', subscribeUserForNotifications);
+            }
+
+            const sendTestNotificationButton = document.getElementById('sendTestNotification');
+            if (sendTestNotificationButton) {
+                sendTestNotificationButton.addEventListener('click', sendTestNotification);
+            }
+        });
+    </script>
+</body>
+</html>
