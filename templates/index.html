@@ -300,21 +300,7 @@
                 <i class="fas fa-dumbbell text-2xl mb-1"></i>
                 <span>Gimnasio</span>
             </a>
-            <a href="/citas" class="relative boton flex flex-col items-center justify-center p-3 rounded-lg shadow hover:shadow-lg transition-shadow bg-teal-400 text-white">
-                <i class="fas fa-calendar-check text-2xl mb-1"></i>
-                <span>Citas</span>
-                <span class="button-nav-count" id="navCitasCount">0</span>
-            </a>
-            <a href="/lista" class="relative boton flex flex-col items-center justify-center p-3 rounded-lg shadow hover:shadow-lg transition-shadow bg-orange-400 text-white">
-                <i class="fas fa-shopping-cart text-2xl mb-1"></i>
-                <span>Lista Compra</span>
-                <span class="button-nav-count" id="navListCount">0</span>
-            </a>
-            <a href="/notas" class="relative boton flex flex-col items-center justify-center p-3 rounded-lg shadow hover:shadow-lg transition-shadow bg-indigo-400 text-white">
-                <i class="fas fa-pencil-alt text-2xl mb-1"></i>
-                <span>Notas</span>
-                <span class="button-nav-count" id="navNotesCount">0</span>
-            </a>
+            <!-- Los botones de Citas, Lista Compra y Notas de la navegación han sido eliminados de aquí -->
         </div>
     </div>
 
@@ -490,9 +476,10 @@
         const quickListCountElem = document.getElementById('quickListCount');
         const quickNotesCountElem = document.getElementById('quickNotesCount');
         const quickCitaCountElem = document.getElementById('quickCitaCount');
-        const navCitasCountElem = document.getElementById('navCitasCount');
-       const navListCountElem = document.getElementById('navListCount');
-        const navNotesCountElem = document.getElementById('navNotesCount');
+        // Las siguientes variables de elementos de navegación han sido eliminadas
+        // const navCitasCountElem = document.getElementById('navCitasCount');
+        // const navListCountElem = document.getElementById('navListCount');
+        // const navNotesCountElem = document.getElementById('navNotesCount');
 
 
         // Camera Elements
@@ -882,11 +869,11 @@
 
                 renderUpcomingCitas(fetchedCitas);
                 quickCitaCountElem.textContent = fetchedCitas.length;
-                navCitasCountElem.textContent = fetchedCitas.length;
+                // navCitasCountElem.textContent = fetchedCitas.length; // LINEA ELIMINADA
             } catch (error) {
                 console.error('Error al obtener las citas próximas:', error);
                 quickCitaCountElem.textContent = '0';
-                navCitasCountElem.textContent = '0';
+                // navCitasCountElem.textContent = '0'; // LINEA ELIMINADA
             }
         }
 
@@ -2000,17 +1987,17 @@
                     const items = await listCountResponse.json();
                     const uncompletedCount = items.filter(item => !item.comprada).length; // Corrected 'comprado' to 'comprada'
                     quickListCountElem.textContent = uncompletedCount;
-                    navListCountElem.textContent = uncompletedCount;
+                    // navListCountElem.textContent = uncompletedCount; // LINEA ELIMINADA
                 } else {
                     console.warn('No se pudo obtener el recuento de la lista de la compra.');
                     quickListCountElem.textContent = '0';
-                    navListCountElem.textContent = '0';
+                    // navListCountElem.textContent = '0'; // LINEA ELIMINADA
                 }
 
             } catch (error) {
                 console.error('Error al obtener el recuento de la lista:', error);
                 quickListCountElem.textContent = '0';
-                navListCountElem.textContent = '0';
+                // navListCountElem.textContent = '0'; // LINEA ELIMINADA
             }
 
             // Fetch for quick notes count
@@ -2019,16 +2006,16 @@
                 if (notesCountResponse.ok) {
                     const notes = await notesCountResponse.json(); // Corrected to use notesCountResponse
                     quickNotesCountElem.textContent = notes.length;
-                    navNotesCountElem.textContent = notes.length;
+                    // navNotesCountElem.textContent = notes.length; // LINEA ELIMINADA
                 } else {
                     console.warn('No se pudo obtener el recuento de notas.');
                     quickNotesCountElem.textContent = '0';
-                    navNotesCountElem.textContent = '0';
+                    // navNotesCountElem.textContent = '0'; // LINEA ELIMINADA
                 }
             } catch (error) {
                 console.error('Error al obtener el recuento de notas:', error);
                 quickNotesCountElem.textContent = '0';
-                navNotesCountElem.textContent = '0';
+                // navNotesCountElem.textContent = '0'; // LINEA ELIMINADA
             }
         }
 
@@ -2284,6 +2271,7 @@
             // Clear previous interval to avoid multiple intervals running
             if (timeLeftUpdateInterval) {
                 clearInterval(timeLeftUpdateInterval);
+                timeLeftUpdateInterval = null;
             }
             // Update every minute
             timeLeftUpdateInterval = setInterval(updateAllTimeLeftCounters, 60 * 1000);
