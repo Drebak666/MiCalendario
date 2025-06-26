@@ -491,7 +491,7 @@
         const quickNotesCountElem = document.getElementById('quickNotesCount');
         const quickCitaCountElem = document.getElementById('quickCitaCount');
         const navCitasCountElem = document.getElementById('navCitasCount');
-        const navListCountElem = document.getElementById('navListCount');
+       const navListCountElem = document.getElementById('navListCount');
         const navNotesCountElem = document.getElementById('navNotesCount');
 
 
@@ -987,6 +987,127 @@
             }
         }
 
+        // Action function: Save Cita to Important Records
+        async function saveCitaToRegistro(fecha, nombre, hora, recordatorio) {
+            const formContent = document.createElement('div');
+            formContent.innerHTML = `
+                <h3 class="text-xl font-bold mb-4 text-center">Guardar Cita en Registro</h3>
+                <div class="mb-4">
+                    <label for="registroTitulo" class="block text-gray-700 text-sm font-bold mb-2">Título:</label>
+                    <input type="text" id="registroTitulo" value="${nombre}" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+
+                <div class="mb-4">
+                    <label for="registroDescripcion" class="block text-gray-700 text-sm font-bold mb-2">Descripción:</label>
+                    <textarea id="registroDescripcion" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-24"></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label for="registroTipo" class="block text-gray-700 text-sm font-bold mb-2">Tipo:</label>
+                    <select id="registroTipo" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="Cita" selected>Cita</option>
+                    </select>
+                </div>
+
+                <div class="mb-4 text-center">
+                    <p class="text-gray-700 text-sm font-bold mb-2">Opcional: Adjuntar una foto</p>
+                    <button type="button" id="openCameraButton" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full flex items-center justify-center mx-auto space-x-2">
+                        <i class="fas fa-camera"></i> <span>Tomar Foto</span>
+                    </button>
+                    <img id="registroPhotoPreview" class="photo-preview mt-4 mx-auto" style="display:none;">
+                </div>
+
+                <div class="flex justify-center space-x-4">
+                    <button id="guardarRegistroBtn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full">Guardar</button>
+                    <button id="cancelRegistroBtn" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-full">Cancelar</button>
+                </div>
+            `;
+
+            const modal = createModal(formContent);
+            document.body.appendChild(modal);
+
+            const registroDescripcion = modal.querySelector('#registroDescripcion');
+            let fullDescription = `Cita: ${nombre}\nFecha: ${fecha}`;
+            if (hora) fullDescription += ` Hora: ${hora}`;
+            if (recordatorio && recordatorio.length > 0) {
+                fullDescription += `\nRequisitos:\n${recordatorio.map(req => `- ${req.text} ${req.checked ? '(Completado)' : ''}`).join('\n')}`;
+            }
+            registroDescripcion.value = fullDescription;
+
+            const openCameraButton = modal.querySelector('#openCameraButton');
+            currentRegistroPhotoPreviewElement = modal.querySelector('#registroPhotoPreview');
+
+            if (capturedImageBase64) {
+                currentRegistroPhotoPreviewElement.src = capturedImageBase64;
+                currentRegistroPhotoPreviewElement.style.display = 'block';
+            } else {
+                currentRegistroPhotoPreviewElement.style.display = 'none';
+            }
+
+            openCameraButton.addEventListener('click', () => {
+                cameraModal.style.display = 'flex';
+                videoStream.style.display = 'block';
+                photoPreview.style.display = 'none';
+                capturePhotoButton.style.display = 'block';
+                retakePhotoButton.style.display = 'none';
+                confirmPhotoButton.style.display = 'none';
+
+                capturedImageBase64 = null;
+                currentFileName = null;
+                currentMimeType = null;
+                initCamera();
+            });
+
+            document.getElementById('guardarRegistroBtn').addEventListener('click', async () => {
+                const titulo = document.getElementById('registroTitulo').value.trim();
+                const descripcion = document.getElementById('registroDescripcion').value.trim();
+                const tipo = document.getElementById('registroTipo').value;
+
+                if (!titulo) {
+                    showCustomAlert('El título es obligatorio.', 'Campo Obligatorio');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/registros_importantes/add_from_task', { // Reusing this endpoint for now
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            fecha: fecha,
+                            titulo: titulo,
+                            descripcion: descripcion,
+                            tipo: tipo,
+                            imagen_base64: capturedImageBase64,
+                            nombre_archivo: currentFileName,
+                            mime_type: currentMimeType
+                        })
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Error desconocido al guardar el registro.');
+                    }
+                    showCustomAlert('Registro guardado con éxito.', 'Guardado Exitoso');
+                    modal.remove();
+                    capturedImageBase64 = null;
+                    currentFileName = null;
+                    currentMimeType = null;
+                    currentRegistroPhotoPreviewElement = null;
+                } catch (error) {
+                    console.error('Error al guardar el registro:', error);
+                    showCustomAlert(`No se pudo guardar el registro: ${error.message}`, 'Error de Guardado');
+                }
+            });
+
+            document.getElementById('cancelRegistroBtn').addEventListener('click', () => {
+                modal.remove();
+                capturedImageBase64 = null;
+                currentFileName = null;
+                currentMimeType = null;
+                currentRegistroPhotoPreviewElement = null;
+                stopCamera();
+            });
+        }
+
 
         function renderUpcomingCitas(citas) {
             upcomingCitasList.innerHTML = '';
@@ -1042,6 +1163,7 @@
                     }
                 }
 
+                // Updated HTML for cita-actions to include save to registro and correct button order/spacing
                 li.innerHTML = `
                     <div class="flex-grow flex flex-col sm:flex-row sm:items-center justify-between w-full">
                         <div>
@@ -1058,14 +1180,17 @@
                             <button class="btn-editar btn-compact bg-gray-400 hover:bg-gray-600 text-white" title="Editar Cita" data-id="${cita.id}" data-nombre="${cita.nombre}" data-fecha="${cita.fecha}" data-hora="${cita.hora || ''}" data-recordatorio='${JSON.stringify(requisitos)}'>
                                 <i class="fas fa-edit"></i>
                             </button>
+                            <button class="btn-guardar-registro-icon btn-compact bg-gray-500 hover:bg-gray-700 text-white" title="Guardar en Registro" data-id="${cita.id}" data-nombre="${cita.nombre}" data-fecha="${cita.fecha}" data-hora="${cita.hora || ''}" data-recordatorio='${JSON.stringify(requisitos)}'>
+                                <i class="fas fa-save"></i>
+                            </button>
+                            <button class="btn-eliminar btn-compact bg-red-500 hover:bg-red-700 text-white" title="Eliminar Cita" data-id="${cita.id}">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
                             ${hasRequirements ? `
                                 <button class="requisitos-toggle-btn" data-id="${cita.id}" aria-expanded="false" title="Ver Requisitos">
                                     <i class="fas fa-paperclip"></i>
                                 </button>
                             ` : ''}
-                            <button class="btn-eliminar btn-compact bg-red-500 hover:bg-red-700 text-white" title="Eliminar Cita" data-id="${cita.id}">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
                         </div>
                     </div>
                     <div id="requisitos-${cita.id}" class="requisitos-container hidden">
@@ -1081,6 +1206,10 @@
                     editCita(dataset.id, dataset.nombre, dataset.fecha, dataset.hora, JSON.parse(dataset.recordatorio));
                 });
                 li.querySelector('.btn-eliminar').addEventListener('click', (event) => deleteCita(event.currentTarget.dataset.id));
+                li.querySelector('.btn-guardar-registro-icon').addEventListener('click', (event) => {
+                    const dataset = event.currentTarget.dataset;
+                    saveCitaToRegistro(dataset.fecha, dataset.nombre, dataset.hora, JSON.parse(dataset.recordatorio));
+                });
 
 
                 if (hasRequirements) {
@@ -1141,6 +1270,7 @@
                         }
                     }
 
+                    // Updated HTML for cita-actions to include save to registro and correct button order/spacing
                     li.innerHTML = `
                         <div class="flex-grow flex flex-col sm:flex-row sm:items-center justify-between w-full">
                             <div>
@@ -1157,14 +1287,17 @@
                                 <button class="btn-editar btn-compact bg-gray-400 hover:bg-gray-600 text-white" title="Editar Cita" data-id="${cita.id}" data-nombre="${cita.nombre}" data-fecha="${cita.fecha}" data-hora="${cita.hora || ''}" data-recordatorio='${JSON.stringify(requisitos)}'>
                                     <i class="fas fa-edit"></i>
                                 </button>
+                                <button class="btn-guardar-registro-icon btn-compact bg-gray-500 hover:bg-gray-700 text-white" title="Guardar en Registro" data-id="${cita.id}" data-nombre="${cita.nombre}" data-fecha="${cita.fecha}" data-hora="${cita.hora || ''}" data-recordatorio='${JSON.stringify(requisitos)}'>
+                                    <i class="fas fa-save"></i>
+                                </button>
+                                <button class="btn-eliminar btn-compact bg-red-500 hover:bg-red-700 text-white" title="Eliminar Cita" data-id="${cita.id}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
                                 ${hasRequirements ? `
                                     <button class="requisitos-toggle-btn" data-id="${cita.id}" aria-expanded="false" title="Ver Requisitos">
                                         <i class="fas fa-paperclip"></i>
                                     </button>
                                 ` : ''}
-                                <button class="btn-eliminar btn-compact bg-red-500 hover:bg-red-700 text-white" title="Eliminar Cita" data-id="${cita.id}">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
                             </div>
                         </div>
                         <div id="requisitos-${cita.id}" class="requisitos-container hidden">
@@ -1180,6 +1313,10 @@
                         editCita(dataset.id, dataset.nombre, dataset.fecha, dataset.hora, JSON.parse(dataset.recordatorio));
                     });
                     li.querySelector('.btn-eliminar').addEventListener('click', (event) => deleteCita(event.currentTarget.dataset.id));
+                    li.querySelector('.btn-guardar-registro-icon').addEventListener('click', (event) => {
+                        const dataset = event.currentTarget.dataset;
+                        saveCitaToRegistro(dataset.fecha, dataset.nombre, dataset.hora, JSON.parse(dataset.recordatorio));
+                    });
 
 
                     if (hasRequirements) {
