@@ -50,7 +50,7 @@ else:
 # Se han actualizado con las claves proporcionadas por el usuario.
 # Si estas variables se establecen en el entorno (Render), tendrán prioridad.
 VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY", "4pq3PdWq8xkltisk7dfTAsGz7oPPN2DrW4B4BWZyeg")
-VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "BGMP4VQwdgGJAvggtWzTikWRXOxuHPc8H3F7Daxtrqcp5geq8Pwj1jazJZbUUrJjp4t4bdiztoM1H5YLjTpVnG4")
+VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "BGMP4VQwdgGJAvggtWzTikWRXOxuHPc8H3F7Daxtrqcp5geq8Pwj1jazJZbRUrJjp4t4bdiztoM1H5YLjTpVnG4")
 # IMPORTANTE: Reemplaza "mailto:your_email@example.com" con un correo electrónico real
 # Este correo se utiliza para identificar al remitente de las notificaciones en caso de abuso.
 VAPID_CLAIMS = {"sub": "mailto:your_email@example.com"}
@@ -523,6 +523,41 @@ def add_tarea():
         print(f"Error al añadir tarea a Supabase: {e}")
         return jsonify({'error': f'Error al añadir tarea: {str(e)}'}), 500
 
+@app.route('/api/tareas/<uuid:tarea_id>', methods=['PUT'])
+def update_tarea(tarea_id):
+    if supabase is None:
+        return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
+    data = request.json
+    fecha = data.get('fecha')
+    texto = data.get('texto')
+    hora = data.get('hora')
+
+    if not fecha or not texto:
+        return jsonify({'error': 'La fecha y el texto de la tarea son obligatorios para la actualización.'}), 400
+
+    try:
+        datetime.strptime(fecha, '%Y-%m-%d')
+        if hora:
+            datetime.strptime(hora, '%H:%M')
+    except ValueError:
+        return jsonify({'error': 'Formato de fecha u hora inválido. Usar (YYYY-MM-DD) y HH:MM'}), 400
+
+    hora_para_db = hora if hora else None
+
+    try:
+        # Al actualizar una tarea, la marcamos como no notificada de nuevo
+        update_data = {'fecha': fecha, 'texto': texto, 'hora': hora_para_db, 'notified': False}
+        response = supabase.from_('tarea').update(update_data).eq('id', str(tarea_id)).execute()
+
+        if not response.data:
+            return jsonify({'error': 'Tarea no encontrada para actualizar.'}), 404
+
+        updated_tarea = response.data[0]
+        return jsonify({'message': 'Tarea actualizada exitosamente.', 'id': str(tarea_id), 'fecha': updated_tarea['fecha'], 'texto': updated_tarea['texto'], 'hora': updated_tarea['hora']}), 200
+    except Exception as e:
+        print(f"Error al actualizar tarea en Supabase: {e}")
+        return jsonify({'error': f'Error al actualizar tarea: {str(e)}'}), 500
+
 @app.route('/api/tareas/<uuid:tarea_id>/toggle_completada', methods=['PATCH'])
 def toggle_tarea_completada(tarea_id):
     if supabase is None:
@@ -937,6 +972,51 @@ def add_rutina():
         print(f"Error al añadir rutina a Supabase: {e}")
         return jsonify({'error': f'Error al añadir rutina: {str(e)}'}), 500
 
+@app.route('/api/rutinas/<uuid:rutina_id>', methods=['PUT'])
+def update_rutina(rutina_id):
+    if supabase is None:
+        return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
+    data = request.json
+    nombre = data.get('nombre')
+    hora = data.get('hora')
+    hora_fin = data.get('hora_fin')
+    dias = data.get('dias')
+
+    if not nombre or not dias:
+        return jsonify({'error': 'El nombre y los días de la semana de la rutina son obligatorios para la actualización.'}), 400
+
+    if not isinstance(dias, list) or not all(isinstance(d, int) and 0 <= d <= 6 for d in dias):
+        return jsonify({'error': 'Los días deben ser una lista de enteros entre 0 y 6.'}), 400
+
+    if hora:
+        try:
+            datetime.strptime(hora, '%H:%M')
+        except ValueError:
+            return jsonify({'error': 'Formato de hora inválido para la hora de inicio. Usar HH:MM'}), 400
+
+    if hora_fin:
+        try:
+            datetime.strptime(hora_fin, '%H:%M')
+        except ValueError:
+            return jsonify({'error': 'Formato de hora inválido para la hora de fin. Usar HH:MM'}), 400
+
+    hora_para_db = hora if hora else None
+    hora_fin_para_db = hora_fin if hora_fin else None
+
+    try:
+        dias_semana_json = json.dumps(dias)
+        update_data = {'nombre': nombre, 'hora': hora_para_db, 'hora_fin': hora_fin_para_db, 'dias_semana': dias_semana_json}
+        response = supabase.from_('rutina').update(update_data).eq('id', str(rutina_id)).execute()
+
+        if not response.data:
+            return jsonify({'error': 'Rutina no encontrada para actualizar.'}), 404
+
+        updated_rutina = response.data[0]
+        return jsonify({'message': 'Rutina actualizada exitosamente.', 'id': str(rutina_id), 'nombre': updated_rutina['nombre'], 'hora': updated_rutina['hora'], 'hora_fin': updated_rutina.get('hora_fin'), 'dias': dias}), 200
+    except Exception as e:
+        print(f"Error al actualizar rutina en Supabase: {e}")
+        return jsonify({'error': f'Error al actualizar rutina: {str(e)}'}), 500
+
 @app.route('/api/rutinas', methods=['GET'])
 def get_rutinas():
     if supabase is None:
@@ -969,6 +1049,24 @@ def get_rutinas():
     except Exception as e:
         print(f"Error al obtener rutinas de Supabase: {e}")
         return jsonify({'error': f'Error al obtener rutinas: {str(e)}'}), 500
+
+@app.route('/api/rutinas/<uuid:rutina_id>', methods=['DELETE'])
+def delete_rutina(rutina_id):
+    if supabase is None:
+        return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
+    try:
+        # Primero, elimina las entradas relacionadas en 'rutina_completada_dia'
+        supabase.from_('rutina_completada_dia').delete().eq('rutina_id', str(rutina_id)).execute()
+
+        # Luego, elimina la rutina de la tabla 'rutina'
+        delete_response = supabase.from_('rutina').delete().eq('id', str(rutina_id)).execute()
+
+        if not delete_response.data:
+            return jsonify({'error': 'Rutina no encontrada.'}), 404
+        return jsonify({'message': 'Rutina eliminada exitosamente.'}), 200
+    except Exception as e:
+        print(f"Error al eliminar rutina de Supabase: {e}")
+        return jsonify({'error': f'Error al eliminar rutina: {str(e)}'}), 500
 
 @app.route('/api/rutinas/completadas_por_dia/<string:fecha>', methods=['GET'])
 def get_rutinas_completadas_por_dia(fecha):
@@ -1085,7 +1183,7 @@ def toggle_item_comprada(item_id):
         if not item:
             return jsonify({'error': 'Ítem no encontrado.'}), 404
 
-        new_state = not item['comprada'] # Changed from item['completada'] to item['comprada']
+        new_state = not item['comprada']
         update_response = supabase.from_('lista_compra').update({'comprada': new_state}).eq('id', str(item_id)).execute()
 
         if not update_response.data:
@@ -1141,9 +1239,6 @@ def clear_all_shopping_list_items():
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
     try:
-        # Asegúrate de que esta operación es segura y que no borra datos esenciales.
-        # Por ejemplo, puedes querer borrar solo los elementos "comprados" o de un usuario específico.
-        # En este caso, borra todos los registros excepto uno con un ID '000...' (probablemente un marcador de posición o no usado).
         delete_response = supabase.from_('lista_compra').delete().neq('id', '00000000-0000-0000-0000-000000000000').execute()
 
         if delete_response.data is None:
@@ -1243,6 +1338,40 @@ def add_cita():
         print(f"Error al añadir cita a Supabase: {e}")
         return jsonify({'error': f'Error al añadir cita: {str(e)}'}), 500
 
+@app.route('/api/citas/<uuid:cita_id>', methods=['PUT'])
+def update_cita(cita_id):
+    if supabase is None:
+        return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
+    data = request.json
+    nombre = data.get('nombre')
+    fecha = data.get('fecha')
+    hora = data.get('hora')
+    recordatorio = data.get('recordatorio')
+
+    if not nombre or not fecha:
+        return jsonify({'error': 'El nombre y la fecha de la cita son obligatorios.'}), 400
+
+    try:
+        datetime.strptime(fecha, '%Y-%m-%d')
+        if hora:
+            datetime.strptime(hora, '%H:%M')
+    except ValueError:
+        return jsonify({'error': 'Formato de fecha u hora inválido. Usar (YYYY-MM-DD) y HH:MM'}), 400
+
+    hora_para_db = hora if hora else None
+
+    try:
+        # Al actualizar una cita, la marcamos como no notificada de nuevo
+        update_data = {'nombre': nombre, 'fecha': fecha, 'hora': hora_para_db, 'recordatorio': recordatorio, 'notified': False}
+        update_response = supabase.from_('cita').update(update_data).eq('id', str(cita_id)).execute()
+
+        if not update_response.data:
+            return jsonify({'error': 'Cita no encontrada para actualizar.'}), 404
+        return jsonify({'message': 'Cita actualizada exitosamente.', 'id': str(cita_id)}), 200
+    except Exception as e:
+        print(f"Error al actualizar cita en Supabase: {e}")
+        return jsonify({'error': f'Error al actualizar cita: {str(e)}'}), 500
+
 @app.route('/api/citas/all', methods=['GET'])
 def get_all_citas():
     if supabase is None:
@@ -1302,6 +1431,36 @@ def get_citas_for_month(year, month):
     end_date = date(year, month, calendar.monthrange(year, month)[1])
 
     try:
+        response = supabase.from_('cita').select('id,nombre,fecha,hora,completada,recordatorio,notified').gte('fecha', str(start_date)).lte('fecha', str(end_date)).order('fecha').order('hora').execute()
+        citas = response.data
+
+        processed_citas = []
+        for cita in citas:
+            cita_date = datetime.strptime(cita['fecha'], '%Y-%m-%d').date()
+            diff_days = (cita_date - today).days
+
+            processed_citas.append({
+                'id': cita['id'],
+                'nombre': cita['nombre'],
+                'fecha': cita['fecha'],
+                'hora': cita['hora'],
+                'completada': cita['completada'],
+                'dias_restantes': diff_days,
+                'recordatorio': cita.get('recordatorio'),
+                'notified': cita.get('notified', False) 
+            })
+        return jsonify(processed_citas)
+    except Exception as e:
+        print(f"Error al obtener citas para el mes de Supabase: {e}")
+        return jsonify({'error': f'Error al obtener citas para el mes: {str(e)}'}), 500
+
+@app.route('/api/citas/proximas/<int:year>/<int:month>', methods=['GET'])
+def get_proximas_citas(year, month):
+    if supabase is None:
+        return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
+
+    today = datetime.now().date()
+    try:
         response = supabase.from_('cita').select('id,nombre,fecha,hora,completada,recordatorio,notified').gte('fecha', str(today)).order('fecha').order('hora').execute()
         citas = response.data
 
@@ -1346,40 +1505,6 @@ def get_cita_by_id(cita_id):
     except Exception as e:
         print(f"Error al obtener cita por ID de Supabase: {e}")
         return jsonify({'error': f'Error al obtener cita: {str(e)}'}), 500
-
-@app.route('/api/citas/<uuid:cita_id>', methods=['PUT'])
-def update_cita(cita_id):
-    if supabase is None:
-        return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
-    data = request.json
-    nombre = data.get('nombre')
-    fecha = data.get('fecha')
-    hora = data.get('hora')
-    recordatorio = data.get('recordatorio')
-
-    if not nombre or not fecha:
-        return jsonify({'error': 'El nombre y la fecha de la cita son obligatorios.'}), 400
-
-    try:
-        datetime.strptime(fecha, '%Y-%m-%d')
-        if hora:
-            datetime.strptime(hora, '%H:%M')
-    except ValueError:
-        return jsonify({'error': 'Formato de fecha u hora inválido. Usar (YYYY-MM-DD) y HH:MM'}), 400
-
-    hora_para_db = hora if hora else None
-
-    try:
-        # Al actualizar una cita, la marcamos como no notificada de nuevo
-        update_data = {'nombre': nombre, 'fecha': fecha, 'hora': hora_para_db, 'recordatorio': recordatorio, 'notified': False}
-        update_response = supabase.from_('cita').update(update_data).eq('id', str(cita_id)).execute()
-
-        if not update_response.data:
-            return jsonify({'error': 'Cita no encontrada para actualizar.'}), 404
-        return jsonify({'message': 'Cita actualizada exitosamente.', 'id': str(cita_id)}), 200
-    except Exception as e:
-        print(f"Error al actualizar cita en Supabase: {e}")
-        return jsonify({'error': f'Error al actualizar cita: {str(e)}'}), 500
 
 @app.route('/api/citas/<uuid:cita_id>/toggle_completada', methods=['PATCH'])
 def toggle_cita_completada(cita_id):
@@ -1601,7 +1726,7 @@ def handle_ingredient(ingredient_id):
 
             update_data = {
                 'name': data.get('name'),
-                'calories_per_100g': float(data['calories_per_100g']) if data.get('calories_per_100g') is not None else None,
+                'calories_per_100g': float(data['calories_per_100g']) if data.get('calories_100g') is not None else None,
                 'proteins_per_100g': float(data['proteins_per_100g']) if data.get('proteins_per_100g') is not None else None,
                 'cantidad_estandar': float(data['cantidad_estandar']) if data.get('cantidad_estandar') is not None else None,
                 'unidad_medida': data.get('unidad_medida') if data.get('unidad_medida') is not None else None
@@ -1701,9 +1826,8 @@ def add_recipe():
     description = data.get('description')
     ingredients = data.get('ingredients')
     total_cost = data.get('total_cost')
-    # MODIFICADO: Cambiadas las claves para que coincidan con el frontend
-    total_calories = data.get('total_calories') # Solía ser 'calories_total'
-    total_proteins = data.get('total_proteins') # Solía ser 'proteins_total'
+    total_calories = data.get('calories_total')
+    total_proteins = data.get('proteins_total')
     total_carbs = data.get('total_carbs', 0.0)
     total_fats = data.get('total_fats', 0.0)
 
@@ -1723,8 +1847,6 @@ def add_recipe():
             'total_carbs': total_carbs,
             'total_fats': total_fats
         }
-        # AÑADIDO: Log de los datos antes de la inserción
-        print(f"[DEBUG_RECIPE] Datos de la receta a insertar: {insert_data}")
         response = supabase.from_('recipes').insert(insert_data).execute()
         return jsonify(response.data[0]), 201
     except Exception as e:
@@ -1782,9 +1904,8 @@ def update_recipe(recipe_id):
         'name': data.get('name'),
         'description': data.get('description'),
         'total_cost': float(data['total_cost']) if data.get('total_cost') is not None else None,
-        # MODIFICADO: Cambiadas las claves para que coincidan con el frontend
-        'total_calories': float(data['total_calories']) if data.get('total_calories') is not None else None, # Solía ser 'calories_total'
-        'total_proteins': float(data['total_proteins']) if data.get('total_proteins') is not None else None, # Solía ser 'proteins_total'
+        'total_calories': float(data['calories_total']) if data.get('calories_total') is not None else None,
+        'total_proteins': float(data['proteins_total']) if data.get('proteins_total') is not None else None,
         'total_carbs': float(data.get('total_carbs', 0.0)) if data.get('total_carbs') is not None else None,
         'total_fats': float(data.get('total_fats', 0.0)) if data.get('total_fats') is not None else None
     }
@@ -1799,8 +1920,6 @@ def update_recipe(recipe_id):
         return jsonify({'error': 'No se proporcionaron datos para la actualización.'}), 400
 
     try:
-        # AÑADIDO: Log de los datos antes de la actualización
-        print(f"[DEBUG_RECIPE] Datos de la receta a actualizar (filtrados): {update_data_filtered}")
         response = supabase.from_('recipes').update(update_data_filtered).eq('id', str(recipe_id)).execute()
         if not response.data:
             return jsonify({'error': 'Receta no encontrada o no se pudo actualizar.'}), 404
@@ -2044,5 +2163,5 @@ if __name__ == '__main__':
 
     port = int(os.environ.get("PORT", 5000))
     # Para desarrollo local, use_reloader=False evita que el scheduler se inicie dos veces
-    app.run(host='0.0.0.0', port=port, debug=True, use_reloader=False) 
+    app.run(host='0.0.0.0', port=port, debug=True, use_reloader=False)
 
