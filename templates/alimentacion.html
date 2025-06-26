@@ -244,7 +244,7 @@
             flex-shrink: 0;
             width: 100%; /* Take full width on small screens */
             justify-content: flex-end; /* Align buttons to the right on small screens */
-            margin-top: 10px; /* Space from content above on small screens */
+            margin-top: 10px; /* Add margin for stacking */
         }
 
         @media (min-width: 640px) { /* sm breakpoint */
@@ -1209,6 +1209,13 @@
 
 
         // --- Utility Functions for Modals ---
+        /**
+         * Shows a custom modal dialog.
+         * @param {string} message - The message to display.
+         * @param {string} [title='Mensaje'] - The title of the modal.
+         * @param {'alert'|'confirm'} [type='alert'] - The type of modal (alert or confirm).
+         * @returns {Promise<boolean>} - Resolves to true for 'Aceptar'/'Sí', false for 'No'.
+         */
         function showCustomModal(message, title = 'Mensaje', type = 'alert') {
             return new Promise((resolve) => {
                 const modalOverlay = document.getElementById('customModalOverlay');
@@ -1252,10 +1259,22 @@
             });
         }
 
+        /**
+         * Shows a custom alert modal.
+         * @param {string} message - The message to display.
+         * @param {string} [title='Mensaje'] - The title of the modal.
+         * @returns {Promise<boolean>} - Always resolves to true.
+         */
         function showCustomAlert(message, title = 'Mensaje') {
             return showCustomModal(message, title, 'alert');
         }
 
+        /**
+         * Shows a custom confirmation modal.
+         * @param {string} message - The message to display.
+         * @param {string} [title='Confirmación'] - The title of the modal.
+         * @returns {Promise<boolean>} - Resolves to true if 'Sí' is clicked, false if 'No'.
+         */
         async function showCustomConfirm(message, title = 'Confirmación') {
             return await showCustomModal(message, title, 'confirm');
         }
@@ -1297,6 +1316,10 @@
         });
 
         // --- Functions for Supermarkets ---
+        /**
+         * Fetches supermarkets from the API and renders them.
+         * @param {HTMLElement} [selectElement=null] - Optional select element to populate.
+         */
         async function fetchSupermarkets(selectElement = null) {
             console.log('Fetching supermarkets...');
             try {
@@ -1319,6 +1342,10 @@
             }
         }
 
+        /**
+         * Renders the list of supermarkets either in the main grid or a select element.
+         * @param {HTMLElement} [selectElement=null] - Optional select element to populate.
+         */
         function renderSupermarkets(selectElement = null) {
             if (selectElement) {
                 selectElement.innerHTML = '<option value="">Selecciona (opcional)</option>'; // Updated default option text
@@ -1377,6 +1404,10 @@
             }
         });
 
+        /**
+         * Deletes a supermarket by its ID.
+         * @param {string} supermarketId - The ID of the supermarket to delete.
+         */
         async function deleteSupermarket(supermarketId) {
             const confirmAction = await showCustomConfirm('¿Estás seguro de que quieres eliminar este supermercado? Se eliminarán también todos los precios de ingredientes asociados a él.', 'Confirmación');
             if (confirmAction) {
@@ -1399,6 +1430,10 @@
         }
 
         // --- Functions for Ingredients ---
+        /**
+         * Fetches ingredients from the API and renders them.
+         * @param {HTMLElement} [selectElement=null] - Optional select element to populate.
+         */
         async function fetchIngredients(selectElement = null) {
             console.log('Fetching ingredients...');
             if (!selectElement) { // Only show loading message for the main list
@@ -1446,7 +1481,10 @@
             }
         }
 
-        // This function is responsible for populating the ingredient select for recipes
+        /**
+         * Populates the ingredient select for recipes.
+         * @param {HTMLElement} selectElement - The select element to populate.
+         */
         async function fetchIngredientsForRecipeSelect(selectElement) {
             await fetchIngredients(); // Ensure allIngredients is updated
             selectElement.innerHTML = '<option value="">Selecciona un ingrediente</option>';
@@ -1459,6 +1497,10 @@
         }
 
 
+        /**
+         * Renders the ingredients list, applying search and pagination.
+         * @param {HTMLElement} [selectElement=null] - Optional select element to populate.
+         */
         function renderIngredients(selectElement = null) {
             if (selectElement) { // If a selectElement is passed, render options for that select
                 selectElement.innerHTML = '<option value="">Selecciona un ingrediente</option>';
@@ -1631,6 +1673,10 @@
             }
         }
         
+        /**
+         * Adds a new price entry for an ingredient from a specific supermarket.
+         * @param {string} ingredientId - The ID of the ingredient.
+         */
         async function addIngredientPrice(ingredientId) {
             const supermarketSelect = document.getElementById(`supermarket-select-${ingredientId}`);
             const priceInput = document.getElementById(`price-input-${ingredientId}`);
@@ -1701,7 +1747,11 @@
             }
         }
 
-        // Define the deleteIngredientPrice function
+        /**
+         * Deletes a specific price entry for an ingredient from a supermarket.
+         * @param {string} ingredientId - The ID of the ingredient.
+         * @param {string} supermarketId - The ID of the supermarket associated with the price.
+         */
         async function deleteIngredientPrice(ingredientId, supermarketId) {
             const confirmAction = await showCustomConfirm('¿Estás seguro de que quieres eliminar este precio de ingrediente?', 'Confirmación');
             if (confirmAction) {
@@ -1722,7 +1772,9 @@
             }
         }
 
-
+        /**
+         * Resets the ingredient form to its default 'add new ingredient' state.
+         */
         function resetIngredientForm() {
             editingIngredientId = null;
             ingredientFormTitle.textContent = 'Añadir Nuevo Ingrediente';
@@ -1746,6 +1798,10 @@
             ingredientPriceInput.value = '0.00';
         }
 
+        /**
+         * Populates the ingredient form with data for editing an existing ingredient.
+         * @param {string} ingredientId - The ID of the ingredient to edit.
+         */
         async function editIngredient(ingredientId) {
             const ingredient = allIngredients.find(ing => ing.id === ingredientId);
             if (!ingredient) {
@@ -1887,6 +1943,10 @@
             }
         });
 
+        /**
+         * Deletes an ingredient by its ID.
+         * @param {string} ingredientId - The ID of the ingredient to delete.
+         */
         async function deleteIngredient(ingredientId) {
             const confirmAction = await showCustomConfirm('¿Estás seguro de que quieres eliminar este ingrediente? Se eliminarán también sus precios y de las recetas en las que aparezca.', 'Confirmación');
             if (confirmAction) {
@@ -1910,16 +1970,23 @@
         }
 
         // --- Functions for Recipes ---
+        /**
+         * Fetches recipes from the API and renders them.
+         */
         async function fetchRecipes() {
             console.log('Fetching recipes...');
             recipesList.innerHTML = '<li class="mensaje-info">Cargando recetas...</li>';
+            
+            // Ensure ingredients are loaded before fetching recipes, as recipes depend on ingredient data
+            await fetchIngredients();
+
             try {
                 const response = await fetch('/api/recipes');
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 allRecipes = await response.json();
-                console.log('Fetched recipes:', allRecipes);
+                console.log('Rendering recipes. All recipes data:', allRecipes); // DEBUG: Log all recipes
                 renderRecipes();
             } catch (error) {
                 console.error('Error fetching recipes:', error);
@@ -1928,6 +1995,9 @@
             }
         }
 
+        /**
+         * Renders the list of recipes.
+         */
         function renderRecipes() {
             recipesList.innerHTML = '';
             if (allRecipes.length === 0) {
@@ -1935,6 +2005,7 @@
                 return;
             }
             allRecipes.forEach(recipe => {
+                console.log('Rendering recipe:', recipe); // DEBUG: Log each individual recipe object
                 const li = document.createElement('li');
                 li.innerHTML = `
                     <div class="list-item-content">
@@ -1943,29 +2014,21 @@
                         <h4 class="font-semibold text-sm mt-2">Ingredientes:</h4>
                         <ul class="recipe-ingredients-list">
                             ${recipe.ingredients.map(ing => {
-                                // Find the specific ingredient price details that were chosen for this recipe ingredient
+                                // Find the specific ingredient for its name, as ing.name might be outdated if ingredient was renamed
                                 const ingredientDetails = allIngredients.find(i => i.id === ing.ingredient_id);
-                                let selectedPriceDetails = null;
-                                if (ingredientDetails && ingredientDetails.prices) {
-                                    selectedPriceDetails = ingredientDetails.prices.find(p => p.supermarket_id === ing.chosen_supermarket_id && p.price === ing.chosen_supermarket_price);
-                                    // If exact match not found, fallback to the one chosen in the recipe ingredient.
-                                    if (!selectedPriceDetails) {
-                                        selectedPriceDetails = {
-                                            calories_per_100g: ing.calories_per_100g,
-                                            proteins_per_100g: ing.proteins_per_100g,
-                                            cantidad_estandar: ing.standard_quantity,
-                                            unidad_medida: ing.unit
-                                        };
-                                    }
-                                }
-
-                                const displayCalories = selectedPriceDetails && selectedPriceDetails.calories_per_100g !== undefined ? selectedPriceDetails.calories_per_100g.toFixed(1) : (ingredientDetails && ingredientDetails.calories_per_100g !== undefined ? ingredientDetails.calories_per_100g.toFixed(1) : '0.0');
-                                const displayProteins = selectedPriceDetails && selectedPriceDetails.proteins_per_100g !== undefined ? selectedPriceDetails.proteins_per_100g.toFixed(1) : (ingredientDetails && ingredientDetails.proteins_per_100g !== undefined ? ingredientDetails.proteins_per_100g.toFixed(1) : '0.0');
-                                const displayUnit = selectedPriceDetails && selectedPriceDetails.unidad_medida ? selectedPriceDetails.unidad_medida : (ingredientDetails && ingredientDetails.unidad_medida ? ingredientDetails.unidad_medida : 'g');
+                                
+                                // Directly use the nutritional values and unit stored within the recipe's ingredient object.
+                                // These values (ing.calories_per_100g, ing.proteins_per_100g, ing.unit)
+                                // should be the ones saved from the chosen_price_entry when the recipe was created/edited.
+                                const displayCalories = ing.calories_per_100g !== undefined ? ing.calories_per_100g.toFixed(1) : '0.0';
+                                const displayProteins = ing.proteins_per_100g !== undefined ? ing.proteins_per_100g.toFixed(1) : '0.0';
+                                const displayUnit = ing.unit || 'g';
+                                
+                                console.log('Ingredient in recipe:', ing); // DEBUG: Log each ingredient within the recipe
                                 
                                 return `
                                     <li>
-                                        ${ingredientDetails ? ingredientDetails.name : 'Ingrediente desconocido'} 
+                                        ${ingredientDetails ? ingredientDetails.name : ing.name || 'Ingrediente desconocido'} 
                                         (${ing.quantity}${displayUnit}) 
                                         ${ing.chosen_supermarket_price !== undefined && ing.chosen_supermarket_price !== null ? `(Precio elegido: ${ing.chosen_supermarket_price.toFixed(2)}€)` : ''}
                                         <br>
@@ -2052,6 +2115,9 @@
             }
         });
 
+        /**
+         * Renders the ingredients currently added to the recipe being edited/created.
+         */
         function renderCurrentRecipeIngredients() {
             currentRecipeIngredientsList.innerHTML = '';
             if (currentRecipeIngredients.length === 0) {
@@ -2093,6 +2159,9 @@
             });
         }
 
+        /**
+         * Calculates and displays the total cost, calories, and proteins for the current recipe.
+         */
         function calculateRecipeTotals() {
             let totalCost = 0;
             let totalCalories = 0;
@@ -2116,6 +2185,9 @@
             totalProteinsSpan.textContent = `${totalProteins.toFixed(1)} g`;
         }
 
+        /**
+         * Resets the recipe form to its default 'add new recipe' state.
+         */
         function resetRecipeForm() {
             editingRecipeId = null;
             recipeFormTitle.textContent = 'Añadir Nueva Receta';
@@ -2154,6 +2226,7 @@
                     quantity: ing.quantity,
                     chosen_supermarket_price: ing.chosen_supermarket_price,
                     chosen_supermarket_id: ing.chosen_supermarket_id,
+                    // Ensure these are passed from the calculated currentRecipeIngredients
                     calories_per_100g: ing.calories_per_100g,
                     proteins_per_100g: ing.proteins_per_100g,
                     standard_quantity: ing.standard_quantity,
@@ -2167,7 +2240,7 @@
             const method = editingRecipeId ? 'PUT' : 'POST';
             const url = editingRecipeId ? `/api/recipes/${editingRecipeId}` : '/api/recipes';
 
-            console.log('Attempting to save recipe with data:', recipeData);
+            console.log('Attempting to save recipe with data:', recipeData); // DEBUG: Log recipe data before sending
 
             try {
                 const response = await fetch(url, {
@@ -2197,13 +2270,20 @@
             }
         });
 
-        // Function to edit a recipe (now fully implemented)
+        /**
+         * Populates the recipe form with data for editing an existing recipe.
+         * Crucially, re-evaluates nutritional details from current allIngredients.
+         * @param {string} recipeId - The ID of the recipe to edit.
+         */
         async function editRecipe(recipeId) {
             const recipeToEdit = allRecipes.find(r => r.id === recipeId);
             if (!recipeToEdit) {
                 showCustomAlert('Receta no encontrada para editar.', 'Error');
                 return;
             }
+
+            // Ensure all ingredients are loaded and up-to-date for lookup
+            await fetchIngredients(); // This makes sure allIngredients is current
 
             // Set edit mode
             editingRecipeId = recipeToEdit.id;
@@ -2216,7 +2296,62 @@
             // Fill form fields
             recipeNameInput.value = recipeToEdit.name;
             recipeDescriptionInput.value = recipeToEdit.description || '';
-            currentRecipeIngredients = recipeToEdit.ingredients.map(ing => ({ ...ing })); // Deep copy ingredients
+
+            // Deep copy ingredients and re-evaluate nutritional details from current allIngredients
+            currentRecipeIngredients = recipeToEdit.ingredients.map(ing => {
+                const ingredientBase = allIngredients.find(i => i.id === ing.ingredient_id);
+                let chosenPriceDetails = null;
+
+                // Try to find the exact price entry that was chosen for this ingredient,
+                // considering supermarket ID and chosen price.
+                if (ingredientBase && ingredientBase.prices) {
+                    chosenPriceDetails = ingredientBase.prices.find(p =>
+                        p.supermarket_id === ing.chosen_supermarket_id && p.price === ing.chosen_supermarket_price
+                    );
+                }
+
+                // Initialize effective values with defaults or values from the recipe's stored ingredient
+                let effectiveCalories = ing.calories_per_100g || 0;
+                let effectiveProteins = ing.proteins_per_100g || 0;
+                let effectiveStandardQuantity = ing.standard_quantity || 0;
+                let effectiveUnit = ing.unit || 'g';
+                let effectiveChosenPrice = ing.chosen_supermarket_price || 0;
+                let effectiveChosenSupermarketId = ing.chosen_supermarket_id || null;
+
+                // If a matching price entry is found in allIngredients, use its properties
+                if (chosenPriceDetails) {
+                    effectiveCalories = chosenPriceDetails.calories_per_100g || 0;
+                    effectiveProteins = chosenPriceDetails.proteins_per_100g || 0;
+                    effectiveStandardQuantity = chosenPriceDetails.cantidad_estandar || 0;
+                    effectiveUnit = chosenPriceDetails.unidad_medida || 'g';
+                    effectiveChosenPrice = chosenPriceDetails.price;
+                    effectiveChosenSupermarketId = chosenPriceDetails.supermarket_id;
+                } else if (ingredientBase) {
+                    // If no specific price found, fallback to the base ingredient's values from allIngredients.
+                    // Keep the original chosen price from the recipe, but update nutritional info.
+                    effectiveCalories = ingredientBase.calories_per_100g || 0;
+                    effectiveProteins = ingredientBase.proteins_per_100g || 0;
+                    effectiveStandardQuantity = ingredientBase.cantidad_estandar || 0;
+                    effectiveUnit = ingredientBase.unidad_medida || 'g';
+                    // The effectiveChosenPrice and effectiveChosenSupermarketId remain as they were in the recipe.
+                    // This handles cases where the exact price entry might have been deleted from an ingredient,
+                    // but we still want to use the ingredient's base nutritional values.
+                }
+                
+                // Return a new object with correct current nutritional data for the frontend logic
+                return {
+                    ingredient_id: ing.ingredient_id,
+                    name: ingredientBase ? ingredientBase.name : ing.name, // Use updated name if available
+                    quantity: ing.quantity,
+                    chosen_supermarket_price: effectiveChosenPrice,
+                    chosen_supermarket_id: effectiveChosenSupermarketId,
+                    calories_per_100g: effectiveCalories,
+                    proteins_per_100g: effectiveProteins,
+                    standard_quantity: effectiveStandardQuantity,
+                    unit: effectiveUnit
+                };
+            });
+
             renderCurrentRecipeIngredients();
             calculateRecipeTotals();
 
@@ -2226,6 +2361,10 @@
 
         cancelEditRecipeBtn.addEventListener('click', resetRecipeForm);
 
+        /**
+         * Deletes a recipe by its ID.
+         * @param {string} recipeId - The ID of the recipe to delete.
+         */
         async function deleteRecipe(recipeId) {
             const confirmAction = await showCustomConfirm('¿Estás seguro de que quieres eliminar esta receta? Se eliminará de cualquier menú semanal en el que aparezca.', 'Confirmación');
             if (confirmAction) {
@@ -2248,6 +2387,9 @@
         }
 
         // --- Functions for Weekly Menu ---
+        /**
+         * Renders the weekly menu grid structure.
+         */
         function renderWeeklyMenuGrid() {
             weeklyMenuGrid.innerHTML = ''; // Clear previous content
             const daysOfWeek = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
@@ -2285,6 +2427,9 @@
             });
         }
 
+        /**
+         * Fetches the weekly menu from the API and populates the UI.
+         */
         async function fetchWeeklyMenu() {
             console.log('Fetching weekly menu...');
             try {
@@ -2337,6 +2482,9 @@
             }
         }
 
+        /**
+         * Calculates and displays daily and weekly totals for calories, proteins, and cost.
+         */
         function calculateAndDisplayWeeklyMenuTotals() {
             let grandTotalCalories = 0;
             let grandTotalProteins = 0;
@@ -2381,7 +2529,9 @@
             weeklyTotalCostSpan.textContent = `${grandTotalCost.toFixed(2)}€`;
         }
 
-
+        /**
+         * Saves the current weekly menu to the API.
+         */
         async function saveWeeklyMenu() {
             const menuContent = {};
             const daysOfWeek = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
