@@ -50,7 +50,7 @@ else:
 # Se han actualizado con las claves proporcionadas por el usuario.
 # Si estas variables se establecen en el entorno (Render), tendrán prioridad.
 VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY", "4pq3PdWq8xkltisk7dfTAsGz7oPPN2DrW4B4BWZyeg")
-VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "BGMP4VQwdgGJAvggtWzTikWRXOxuHPc8H3F7Daxtrqcp5geq8Pwj1jazJZbRUrJjp4t4bdiztoM1H5YLjTpVnG4")
+VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "BGMP4VQwdgGJAvggtWzTikWRXOxuHPc8H3F7Daxtrqcp5geq8Pwj1jazJZbUUrJjp4t4bdiztoM1H5YLjTpVnG4")
 # IMPORTANTE: Reemplaza "mailto:your_email@example.com" con un correo electrónico real
 # Este correo se utiliza para identificar al remitente de las notificaciones en caso de abuso.
 VAPID_CLAIMS = {"sub": "mailto:your_email@example.com"}
@@ -1085,7 +1085,7 @@ def toggle_item_comprada(item_id):
         if not item:
             return jsonify({'error': 'Ítem no encontrado.'}), 404
 
-        new_state = not item['completada']
+        new_state = not item['comprada'] # Changed from item['completada'] to item['comprada']
         update_response = supabase.from_('lista_compra').update({'comprada': new_state}).eq('id', str(item_id)).execute()
 
         if not update_response.data:
@@ -1141,6 +1141,9 @@ def clear_all_shopping_list_items():
     if supabase is None:
         return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
     try:
+        # Asegúrate de que esta operación es segura y que no borra datos esenciales.
+        # Por ejemplo, puedes querer borrar solo los elementos "comprados" o de un usuario específico.
+        # En este caso, borra todos los registros excepto uno con un ID '000...' (probablemente un marcador de posición o no usado).
         delete_response = supabase.from_('lista_compra').delete().neq('id', '00000000-0000-0000-0000-000000000000').execute()
 
         if delete_response.data is None:
@@ -1298,36 +1301,6 @@ def get_citas_for_month(year, month):
     start_date = date(year, month, 1)
     end_date = date(year, month, calendar.monthrange(year, month)[1])
 
-    try:
-        response = supabase.from_('cita').select('id,nombre,fecha,hora,completada,recordatorio,notified').gte('fecha', str(start_date)).lte('fecha', str(end_date)).order('fecha').order('hora').execute()
-        citas = response.data
-
-        processed_citas = []
-        for cita in citas:
-            cita_date = datetime.strptime(cita['fecha'], '%Y-%m-%d').date()
-            diff_days = (cita_date - today).days
-
-            processed_citas.append({
-                'id': cita['id'],
-                'nombre': cita['nombre'],
-                'fecha': cita['fecha'],
-                'hora': cita['hora'],
-                'completada': cita['completada'],
-                'dias_restantes': diff_days,
-                'recordatorio': cita.get('recordatorio'),
-                'notified': cita.get('notified', False) 
-            })
-        return jsonify(processed_citas)
-    except Exception as e:
-        print(f"Error al obtener citas para el mes de Supabase: {e}")
-        return jsonify({'error': f'Error al obtener citas para el mes: {str(e)}'}), 500
-
-@app.route('/api/citas/proximas/<int:year>/<int:month>', methods=['GET'])
-def get_proximas_citas(year, month):
-    if supabase is None:
-        return jsonify({'error': 'Servicio de base de datos no disponible.'}), 503
-
-    today = datetime.now().date()
     try:
         response = supabase.from_('cita').select('id,nombre,fecha,hora,completada,recordatorio,notified').gte('fecha', str(today)).order('fecha').order('hora').execute()
         citas = response.data
@@ -1628,7 +1601,7 @@ def handle_ingredient(ingredient_id):
 
             update_data = {
                 'name': data.get('name'),
-                'calories_per_100g': float(data['calories_per_100g']) if data.get('calories_100g') is not None else None,
+                'calories_per_100g': float(data['calories_per_100g']) if data.get('calories_per_100g') is not None else None,
                 'proteins_per_100g': float(data['proteins_per_100g']) if data.get('proteins_per_100g') is not None else None,
                 'cantidad_estandar': float(data['cantidad_estandar']) if data.get('cantidad_estandar') is not None else None,
                 'unidad_medida': data.get('unidad_medida') if data.get('unidad_medida') is not None else None
@@ -1728,8 +1701,9 @@ def add_recipe():
     description = data.get('description')
     ingredients = data.get('ingredients')
     total_cost = data.get('total_cost')
-    total_calories = data.get('calories_total')
-    total_proteins = data.get('proteins_total')
+    # MODIFICADO: Cambiadas las claves para que coincidan con el frontend
+    total_calories = data.get('total_calories') # Solía ser 'calories_total'
+    total_proteins = data.get('total_proteins') # Solía ser 'proteins_total'
     total_carbs = data.get('total_carbs', 0.0)
     total_fats = data.get('total_fats', 0.0)
 
@@ -1749,6 +1723,8 @@ def add_recipe():
             'total_carbs': total_carbs,
             'total_fats': total_fats
         }
+        # AÑADIDO: Log de los datos antes de la inserción
+        print(f"[DEBUG_RECIPE] Datos de la receta a insertar: {insert_data}")
         response = supabase.from_('recipes').insert(insert_data).execute()
         return jsonify(response.data[0]), 201
     except Exception as e:
@@ -1806,8 +1782,9 @@ def update_recipe(recipe_id):
         'name': data.get('name'),
         'description': data.get('description'),
         'total_cost': float(data['total_cost']) if data.get('total_cost') is not None else None,
-        'total_calories': float(data['calories_total']) if data.get('calories_total') is not None else None,
-        'total_proteins': float(data['proteins_total']) if data.get('proteins_total') is not None else None,
+        # MODIFICADO: Cambiadas las claves para que coincidan con el frontend
+        'total_calories': float(data['total_calories']) if data.get('total_calories') is not None else None, # Solía ser 'calories_total'
+        'total_proteins': float(data['total_proteins']) if data.get('total_proteins') is not None else None, # Solía ser 'proteins_total'
         'total_carbs': float(data.get('total_carbs', 0.0)) if data.get('total_carbs') is not None else None,
         'total_fats': float(data.get('total_fats', 0.0)) if data.get('total_fats') is not None else None
     }
@@ -1822,6 +1799,8 @@ def update_recipe(recipe_id):
         return jsonify({'error': 'No se proporcionaron datos para la actualización.'}), 400
 
     try:
+        # AÑADIDO: Log de los datos antes de la actualización
+        print(f"[DEBUG_RECIPE] Datos de la receta a actualizar (filtrados): {update_data_filtered}")
         response = supabase.from_('recipes').update(update_data_filtered).eq('id', str(recipe_id)).execute()
         if not response.data:
             return jsonify({'error': 'Receta no encontrada o no se pudo actualizar.'}), 404
@@ -2066,3 +2045,4 @@ if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     # Para desarrollo local, use_reloader=False evita que el scheduler se inicie dos veces
     app.run(host='0.0.0.0', port=port, debug=True, use_reloader=False) 
+
