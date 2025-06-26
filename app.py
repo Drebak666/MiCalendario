@@ -47,23 +47,22 @@ else:
         supabase = None
 
 # VAPID Key Management para notificaciones Push
-VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY")
-VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY")
+# Se han actualizado con las claves proporcionadas por el usuario.
+# Si estas variables se establecen en el entorno (Render), tendrán prioridad.
+VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY", "4pq3PdWq8xkltisk7dfTAsGz7oPPN2DrW4B4BWZyeg")
+VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "BGMP4VQwdgGJAvggtWzTikWRXOxuHPc8H3F7Daxtrqcp5geq8Pwj1jazJZbRUrJjp4t4bdiztoM1H5YLjTpVnG4")
 # IMPORTANTE: Reemplaza "mailto:your_email@example.com" con un correo electrónico real
 # Este correo se utiliza para identificar al remitente de las notificaciones en caso de abuso.
 VAPID_CLAIMS = {"sub": "mailto:your_email@example.com"}
 
-# NUEVO: Generar claves VAPID si no existen
+# INFO: Las claves VAPID ya no se intentan generar en el código, se leen desde variables de entorno.
+# Se mostrará un error si no se pueden obtener, incluso con los valores por defecto.
 if not VAPID_PRIVATE_KEY or not VAPID_PUBLIC_KEY:
-    print("[INFO] Generando nuevas claves VAPID ya que no se encontraron en las variables de entorno...")
-    vapid_keys = pywebpush.generate_vapid_keys()
-    VAPID_PRIVATE_KEY = vapid_keys['private_key']
-    VAPID_PUBLIC_KEY = vapid_keys['public_key']
-    print(f"[INFO] Nuevas VAPID_PUBLIC_KEY generada: {VAPID_PUBLIC_KEY}")
-    print(f"[INFO] Nuevas VAPID_PRIVATE_KEY generada: {VAPID_PRIVATE_KEY}")
-    print("[INFO] ^^^ Por favor, copia estas claves y guárdalas en tu archivo .env o en tus variables de entorno de producción. ^^^")
+    print("[ERROR] Fallo crítico: Las variables de entorno VAPID_PRIVATE_KEY y VAPID_PUBLIC_KEY no están configuradas.")
+    print("[ERROR] Por favor, genera estas claves y configúralas para habilitar las notificaciones push.")
 else:
     print("[INFO] Usando claves VAPID existentes desde las variables de entorno.")
+
 
 # Inicializar APScheduler
 scheduler = APScheduler()
@@ -321,23 +320,20 @@ def check_and_send_notifications_job():
                 print(f"[DEBUG_TASK] Processing task: ID={task['id']}, Fecha={task['fecha']}, Hora={task['hora']}")
                 task_datetime_str = f"{task['fecha']} {task['hora']}"
                 try:
-                    # UPDATED: Changed from '%H:%M' to '%H:%M:%S' to correctly parse time with seconds
+                    # FIX: Changed from '%H:%M' to '%H:%M:%S' to correctly parse time WITH seconds
                     task_full_datetime = datetime.strptime(task_datetime_str, '%Y-%m-%d %H:%M:%S') 
                     notify_time = task_full_datetime - timedelta(minutes=15) # Notificar 15 minutos antes
 
-                    print(f"[DEBUG_TIME] Task '{task['texto']}' (ID: {task['id']}) - Task time: {task_full_datetime}, Notify time: {notify_time}")
+                    print(f"[INFO] Preparando notificación para tarea: {task['texto']} a las {task['hora']} del {task['fecha']}")
+                    title = "Recordatorio de Tarea"
+                    body = f"¡Faltan 15 minutos para: {task['texto']} a las {task['hora']}!"
+                    
+                    successful, failed, invalid = _send_push_notification_to_all(title, body)
+                    print(f"[INFO] Notificación enviada para tarea '{task['texto']}'. Éxito: {successful}, Fallo: {failed}")
 
-                    if notification_window_start <= notify_time <= notification_window_end:
-                        print(f"[INFO] Preparando notificación para tarea: {task['texto']} a las {task['hora']} del {task['fecha']}")
-                        title = "Recordatorio de Tarea"
-                        body = f"¡Faltan 15 minutos para: {task['texto']} a las {task['hora']}!"
-                        
-                        successful, failed, invalid = _send_push_notification_to_all(title, body)
-                        print(f"[INFO] Notificación enviada para tarea '{task['texto']}'. Éxito: {successful}, Fallo: {failed}")
-
-                        if successful > 0: 
-                            supabase.from_('tarea').update({'notified': True}).eq('id', task['id']).execute()
-                            print(f"[INFO] Tarea '{task['texto']}' marcada como notificada.")
+                    if successful > 0: 
+                        supabase.from_('tarea').update({'notified': True}).eq('id', task['id']).execute()
+                        print(f"[INFO] Tarea '{task['texto']}' marcada como notificada.")
                 except ValueError as ve:
                     print(f"[WARNING] Error en formato de fecha/hora de tarea {task.get('id', 'N/A')}: {ve} (Valor problematico: '{task_datetime_str}')")
                 except Exception as e:
@@ -371,23 +367,20 @@ def check_and_send_notifications_job():
                 print(f"[DEBUG_CITA] Processing cita: ID={cita['id']}, Fecha={cita['fecha']}, Hora={cita['hora']}")
                 cita_datetime_str = f"{cita['fecha']} {cita['hora']}"
                 try:
-                    # UPDATED: Changed from '%H:%M' to '%H:%M:%S' to correctly parse time with seconds
+                    # FIX: Changed from '%H:%M' to '%H:%M:%S' to correctly parse time WITH seconds
                     cita_full_datetime = datetime.strptime(cita_datetime_str, '%Y-%m-%d %H:%M:%S')
                     notify_time = cita_full_datetime - timedelta(minutes=15) # Notificar 15 minutos antes
 
-                    print(f"[DEBUG_TIME] Cita '{cita['nombre']}' (ID: {cita['id']}) - Cita time: {cita_full_datetime}, Notify time: {notify_time}")
+                    print(f"[INFO] Preparando notificación para cita: {cita['nombre']} a las {cita['hora']} del {cita['fecha']}")
+                    title = "Recordatorio de Cita"
+                    body = f"¡Faltan 15 minutos para tu cita: {cita['nombre']} a las {cita['hora']}!"
+                    
+                    successful, failed, invalid = _send_push_notification_to_all(title, body)
+                    print(f"[INFO] Notificación enviada para cita '{cita['nombre']}'. Éxito: {successful}, Fallo: {failed}")
 
-                    if notification_window_start <= notify_time <= notification_window_end:
-                        print(f"[INFO] Preparando notificación para cita: {cita['nombre']} a las {cita['hora']} del {cita['fecha']}")
-                        title = "Recordatorio de Cita"
-                        body = f"¡Faltan 15 minutos para tu cita: {cita['nombre']} a las {cita['hora']}!"
-                        
-                        successful, failed, invalid = _send_push_notification_to_all(title, body)
-                        print(f"[INFO] Notificación enviada para cita '{cita['nombre']}'. Éxito: {successful}, Fallo: {failed}")
-
-                        if successful > 0: 
-                            supabase.from_('cita').update({'notified': True}).eq('id', cita['id']).execute()
-                            print(f"[INFO] Cita '{cita['nombre']}' marcada como notificada.")
+                    if successful > 0: 
+                        supabase.from_('cita').update({'notified': True}).eq('id', cita['id']).execute()
+                        print(f"[INFO] Cita '{cita['nombre']}' marcada como notificada.")
                 except ValueError as ve:
                     print(f"[WARNING] Error en formato de fecha/hora de cita {cita.get('id', 'N/A')}: {ve} (Valor problematico: '{cita_datetime_str}')")
                 except Exception as e:
@@ -1985,10 +1978,12 @@ def get_vapid_public_key():
         return jsonify({'error': 'VAPID public key not configured.'}), 500
     return jsonify({'publicKey': VAPID_PUBLIC_KEY}), 200
 
-# NEW: API to store push subscriptions
+# NUEVO: Ruta para la página de notificaciones
 @app.route('/notificaciones')
 def notificaciones_page():
     return render_template('notificaciones.html')
+
+# NUEVO: API para almacenar suscripciones push
 @app.route('/api/subscribe', methods=['POST'])
 def subscribe():
     if supabase is None:
@@ -2020,7 +2015,7 @@ def subscribe():
         traceback.print_exc()
         return jsonify({'error': f'Error al guardar suscripción: {str(e)}'}), 500
 
-# NEW: API to send a notification (for demonstration/testing)
+# NUEVO: API para enviar una notificación (para demostración/pruebas)
 @app.route('/api/send_notification', methods=['POST'])
 def send_notification():
     if supabase is None:
@@ -2041,7 +2036,7 @@ def send_notification():
         'invalid_subscriptions_removed': len(invalid_subscriptions)
     }), 200
 
-# NEW: Route for Service Worker file
+# NUEVO: Ruta para el archivo Service Worker
 @app.route('/service-worker.js')
 def service_worker():
     # Asegúrate de que este archivo está en tu carpeta 'static'
