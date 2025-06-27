@@ -220,6 +220,49 @@
         .cita-actions .btn-compact i {
             font-size: 1.1rem; /* Adjust icon size */
         }
+
+        /* Styles for the "Comida de Hoy" section */
+        .today-meal-card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            padding: 15px;
+            margin-bottom: 15px; /* Space between meal types */
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .today-meal-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+        }
+        .today-meal-card h4 {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+        .today-meal-card p {
+            color: #4a5568;
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+        }
+        .today-meal-card p strong {
+            color: #2d3748;
+        }
+        .today-meal-card .recipe-info {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 0.85rem;
+            color: #2d3748;
+            text-align: left;
+        }
+        .today-meal-card .recipe-info ul {
+            list-style: disc;
+            padding-left: 20px;
+        }
+        .today-meal-card .recipe-info strong {
+            color: #c05621; /* Orange for emphasis */
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans antialiased">
@@ -276,6 +319,36 @@
                 <li class="text-gray-500 italic">Cargando agenda...</li>
             </ul>
         </div>
+
+        <!-- NEW SECTION: COMIDA DE HOY -->
+        <h2 class="text-2xl font-bold text-gray-800 mt-8 mb-3 border-b pb-2">Comida de Hoy:</h2>
+        <div class="relative"> <!-- Added relative for absolute positioning of buttons -->
+            <button id="prevMealBtn" class="absolute left-0 top-1/2 -translate-y-1/2 bg-gray-200 hover:bg-gray-300 p-2 rounded-full shadow-md z-10">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div id="todayFoodSection" class="space-y-4">
+                <div id="breakfastCard" class="today-meal-card" style="display:none;">
+                    <h4>Desayuno</h4>
+                    <p id="breakfastRecipeName"></p>
+                    <div id="breakfastRecipeInfo" class="recipe-info"></div>
+                </div>
+                <div id="lunchCard" class="today-meal-card" style="display:none;">
+                    <h4>Almuerzo</h4>
+                    <p id="lunchRecipeName"></p>
+                    <div id="lunchRecipeInfo" class="recipe-info"></div>
+                </div>
+                <div id="dinnerCard" class="today-meal-card" style="display:none;">
+                    <h4>Cena</h4>
+                    <p id="dinnerRecipeName"></p>
+                    <div id="dinnerRecipeInfo" class="recipe-info"></div>
+                </div>
+                <p id="noMealsToday" class="text-gray-500 italic text-center" style="display:none;">No hay comidas programadas para hoy.</p>
+            </div>
+            <button id="nextMealBtn" class="absolute right-0 top-1/2 -translate-y-1/2 bg-gray-200 hover:bg-gray-300 p-2 rounded-full shadow-md z-10">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+
 
         <!-- SECCIÓN 4: NAVEGACIÓN -->
         <h2 class="text-2xl font-bold text-gray-800 mt-8 mb-3 border-b pb-2">Navegación:</h2>
@@ -411,13 +484,13 @@
                 <div class="form-group day-selector">
                     <p class="block text-gray-700 text-sm font-bold mb-2">Repetir los días:</p>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <label class="flex items-center"><input type="checkbox" name="modalRoutineDay" value="Domingo" class="form-checkbox"> <span>Domingo</span></label>
                         <label class="flex items-center"><input type="checkbox" name="modalRoutineDay" value="Lunes" class="form-checkbox"> <span>Lunes</span></label>
                         <label class="flex items-center"><input type="checkbox" name="modalRoutineDay" value="Martes" class="form-checkbox"> <span>Martes</span></label>
                         <label class="flex items-center"><input type="checkbox" name="modalRoutineDay" value="Miércoles" class="form-checkbox"> <span>Miércoles</span></label>
                         <label class="flex items-center"><input type="checkbox" name="modalRoutineDay" value="Jueves" class="form-checkbox"> <span>Jueves</span></label>
                         <label class="flex items-center"><input type="checkbox" name="modalRoutineDay" value="Viernes" class="form-checkbox"> <span>Viernes</span></label>
                         <label class="flex items-center"><input type="checkbox" name="modalRoutineDay" value="Sábado" class="form-checkbox"> <span>Sábado</span></label>
-                        <label class="flex items-center"><input type="checkbox" name="modalRoutineDay" value="Domingo" class="form-checkbox"> <span>Domingo</span></label>
                     </div>
                 </div>
             </div>
@@ -453,6 +526,28 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal for deferring a task -->
+    <div id="deferTaskModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9998]" style="display:none;">
+        <div class="bg-white p-6 rounded-lg shadow-xl custom-modal-content max-w-lg">
+            <h3 class="text-xl font-bold mb-4 text-center">Aplazar Tarea</h3>
+            <p id="deferTaskTextDisplay" class="mb-4 text-gray-700 text-center"></p>
+            <input type="hidden" id="deferEntryId">
+            <div class="mb-4">
+                <label for="deferFechaInput" class="block text-gray-700 text-sm font-bold mb-2">Nueva Fecha Límite (opcional):</label>
+                <input type="date" id="deferFechaInput" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div class="mb-6">
+                <label for="deferHoraInput" class="block text-gray-700 text-sm font-bold mb-2">Nueva Hora Límite (opcional):</label>
+                <input type="time" id="deferHoraInput" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div class="flex justify-center space-x-4">
+                <button id="confirmAplazarBtn" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-full">Confirmar Aplazamiento</button>
+                <button id="cancelAplazarBtn" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-full">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
 
     <script>
         // GLOBAL VARIABLES / ELEMENT REFERENCES
@@ -547,6 +642,18 @@
 
         // NEW: Cache for all ingredients (for shopping list recognition)
         let allIngredients = [];
+
+        // --- Global variables for Food Module ---
+        let allRecipes = [];
+        let weeklyMenu = {};
+        const mealTypes = ["Desayuno", "Almuerzo", "Cena"]; // Used for backend keys
+        const mealDisplayOrder = ["Desayuno", "Almuerzo", "Cena"]; // Order of display
+        let currentMealIndex = 0; // Index for mealDisplayOrder
+
+        // New elements for navigation
+        const prevMealBtn = document.getElementById('prevMealBtn');
+        const nextMealBtn = document.getElementById('nextMealBtn');
+
 
         // Helper function to format date
         function formatFecha(date) {
@@ -2054,7 +2161,7 @@
                     priorityA = 1; // Pending
                 }
 
-                if (isBCompleted) {
+                if (priorityB === 'completed') {
                     priorityB = 3;
                 } else if (b.type === 'tarea' && bMomentStart && bMomentStart < now) {
                     priorityB = 2; // Overdue task
@@ -2814,12 +2921,199 @@
             });
         }
 
+        // --- FOOD MODULE LOGIC ---
+
+        // Function to fetch recipes
+        async function fetchRecipes() {
+            try {
+                const response = await fetch('/api/recipes');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                allRecipes = await response.json();
+                console.log('Recetas cargadas para el menú:', allRecipes);
+            } catch (error) {
+                console.error('Error fetching recipes:', error);
+                showCustomAlert('No se pudieron cargar las recetas del menú.', 'Error');
+            }
+        }
+
+        // Function to fetch weekly menu
+        async function fetchWeeklyMenu() {
+            try {
+                const response = await fetch('/api/weekly_menu');
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        weeklyMenu = {}; // No menu saved, treat as empty
+                        console.log('No se encontró un menú semanal guardado.');
+                        renderTodayMenu(); // Render with empty menu
+                        return;
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const menu = await response.json();
+                weeklyMenu = menu.menu || {}; // Store only the menu content
+                console.log('Menú semanal cargado:', weeklyMenu);
+                renderTodayMenu();
+            } catch (error) {
+                console.error('Error fetching weekly menu:', error);
+                showCustomAlert(`No se pudo cargar el menú semanal: ${error.message}.`, 'Error de Carga');
+                weeklyMenu = {}; // Ensure it's empty in case of error
+                renderTodayMenu(); // Render with empty menu
+            }
+        }
+
+        // Helper function to get recipe details by ID
+        function getRecipeDetails(recipeId) {
+            return allRecipes.find(recipe => recipe.id === recipeId);
+        }
+
+        // Function to render today's menu
+        function renderTodayMenu() {
+            const today = new Date();
+            const currentHour = today.getHours();
+            const dayName = dayNumberToName[today.getDay()]; // Get day name based on current date
+            const todayMenu = weeklyMenu[dayName] || {}; // Get today's meals
+
+            // Determine initial meal index based on current time
+            if (currentHour >= 0 && currentHour <= 11) { // 00:00 to 11:00 (Desayuno)
+                currentMealIndex = 0;
+            } else if (currentHour > 11 && currentHour <= 17) { // 11:01 to 17:00 (Almuerzo)
+                currentMealIndex = 1;
+            } else if (currentHour > 17 && currentHour <= 23) { // 17:01 to 23:59 (Cena)
+                currentMealIndex = 2;
+            } else {
+                currentMealIndex = 0; // Default to breakfast if outside defined hours
+            }
+
+            updateDisplayedMeal(todayMenu);
+        }
+
+        // Function to update the currently displayed meal based on currentMealIndex
+        function updateDisplayedMeal(todayMenu) {
+            // Hide all cards first
+            document.getElementById('breakfastCard').style.display = 'none';
+            document.getElementById('lunchCard').style.display = 'none';
+            document.getElementById('dinnerCard').style.display = 'none';
+            document.getElementById('noMealsToday').style.display = 'none';
+
+            const selectedMealType = mealDisplayOrder[currentMealIndex];
+            const recipeId = todayMenu[selectedMealType];
+            
+            let mealsFound = false;
+
+            // Call displayMeal for the selected meal type
+            if (recipeId) { // Check if there's a recipe assigned for this meal type
+                displayMeal(selectedMealType, recipeId);
+                mealsFound = true;
+            } else {
+                // Even if no recipe, show the card with "No programado."
+                const cardPrefix = selectedMealType === "Desayuno" ? "breakfast" :
+                                   selectedMealType === "Almuerzo" ? "lunch" : "dinner";
+                const cardElem = document.getElementById(`${cardPrefix}Card`);
+                const nameElem = document.getElementById(`${cardPrefix}RecipeName`);
+                const infoElem = document.getElementById(`${cardPrefix}RecipeInfo`);
+
+                if (cardElem && nameElem && infoElem) {
+                    nameElem.textContent = 'No programado.';
+                    infoElem.innerHTML = ''; // Clear info for no recipe
+                    cardElem.style.display = 'block';
+                    mealsFound = true; // Still consider it "found" as we are displaying the card
+                }
+            }
+
+            if (!mealsFound) {
+                document.getElementById('noMealsToday').style.display = 'block';
+            }
+        }
+
+        // Function to display a single meal
+        const displayMeal = (mealType, recipeId) => {
+            let cardPrefix;
+            // Map the mealType from backend (e.g., "Desayuno") to the HTML ID prefix (e.g., "breakfast")
+            if (mealType === "Desayuno") {
+                cardPrefix = "breakfast";
+            } else if (mealType === "Almuerzo") {
+                cardPrefix = "lunch";
+            } else if (mealType === "Cena") {
+                cardPrefix = "dinner";
+            } else {
+                console.error(`Tipo de comida desconocido: ${mealType}`);
+                return; // Exit if mealType is not recognized
+            }
+
+            const cardElem = document.getElementById(`${cardPrefix}Card`);
+            const nameElem = document.getElementById(`${cardPrefix}RecipeName`);
+            const infoElem = document.getElementById(`${cardPrefix}RecipeInfo`);
+
+            // Ensure elements exist before trying to set their content
+            if (!cardElem || !nameElem || !infoElem) {
+                console.error(`No se encontraron todos los elementos HTML para el tipo de comida: ${mealType}`);
+                return;
+            }
+
+            if (recipeId) {
+                const recipe = getRecipeDetails(recipeId);
+                if (recipe) {
+                    // Highlight the recipe name (bold), without specifying "Receta"
+                    nameElem.innerHTML = `<span class="font-bold text-lg">${recipe.name}</span>`; // Increased text size slightly for emphasis
+
+                    // Show calories, price, and proteins in a single line below the title
+                    // Removed description and ingredients as requested.
+                    infoElem.innerHTML = `
+                        <p class="text-sm text-gray-600 flex flex-wrap justify-center gap-x-4">
+                            Costo: <strong class="text-blue-700">${recipe.total_cost ? recipe.total_cost.toFixed(2) : '0.00'}€</strong>
+                            Calorías: <strong class="text-blue-700">${recipe.total_calories ? recipe.total_calories.toFixed(1) : '0.0'} kcal</strong>
+                            Proteínas: <strong class="text-blue-700">${recipe.total_proteins ? recipe.total_proteins.toFixed(1) : '0.0'} g</strong>
+                        </p>
+                    `;
+                    cardElem.style.display = 'block';
+                }
+            } else {
+                nameElem.textContent = 'No programado.';
+                infoElem.innerHTML = '';
+                cardElem.style.display = 'block'; // Still show the card, but indicate no recipe
+            }
+        };
+
+        function showPreviousMeal() {
+            const today = new Date();
+            const dayName = dayNumberToName[today.getDay()];
+            const todayMenu = weeklyMenu[dayName] || {};
+
+            currentMealIndex--;
+            if (currentMealIndex < 0) {
+                currentMealIndex = mealDisplayOrder.length - 1;
+            }
+            updateDisplayedMeal(todayMenu);
+        }
+
+        function showNextMeal() {
+            const today = new Date();
+            const dayName = dayNumberToName[today.getDay()];
+            const todayMenu = weeklyMenu[dayName] || {};
+
+            currentMealIndex++;
+            if (currentMealIndex >= mealDisplayOrder.length) {
+                currentMealIndex = 0;
+            }
+            updateDisplayedMeal(todayMenu);
+        }
+
 
         // INITIALIZATION
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             displayFechaActual();
             fetchAllIngredients(); // Fetch all ingredients for the quick list button
             fetchCombinedAgenda(); // This will also trigger fetchUpcomingCitas and fetchCountsForButtons
+
+            // Fetch recipes and weekly menu for the "Comida de Hoy" section
+            await fetchRecipes();
+            await fetchWeeklyMenu();
+
+            // Event listeners for meal navigation
+            prevMealBtn.addEventListener('click', showPreviousMeal);
+            nextMealBtn.addEventListener('click', showNextMeal);
         });
     </script>
 </body>
