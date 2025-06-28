@@ -198,7 +198,8 @@
 
         /* Compact action buttons for agenda items */
         .entry-actions .btn-compact,
-        .cita-actions .btn-compact { /* Apply compact style to cita actions as well */
+        .cita-actions .btn-compact,
+        .meal-actions .btn-compact { /* Apply compact style to cita and meal actions as well */
             padding: 0.5rem; /* Reduced padding for smaller buttons */
             width: 2.5rem; /* Fixed width to make them square/round */
             height: 2.5rem; /* Fixed height */
@@ -211,13 +212,15 @@
         }
 
         .entry-actions .btn-compact:hover,
-        .cita-actions .btn-compact:hover {
+        .cita-actions .btn-compact:hover,
+        .meal-actions .btn-compact:hover {
             box-shadow: 0 4px 6px rgba(0,0,0,0.15);
             transform: translateY(-1px);
         }
 
         .entry-actions .btn-compact i,
-        .cita-actions .btn-compact i {
+        .cita-actions .btn-compact i,
+        .meal-actions .btn-compact i {
             font-size: 1.1rem; /* Adjust icon size */
         }
 
@@ -298,6 +301,10 @@
                         <i class="fas fa-shopping-cart text-lg"></i>
                         <span class="button-count" id="quickListCount">0</span>
                     </button>
+                    <!-- NEW: Button to trigger automatic shopping list generation -->
+                    <button type="button" class="relative bg-teal-500 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-full shadow-md hover:shadow-lg transition-all duration-200" id="generateShoppingListButton" title="Generar Lista de Compra (desde menú)">
+                        <i class="fas fa-receipt text-lg"></i>
+                    </button>
                     <button type="button" class="relative bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full shadow-md hover:shadow-lg transition-all duration-200" id="quickNotesButton" title="Añadir a Notas Rápidas">
                         <i class="fas fa-pencil-alt text-lg"></i>
                         <span class="button-count" id="quickNotesCount">0</span>
@@ -328,18 +335,48 @@
             </button>
             <div id="todayFoodSection" class="space-y-4">
                 <div id="breakfastCard" class="today-meal-card" style="display:none;">
-                    <h4>Desayuno</h4>
-                    <p id="breakfastRecipeName"></p>
+                    <div class="flex justify-between items-center mb-2">
+                        <h4>Desayuno</h4>
+                        <div class="meal-actions flex gap-2">
+                            <button class="toggle-meal-completed btn-compact bg-blue-500 hover:bg-blue-700 text-white" data-meal-type="Desayuno" title="Marcar como Completado/Descompletado">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <a href="/alimentacion" class="btn-compact bg-yellow-500 hover:bg-yellow-700 text-white" title="Ir a Alimentación">
+                                <i class="fas fa-apple-alt"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <p id="breakfastRecipeName" class="text-center"></p>
                     <div id="breakfastRecipeInfo" class="recipe-info"></div>
                 </div>
                 <div id="lunchCard" class="today-meal-card" style="display:none;">
-                    <h4>Almuerzo</h4>
-                    <p id="lunchRecipeName"></p>
+                    <div class="flex justify-between items-center mb-2">
+                        <h4>Almuerzo</h4>
+                        <div class="meal-actions flex gap-2">
+                            <button class="toggle-meal-completed btn-compact bg-blue-500 hover:bg-blue-700 text-white" data-meal-type="Almuerzo" title="Marcar como Completado/Descompletado">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <a href="/alimentacion" class="btn-compact bg-yellow-500 hover:bg-yellow-700 text-white" title="Ir a Alimentación">
+                                <i class="fas fa-apple-alt"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <p id="lunchRecipeName" class="text-center"></p>
                     <div id="lunchRecipeInfo" class="recipe-info"></div>
                 </div>
                 <div id="dinnerCard" class="today-meal-card" style="display:none;">
-                    <h4>Cena</h4>
-                    <p id="dinnerRecipeName"></p>
+                    <div class="flex justify-between items-center mb-2">
+                        <h4>Cena</h4>
+                        <div class="meal-actions flex gap-2">
+                            <button class="toggle-meal-completed btn-compact bg-blue-500 hover:bg-blue-700 text-white" data-meal-type="Cena" title="Marcar como Completado/Descompletado">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <a href="/alimentacion" class="btn-compact bg-yellow-500 hover:bg-yellow-700 text-white" title="Ir a Alimentación">
+                                <i class="fas fa-apple-alt"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <p id="dinnerRecipeName" class="text-center"></p>
                     <div id="dinnerRecipeInfo" class="recipe-info"></div>
                 </div>
                 <p id="noMealsToday" class="text-gray-500 italic text-center" style="display:none;">No hay comidas programadas para hoy.</p>
@@ -564,6 +601,8 @@
         const entryTextInput = document.getElementById('entryTextInput');
 
         const quickListButton = document.getElementById('quickListButton');
+        // NEW: Reference to the new button for automatic shopping list generation
+        const generateShoppingListButton = document.getElementById('generateShoppingListButton');
         const quickNotesButton = document.getElementById('quickNotesButton');
         const quickCitaButton = document.getElementById('quickCitaButton');
 
@@ -571,10 +610,6 @@
         const quickListCountElem = document.getElementById('quickListCount');
         const quickNotesCountElem = document.getElementById('quickNotesCount');
         const quickCitaCountElem = document.getElementById('quickCitaCount');
-        // Las siguientes variables de elementos de navegación han sido eliminadas
-        // const navCitasCountElem = document.getElementById('navCitasCount');
-        // const navListCountElem = document.getElementById('navListCount');
-        // const navNotesCountElem = document.getElementById('navNotesCount');
 
 
         // Camera Elements
@@ -614,6 +649,7 @@
         const saveQuickCitaBtn = document.getElementById('saveQuickCitaBtn');
         const cancelQuickCitaBtn = document.getElementById('cancelQuickCitaBtn');
 
+
         // NEW: Choose Entry Type Modal Elements (now also used for editing)
         const chooseEntryTypeModal = document.getElementById('chooseEntryTypeModal');
         const chooseEntryTypeModalTitle = document.getElementById('chooseEntryTypeModalTitle');
@@ -645,10 +681,16 @@
 
         // --- Global variables for Food Module ---
         let allRecipes = [];
-        let weeklyMenu = {};
+        let weeklyMenu = {}; // Esto se llenará con el objeto de menú
         const mealTypes = ["Desayuno", "Almuerzo", "Cena"]; // Used for backend keys
         const mealDisplayOrder = ["Desayuno", "Almuerzo", "Cena"]; // Order of display
         let currentMealIndex = 0; // Index for mealDisplayOrder
+        // Store meal completion status locally
+        let completedMealsToday = {
+            "Desayuno": false,
+            "Almuerzo": false,
+            "Cena": false
+        };
 
         // New elements for navigation
         const prevMealBtn = document.getElementById('prevMealBtn');
@@ -976,11 +1018,9 @@
 
                 renderUpcomingCitas(fetchedCitas);
                 quickCitaCountElem.textContent = fetchedCitas.length;
-                // navCitasCountElem.textContent = fetchedCitas.length; // LINEA ELIMINADA
             } catch (error) {
                 console.error('Error al obtener las citas próximas:', error);
                 quickCitaCountElem.textContent = '0';
-                // navCitasCountElem.textContent = '0'; // LINEA ELIMINADA
             }
         }
 
@@ -1633,6 +1673,51 @@
             }
         });
 
+        // NEW: Event listener for the "Generate Shopping List" button
+        generateShoppingListButton.addEventListener('click', async () => {
+            try {
+                // Display a loading message
+                showCustomAlert('Generando lista de compra basada en el menú de hoy...', 'Generando Lista');
+
+                const response = await fetch('/api/lista_compra/generate', {
+                    method: 'POST', // This endpoint triggers the generation
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (!response.ok) {
+                    let errorMessage = `HTTP error! status: ${response.status}`;
+                    const contentType = response.headers.get('content-type');
+                    const responseBody = await response.text();
+                    if (contentType && contentType.includes('application/json')) {
+                        try {
+                            const errorData = JSON.parse(responseBody);
+                            errorMessage = errorData.error || errorMessage;
+                        } catch (jsonParseError) {
+                            console.warn("Fallo en el parseo JSON para error de generación de lista de compra, volviendo a texto sin procesar.", jsonParseError);
+                            errorMessage = `El servidor respondió con un JSON inválido. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
+                        }
+                    } else {
+                        errorMessage = `El servidor respondió con un error no JSON. Código: ${response.status}. Mensaje: ${responseBody.substring(0, 100)}...`;
+                        console.error("Respuesta de error no JSON del servidor:", responseBody);
+                    }
+                    throw new Error(errorMessage);
+                }
+
+                const result = await response.json();
+                console.log('Generación de lista de compra completada:', result.message);
+                showCustomAlert('Lista de compra generada exitosamente. Revisa la sección de Lista de Compra.', 'Éxito');
+                // Optionally redirect to the shopping list page after a short delay
+                setTimeout(() => {
+                    window.location.href = '/lista';
+                }, 1500);
+
+            } catch (error) {
+                console.error('Error al generar la lista de compra:', error);
+                showCustomAlert(`No se pudo generar la lista de compra: ${error.message}`, 'Error');
+            }
+        });
+
+
         // Logic for Quick Notes button
         quickNotesButton.addEventListener('click', async () => {
             const rawNoteText = entryTextInput.value; // Get raw value from input
@@ -1754,7 +1839,6 @@
                 showCustomAlert('Cita rápida guardada con éxito.', 'Cita Guardada');
                 quickCitaModal.style.display = 'none';
                 entryTextInput.value = '';
-                // entryTimeInput.value = ''; // Removed from main form
                 currentQuickCitaRequisitos = []; // Clear requirements after saving
                 renderRequisitosList(currentQuickCitaRequisitos, quickRequisitosListDisplay, true); // Clear display
 
@@ -1980,8 +2064,6 @@
             const todayDayOfWeek = currentDate.getDay();
 
             let allEntries = [];
-            //upcomingCitas = []; // Moved upcomingCitas fetching to fetchUpcomingCitas() // Already removed this line previously
-
             // Fetch Tasks
             try {
                 const tasksResponse = await fetch(`/api/tareas/${todayDate}`);
@@ -2094,17 +2176,14 @@
                     const items = await listCountResponse.json();
                     const uncompletedCount = items.filter(item => !item.comprada).length; // Corrected 'comprado' to 'comprada'
                     quickListCountElem.textContent = uncompletedCount;
-                    // navListCountElem.textContent = uncompletedCount; // LINEA ELIMINADA
                 } else {
                     console.warn('No se pudo obtener el recuento de la lista de la compra.');
                     quickListCountElem.textContent = '0';
-                    // navListCountElem.textContent = '0'; // LINEA ELIMINADA
                 }
 
             } catch (error) {
                 console.error('Error al obtener el recuento de la lista:', error);
                 quickListCountElem.textContent = '0';
-                // navListCountElem.textContent = '0'; // LINEA ELIMINADA
             }
 
             // Fetch for quick notes count
@@ -2113,16 +2192,13 @@
                 if (notesCountResponse.ok) {
                     const notes = await notesCountResponse.json(); // Corrected to use notesCountResponse
                     quickNotesCountElem.textContent = notes.length;
-                    // navNotesCountElem.textContent = notes.length; // LINEA ELIMINADA
                 } else {
                     console.warn('No se pudo obtener el recuento de notas.');
                     quickNotesCountElem.textContent = '0';
-                    // navNotesCountElem.textContent = '0'; // LINEA ELIMINADA
                 }
             } catch (error) {
                 console.error('Error al obtener el recuento de notas:', error);
                 quickNotesCountElem.textContent = '0';
-                // navNotesCountElem.textContent = '0'; // LINEA ELIMINADA
             }
         }
 
@@ -2860,7 +2936,7 @@
                 </div>
                 <div class="mb-6">
                     <label for="newHora" class="block text-gray-700 text-sm font-bold mb-2">Nueva Hora (opcional):</label>
-                    <input type="time" id="newHora" value="${currentHora ? currentHora.substring(0, 5) : ''}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <input type="time" id="newHora" value="${currentHora ? currentHora.substring(0, 5) : ''}" class="shadow appearance-none border rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 </div>
                 <div class="flex justify-center space-x-4">
                     <button id="aplazarBtn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">Aplazar</button>
@@ -2952,14 +3028,80 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const menu = await response.json();
-                weeklyMenu = menu.menu || {}; // Store only the menu content
+                // CORRECCIÓN AQUÍ: Accede a 'menu.menu' en lugar de 'menu.menu_data'
+                weeklyMenu = menu.menu || {}; // Usa 'menu' ya que el backend lo renombra, fallback a objeto vacío
                 console.log('Menú semanal cargado:', weeklyMenu);
+                
+                // Fetch meal completion status for today
+                await fetchMealCompletionStatus();
+
                 renderTodayMenu();
             } catch (error) {
                 console.error('Error fetching weekly menu:', error);
                 showCustomAlert(`No se pudo cargar el menú semanal: ${error.message}.`, 'Error de Carga');
                 weeklyMenu = {}; // Ensure it's empty in case of error
                 renderTodayMenu(); // Render with empty menu
+            }
+        }
+
+        // New function to fetch meal completion status for today
+        async function fetchMealCompletionStatus() {
+            const todayDate = formatFecha(fechaActual);
+            try {
+                const response = await fetch(`/api/meals/completion/${todayDate}`);
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        console.log('No hay estado de completado de comidas para hoy. Inicializando como no completado.');
+                        completedMealsToday = {
+                            "Desayuno": false,
+                            "Almuerzo": false,
+                            "Cena": false
+                        };
+                        return;
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const status = await response.json();
+                completedMealsToday = {
+                    "Desayuno": status.Desayuno || false,
+                    "Almuerzo": status.Almuerzo || false,
+                    "Cena": status.Cena || false
+                };
+                console.log('Estado de completado de comidas cargado:', completedMealsToday);
+            } catch (error) {
+                console.error('Error fetching meal completion status:', error);
+                showCustomAlert(`No se pudo cargar el estado de completado de comidas: ${error.message}.`, 'Error');
+                completedMealsToday = { // Reset on error
+                    "Desayuno": false,
+                    "Almuerzo": false,
+                    "Cena": false
+                };
+            }
+        }
+
+        // New function to toggle meal completion status
+        async function toggleMealCompletion(mealType) {
+            const todayDate = formatFecha(fechaActual);
+            const currentStatus = completedMealsToday[mealType];
+            const newStatus = !currentStatus;
+
+            try {
+                const response = await fetch(`/api/meals/completion/${todayDate}`, {
+                    method: 'POST', // or PATCH/PUT depending on backend design
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ meal_type: mealType, completed: newStatus })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                completedMealsToday[mealType] = newStatus; // Update local state immediately
+                updateDisplayedMeal(weeklyMenu[dayNumberToName[fechaActual.getDay()]] || {}); // Re-render to update button style
+                showCustomAlert(`Comida de ${mealType} marcada como ${newStatus ? 'completada' : 'pendiente'}.`, 'Actualización Exitosa');
+            } catch (error) {
+                console.error(`Error al actualizar el estado de completado de ${mealType}:`, error);
+                showCustomAlert(`No se pudo actualizar el estado de completado para ${mealType}: ${error.message}.`, 'Error');
             }
         }
 
@@ -2998,7 +3140,8 @@
             document.getElementById('noMealsToday').style.display = 'none';
 
             const selectedMealType = mealDisplayOrder[currentMealIndex];
-            const recipeId = todayMenu[selectedMealType];
+            // THIS LINE IS CRUCIAL: it assumes todayMenu[selectedMealType] directly holds the recipe ID.
+            const recipeId = todayMenu[selectedMealType]; 
             
             let mealsFound = false;
 
@@ -3013,11 +3156,22 @@
                 const cardElem = document.getElementById(`${cardPrefix}Card`);
                 const nameElem = document.getElementById(`${cardPrefix}RecipeName`);
                 const infoElem = document.getElementById(`${cardPrefix}RecipeInfo`);
+                const toggleButton = cardElem.querySelector('.toggle-meal-completed');
 
                 if (cardElem && nameElem && infoElem) {
                     nameElem.textContent = 'No programado.';
                     infoElem.innerHTML = ''; // Clear info for no recipe
                     cardElem.style.display = 'block';
+                    // Update button style based on current completion status
+                    if (toggleButton) {
+                        const isCompleted = completedMealsToday[selectedMealType];
+                        toggleButton.innerHTML = isCompleted ? '<i class="fas fa-undo"></i>' : '<i class="fas fa-check"></i>';
+                        toggleButton.classList.toggle('bg-green-500', isCompleted);
+                        toggleButton.classList.toggle('hover:bg-green-700', isCompleted);
+                        toggleButton.classList.toggle('bg-blue-500', !isCompleted);
+                        toggleButton.classList.toggle('hover:bg-blue-700', !isCompleted);
+                        toggleButton.title = isCompleted ? 'Marcar como Pendiente' : 'Marcar como Completado';
+                    }
                     mealsFound = true; // Still consider it "found" as we are displaying the card
                 }
             }
@@ -3045,6 +3199,8 @@
             const cardElem = document.getElementById(`${cardPrefix}Card`);
             const nameElem = document.getElementById(`${cardPrefix}RecipeName`);
             const infoElem = document.getElementById(`${cardPrefix}RecipeInfo`);
+            const toggleButton = cardElem.querySelector('.toggle-meal-completed'); // Get the button
+
 
             // Ensure elements exist before trying to set their content
             if (!cardElem || !nameElem || !infoElem) {
@@ -3059,7 +3215,6 @@
                     nameElem.innerHTML = `<span class="font-bold text-lg">${recipe.name}</span>`; // Increased text size slightly for emphasis
 
                     // Show calories, price, and proteins in a single line below the title
-                    // Removed description and ingredients as requested.
                     infoElem.innerHTML = `
                         <p class="text-sm text-gray-600 flex flex-wrap justify-center gap-x-4">
                             Costo: <strong class="text-blue-700">${recipe.total_cost ? recipe.total_cost.toFixed(2) : '0.00'}€</strong>
@@ -3073,6 +3228,20 @@
                 nameElem.textContent = 'No programado.';
                 infoElem.innerHTML = '';
                 cardElem.style.display = 'block'; // Still show the card, but indicate no recipe
+            }
+
+            // Update button style based on current completion status
+            if (toggleButton) {
+                const isCompleted = completedMealsToday[mealType];
+                toggleButton.innerHTML = isCompleted ? '<i class="fas fa-undo"></i>' : '<i class="fas fa-check"></i>';
+                toggleButton.classList.toggle('bg-green-500', isCompleted);
+                toggleButton.classList.toggle('hover:bg-green-700', isCompleted);
+                toggleButton.classList.toggle('bg-blue-500', !isCompleted);
+                toggleButton.classList.toggle('hover:bg-blue-700', !isCompleted);
+                toggleButton.title = isCompleted ? 'Marcar como Pendiente' : 'Marcar como Completado';
+                // Add/remove class to the card for visual feedback on completion
+                cardElem.classList.toggle('opacity-70', isCompleted);
+                cardElem.classList.toggle('line-through', isCompleted); // Optional: strikethrough effect
             }
         };
 
@@ -3109,11 +3278,19 @@
 
             // Fetch recipes and weekly menu for the "Comida de Hoy" section
             await fetchRecipes();
-            await fetchWeeklyMenu();
+            await fetchWeeklyMenu(); // This now also fetches meal completion status
 
             // Event listeners for meal navigation
             prevMealBtn.addEventListener('click', showPreviousMeal);
             nextMealBtn.addEventListener('click', showNextMeal);
+
+            // Add event listeners for the new meal completion buttons
+            document.querySelectorAll('.toggle-meal-completed').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const mealType = event.currentTarget.dataset.mealType;
+                    toggleMealCompletion(mealType);
+                });
+            });
         });
     </script>
 </body>

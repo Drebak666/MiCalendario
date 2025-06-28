@@ -8,13 +8,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        /* Custom styles for count badges - kept for potential future use or consistency with other pages */
+        /* Estilos personalizados para las insignias de conteo - mantenidos para uso futuro o consistencia */
         .button-count, .button-nav-count {
             position: absolute;
             top: 0;
             right: 0;
             transform: translate(50%, -50%);
-            background-color: #ef4444; /* Tailwind Red */
+            background-color: #ef4444; /* Rojo de Tailwind */
             color: white;
             border-radius: 9999px;
             padding: 0.25rem 0.5rem;
@@ -33,7 +33,7 @@
             transform: none;
         }
         
-        /* General button transition for a smoother feel */
+        /* Transición general para botones para una sensación más suave */
         .btn-transition {
             transition: all 0.2s ease-in-out;
         }
@@ -42,7 +42,7 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
-        /* Specific styles for custom modal for better integration */
+        /* Estilos específicos para el modal personalizado para una mejor integración */
         .custom-modal-overlay {
             position: fixed;
             top: 0;
@@ -54,13 +54,13 @@
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            display: none; /* Hidden by default */
+            display: none; /* Oculto por defecto */
         }
 
         .custom-modal-content {
             background: white;
-            /* Changed padding from fixed px to responsive Tailwind classes */
-            @apply p-4 sm:p-6; /* Adjusted padding for better mobile responsiveness */
+            /* Padding ajustado para mejor respuesta móvil */
+            @apply p-4 sm:p-6; 
             border-radius: 12px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
             text-align: center;
@@ -133,10 +133,10 @@
             transform: translateY(-1px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
-
     </style>
 </head>
-<body class="bg-blue-50 font-sans leading-normal tracking-normal min-h-screen flex flex-col pb-40"> <div class="flex-grow flex items-center justify-center p-4">
+<body class="bg-blue-50 font-sans leading-normal tracking-normal min-h-screen flex flex-col pb-40"> 
+    <div class="flex-grow flex items-center justify-center p-4">
         <div class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl m-4 mx-auto max-w-lg w-full transform transition-all duration-300 hover:scale-[1.01]">
             <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-800 mb-7 text-center drop-shadow-sm">Lista de la Compra</h2>
             
@@ -157,10 +157,17 @@
                     </div>
             </div>
 
-            <form id="addItemForm" class="flex flex-col sm:flex-row gap-4 mb-6">
-                <input type="text" id="itemInput" placeholder="Añadir nuevo ítem (o varios separados por espacio)..." required
-                       class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-4 focus:ring-teal-200 text-gray-800 shadow-sm transition-all duration-200"
-                       list="ingredientSuggestions"> <datalist id="ingredientSuggestions"></datalist> <button type="submit" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-6 rounded-lg flex-shrink-0 flex items-center justify-center btn-transition shadow-lg">
+            <!-- Formulario de añadir ítem SIMPLIFICADO: solo nombre, cantidad y unidad se gestionan en backend o edición -->
+            <form id="addItemForm" class="flex flex-col sm:flex-row gap-4 mb-6 items-end">
+                <div class="flex-grow">
+                    <label for="itemInput" class="block text-sm font-medium text-gray-700 mb-1">Nombre del Ítem:</label>
+                    <input type="text" id="itemInput" placeholder="Añadir nuevo ítem (ej: leche, patatas)" required
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-4 focus:ring-teal-200 text-gray-800 shadow-sm transition-all duration-200"
+                           list="ingredientSuggestions">
+                    <datalist id="ingredientSuggestions"></datalist>
+                </div>
+
+                <button type="submit" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-6 rounded-lg flex-shrink-0 flex items-center justify-center btn-transition shadow-lg">
                     <i class="fas fa-plus mr-2"></i> Añadir
                 </button>
             </form>
@@ -175,7 +182,7 @@
             <div id="shoppingListItems" class="space-y-4">
                 <div id="shoppingListHeader" class="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-gray-100 p-4 rounded-lg shadow-sm text-gray-700 font-bold hidden">
                     <div class="flex-grow w-full sm:w-auto mb-2 sm:mb-0">
-                        <span class="text-base sm:text-lg">Ítem</span>
+                        <span class="text-base sm:text-lg">Ítem (Cantidad)</span>
                     </div>
                     <div class="flex-shrink-0 flex items-center justify-end gap-x-4 sm:gap-x-8 text-sm sm:text-base font-bold text-gray-700 w-full sm:w-auto">
                         <span id="headerDefaultSupermarketName" class="whitespace-nowrap w-1/2 text-right sm:w-auto">Principal</span>
@@ -183,11 +190,19 @@
                     </div>
                     <div class="flex-shrink-0 w-full sm:w-auto mt-2 sm:mt-0" style="min-width: 90px; max-width: 120px;"></div>
                 </div>
-                </div>
+            </div>
 
             <div id="totalPriceDisplay" class="mt-8 p-5 bg-teal-100 text-teal-800 font-bold text-xl rounded-lg text-center shadow-md hidden">
                 Total estimado: <span id="totalPriceValue">0.00</span>€
             </div>
+
+            <!-- Sección de la Despensa -->
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-800 mb-7 text-center drop-shadow-sm mt-12">Mi Despensa</h2>
+            <div id="pantryItems" class="space-y-4">
+                <p class="text-center text-gray-500 mt-4 p-4 bg-gray-50 rounded-lg shadow-inner">Tu despensa está vacía. ¡Añade ítems desde la lista de la compra!</p>
+            </div>
+            <!-- Fin Sección de la Despensa -->
+
         </div>
     </div>
 
@@ -196,11 +211,13 @@
             <h3 id="customModalTitle" class="custom-modal-title"></h3>
             <p id="customModalMessage" class="custom-modal-message"></p>
             <div id="customModalActions" class="custom-modal-actions">
-                </div>
+            </div>
         </div>
     </div>
 
-    <nav class="w-full bg-transparent p-4 mt-8"> <div class="container mx-auto grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 place-items-center"> <a href="/alimentacion" class="relative text-center w-full text-white font-semibold py-3 px-2 rounded-lg transition-all duration-200 bg-blue-600 hover:opacity-90 shadow-md">
+    <nav class="w-full bg-transparent p-4 mt-8"> 
+        <div class="container mx-auto grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 place-items-center"> 
+            <a href="/alimentacion" class="relative text-center w-full text-white font-semibold py-3 px-2 rounded-lg transition-all duration-200 bg-blue-600 hover:opacity-90 shadow-md">
                 <i class="fas fa-apple-alt block text-xl mb-1"></i> 
                 <span class="text-xs">Alimentación</span>
             </a>
@@ -236,7 +253,7 @@
     </nav>
 
     <script>
-        // Get references to DOM elements
+        // Obtener referencias a los elementos del DOM
         const itemInput = document.getElementById('itemInput');
         const addItemForm = document.getElementById('addItemForm');
         const shoppingListItemsDiv = document.getElementById('shoppingListItems');
@@ -246,7 +263,7 @@
         const totalPriceValue = document.getElementById('totalPriceValue');
         const ingredientSuggestionsDatalist = document.getElementById('ingredientSuggestions'); 
 
-        // Supermarket comparison elements
+        // Elementos de comparación de supermercados
         const defaultSupermarketSelect = document.getElementById('defaultSupermarketSelect');
         const compareSupermarketSelect = document.getElementById('compareSupermarketSelect');
         const defaultSupermarketPriceValue = document.getElementById('defaultSupermarketPriceValue');
@@ -256,9 +273,12 @@
         const headerCompareSupermarketName = document.getElementById('headerCompareSupermarketName');
         const savingsDisplay = document.getElementById('savingsDisplay');
 
+        // Elemento de la Despensa
+        const pantryItemsDiv = document.getElementById('pantryItems');
 
-        // --- Custom Modal Functions (Copied for consistency) ---
-        // Function to show a custom modal (alert or confirm)
+
+        // --- Funciones de Modal Personalizado (copiadas para consistencia) ---
+        // Función para mostrar un modal personalizado (alerta o confirmación)
         function showCustomModal(message, title = 'Mensaje', type = 'alert') {
             return new Promise((resolve) => {
                 const modalOverlay = document.getElementById('customModalOverlay');
@@ -268,7 +288,7 @@
 
                 modalTitle.textContent = title;
                 modalMessage.textContent = message;
-                modalActions.innerHTML = ''; // Clear previous buttons
+                modalActions.innerHTML = ''; // Limpiar botones previos
 
                 if (type === 'alert') {
                     const okButton = document.createElement('button');
@@ -302,62 +322,55 @@
             });
         }
 
-        // Helper function for custom alerts
+        // Función auxiliar para alertas personalizadas
         function showCustomAlert(message, title = 'Mensaje') {
             return showCustomModal(message, title, 'alert');
         }
 
-        // Helper function for custom confirms
+        // Función auxiliar para confirmaciones personalizadas
         async function showCustomConfirm(message, title = 'Confirmación') {
             return await showCustomModal(message, title, 'confirm');
         }
-        // --- End Custom Modal Functions ---
+        // --- Fin Funciones de Modal Personalizado ---
 
-        // Function to format date
+        // Función para formatear la fecha
         function formatFecha(date) {
-            const yyyy = date.getFullYear();
-            const mm = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+            constanao = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0'); // Los meses son indexados desde 0
             const dd = String(date.getDate()).padStart(2, '0');
-            return `${yyyy}-${mm}-${dd}`;
+            return `${aaaa}-${mm}-${dd}`;
         }
 
-        // Function to display current date
+        // Función para mostrar la fecha actual
         function displayCurrentDate() {
             const today = new Date();
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             currentDateDisplay.textContent = `Hoy: ${today.toLocaleDateString('es-ES', options)}`;
         }
 
-        // --- Fetching and Rendering Shopping List ---
-        let allIngredients = []; // Cache for all ingredients fetched from /api/ingredients
-        let allSupermarkets = []; // Cache for unique supermarket names, including their IDs
-        let currentShoppingListItems = []; // Cache for the current shopping list items from /api/lista_compra
+        // --- Carga y Renderizado de la Lista de la Compra ---
+        let allIngredients = []; // Caché para todos los ingredientes obtenidos de /api/ingredients
+        let allSupermarkets = []; // Caché para nombres de supermercados únicos, incluyendo sus IDs
+        let currentShoppingListItems = []; // Caché para los ítems actuales de la lista de la compra de /api/lista_compra
+        let currentPantryItems = []; // Caché para los ítems actuales de la despensa
 
-        // Function to singularize Spanish words (basic implementation)
-        // This function attempts to convert common plural forms of Spanish words to their singular form.
-        // It's a basic implementation and might not cover all linguistic complexities.
+        // Función para singularizar palabras en español (implementación básica)
         function singularize(word) {
             word = word.toLowerCase();
-            // Simple rules for common plurals
             if (word.endsWith('es')) {
-                // Handle cases like "peces" -> "pez", "limones" -> "limón"
                 if (word.endsWith('ces')) return word.slice(0, -2) + 'z';
                 if (word.endsWith('nes')) return word.slice(0, -2) + 'n';
-                // Handle -res plurals like "flores" -> "flor"
                 if (word.endsWith('res') && word.length > 3) return word.slice(0, -1);
-                // Handle -des plurals like "paredes" -> "pared"
                 if (word.endsWith('des') && word.length > 3) return word.slice(0, -1);
-                // Most other -es plurals (e.g., "coches" -> "coche")
                 return word.slice(0, -2); 
             }
-            // Most -s plurals (e.g., "patatas" -> "patata", "libros" -> "libro")
             if (word.endsWith('s') && word.length > 1) {
                 return word.slice(0, -1);
             }
-            return word; // Return original word if no plural ending is found
+            return word; 
         }
 
-        // Fetches all ingredients from the API
+        // Obtiene todos los ingredientes de la API
         async function fetchAllIngredients() {
             try {
                 const response = await fetch('/api/ingredients');
@@ -372,15 +385,15 @@
                     throw new Error(`Failed to fetch ingredients: ${errorDetails}`);
                 }
                 allIngredients = await response.json();
-                populateIngredientSuggestions(); // Populate datalist
-                await fetchSupermarkets(); // Fetch and populate supermarket selectors
+                populateIngredientSuggestions(); // Rellenar datalist
+                await fetchSupermarkets(); // Obtener y rellenar selectores de supermercados
             } catch (error) {
                 console.error('Error al cargar todos los ingredientes:', error);
                 showCustomAlert(`No se pudieron cargar los ingredientes: ${error.message}`, 'Error de Carga');
             }
         }
 
-        // Fetches all supermarkets from the API and populates the select elements
+        // Obtiene todos los supermercados de la API y rellena los elementos select
         async function fetchSupermarkets() {
             try {
                 const response = await fetch('/api/supermarkets');
@@ -394,7 +407,7 @@
                     }
                     throw new Error(`Failed to fetch supermarkets: ${errorDetails}`);
                 }
-                allSupermarkets = await response.json(); // Store supermarkets with their IDs and names
+                allSupermarkets = await response.json(); // Almacenar supermercados con sus IDs y nombres
                 populateSupermarketSelectors();
             } catch (error) {
                 console.error('Error fetching supermarkets:', error);
@@ -402,8 +415,7 @@
             }
         }
 
-
-        // Populates the datalist with ingredient suggestions
+        // Rellena el datalist con sugerencias de ingredientes
         function populateIngredientSuggestions() {
             ingredientSuggestionsDatalist.innerHTML = '';
             if (allIngredients.length > 0) {
@@ -416,13 +428,13 @@
             }
         }
 
-        // Populates the select elements for supermarket comparison
+        // Rellena los elementos select para la comparación de supermercados
         function populateSupermarketSelectors() {
-            // Clear existing options
+            // Limpiar opciones existentes
             defaultSupermarketSelect.innerHTML = '';
             compareSupermarketSelect.innerHTML = '';
 
-            // Add a "Seleccionar" option first
+            // Añadir una opción "Seleccionar" primero
             const defaultPlaceholderOption = document.createElement('option');
             defaultPlaceholderOption.value = '';
             defaultPlaceholderOption.textContent = 'Seleccionar Supermercado';
@@ -433,53 +445,50 @@
             comparePlaceholderOption.textContent = 'Seleccionar Supermercado';
             compareSupermarketSelect.appendChild(comparePlaceholderOption);
 
-
-            // Add options to both selectors from the fetched allSupermarkets
+            // Añadir opciones a ambos selectores de todos los supermercados obtenidos
             allSupermarkets.forEach(supermarket => {
                 const option1 = document.createElement('option');
-                option1.value = supermarket.id; // Use ID as value
+                option1.value = supermarket.id; // Usar ID como valor
                 option1.textContent = supermarket.name;
                 defaultSupermarketSelect.appendChild(option1);
 
                 const option2 = document.createElement('option');
-                option2.value = supermarket.id; // Use ID as value
+                option2.value = supermarket.id; // Usar ID como valor
                 option2.textContent = supermarket.name;
                 compareSupermarketSelect.appendChild(option2);
             });
 
-            // Set default selections
-            // Try to set 'Lidl' as default for the main selector
+            // Establecer selecciones por defecto
             const lidlSupermarket = allSupermarkets.find(s => s.name === 'Lidl');
             if (lidlSupermarket) {
                 defaultSupermarketSelect.value = lidlSupermarket.id;
             } else if (allSupermarkets.length > 0) {
-                defaultSupermarketSelect.value = allSupermarkets[0].id; // Fallback to first available
+                defaultSupermarketSelect.value = allSupermarkets[0].id; // Volver al primero disponible
             }
 
-            // Set a different default for comparison if available
             if (allSupermarkets.length > 1) {
                 const defaultSupermarketId = defaultSupermarketSelect.value;
                 const otherSupermarkets = allSupermarkets.filter(s => s.id !== defaultSupermarketId);
                 if (otherSupermarkets.length > 0) {
-                    compareSupermarketSelect.value = otherSupermarkets[0].id; // Set to the first different supermarket
+                    compareSupermarketSelect.value = otherSupermarkets[0].id; // Establecer al primer supermercado diferente
                 } else {
-                    compareSupermarketSelect.value = defaultSupermarketId; // If only one, select same
+                    compareSupermarketSelect.value = defaultSupermarketId; // Si solo hay uno, seleccionar el mismo
                 }
             } else if (allSupermarkets.length === 1) {
-                compareSupermarketSelect.value = allSupermarkets[0].id; // If only one, select same
+                compareSupermarketSelect.value = allSupermarkets[0].id; // Si solo hay uno, seleccionar el mismo
             }
 
-            // Update prices based on initial selections
+            // Actualizar precios basados en las selecciones iniciales
             updateTotalPricesDisplay();
         }
 
-        // Helper function to get the price of a specific item for a given supermarket
+        // Función auxiliar para obtener el precio de un ítem específico para un supermercado dado
         function getPriceForItemInSupermarket(item, supermarketId) {
-            if (!supermarketId) return null; // No supermarket selected
+            if (!supermarketId) return null; // No hay supermercado seleccionado
 
             let price = null;
 
-            // 1. Try to find the price from the ingredient's 'prices' array (specific to supermarket)
+            // 1. Intentar encontrar el precio del array 'prices' del ingrediente (específico para el supermercado)
             if (item.ingredient_id) {
                 const ingredient = allIngredients.find(ing => ing.id === item.ingredient_id);
                 if (ingredient && ingredient.prices) {
@@ -490,9 +499,9 @@
                 }
             }
 
-            // 2. If no price found by ingredient_id + supermarket specific price,
-            //    and the item is NOT linked by ingredient_id, try to match by singularized item name
-            //    and then find a price entry for the specified supermarket.
+            // 2. Si no se encuentra precio por ingredient_id + precio específico del supermercado,
+            //    e el ítem NO está vinculado por ingredient_id, intentar coincidir por nombre de ítem singularizado
+            //    y luego encontrar una entrada de precio para el supermercado especificado.
             if (price === null && !item.ingredient_id) {
                 const matchingIngredientBySingularName = allIngredients.find(ing => singularize(ing.name).toLowerCase() === singularize(item.item).toLowerCase());
                 if (matchingIngredientBySingularName && matchingIngredientBySingularName.prices) {
@@ -506,27 +515,29 @@
         }
 
 
-        // Calculates the total price of the current shopping list for a given supermarket ID
+        // Calcula el precio total de la lista de la compra actual para un ID de supermercado dado
         function calculateTotalPriceForList(supermarketId) {
             let total = 0;
             const selectedSupermarket = allSupermarkets.find(s => s.id === supermarketId);
             if (!selectedSupermarket) {
-                return 0; // If no supermarket is selected or found, total is 0
+                return 0; // Si no hay supermercado seleccionado o encontrado, el total es 0
             }
 
             currentShoppingListItems.forEach(item => {
-                if (item.comprada) return; // Skip completed items for total calculation
+                if (item.comprada) return; // Omitir ítems completados para el cálculo total
                 
                 const itemPrice = getPriceForItemInSupermarket(item, supermarketId);
                 if (itemPrice !== null) {
-                    total += itemPrice;
+                    // Multiplicar el precio por la cantidad del ítem de la lista
+                    const cantidad = item.cantidad && typeof item.cantidad === 'number' ? item.cantidad : 1;
+                    total += itemPrice * cantidad;
                 }
             });
             return total;
         }
 
 
-        // Updates the displayed total prices for selected supermarkets
+        // Actualiza los precios totales mostrados para los supermercados seleccionados
         function updateTotalPricesDisplay() {
             const defaultSupermarketId = defaultSupermarketSelect.value;
             const compareSupermarketId = compareSupermarketSelect.value;
@@ -534,47 +545,47 @@
             const defaultTotal = calculateTotalPriceForList(defaultSupermarketId);
             const compareTotal = calculateTotalPriceForList(compareSupermarketId);
 
-            // Clear previous highlighting
+            // Limpiar resaltado previo
             defaultSupermarketPriceValue.classList.remove('text-green-600', 'text-orange-500', 'font-bold', 'text-red-600');
             compareSupermarketPriceValue.classList.remove('text-green-600', 'text-orange-500', 'font-bold', 'text-red-600');
             
-            savingsDisplay.textContent = ''; // Clear previous message
-            savingsDisplay.classList.remove('text-green-600', 'text-orange-500'); // Also remove color classes
+            savingsDisplay.textContent = ''; // Limpiar mensaje previo
+            savingsDisplay.classList.remove('text-green-600', 'text-orange-500'); // También eliminar clases de color
 
             if (defaultTotal < compareTotal) {
                 defaultSupermarketPriceValue.classList.add('text-green-600', 'font-bold');
-                compareSupermarketPriceValue.classList.add('text-red-600'); // Higher price in red
+                compareSupermarketPriceValue.classList.add('text-red-600'); // Precio más alto en rojo
                 const savings = compareTotal - defaultTotal;
                 const defaultSupermarketName = allSupermarkets.find(s => s.id === defaultSupermarketId)?.name || 'Supermercado Principal';
                 savingsDisplay.textContent = `¡Te ahorras ${savings.toFixed(2)}€ en ${defaultSupermarketName}!`;
-                savingsDisplay.classList.add('text-green-600'); // Savings message in green
+                savingsDisplay.classList.add('text-green-600'); // Mensaje de ahorro en verde
             } else if (compareTotal < defaultTotal) {
                 compareSupermarketPriceValue.classList.add('text-green-600', 'font-bold');
-                defaultSupermarketPriceValue.classList.add('text-red-600'); // Higher price in red
+                defaultSupermarketPriceValue.classList.add('text-red-600'); // Precio más alto en rojo
                 const savings = defaultTotal - compareTotal;
                 const compareSupermarketName = allSupermarkets.find(s => s.id === compareSupermarketId)?.name || 'Supermercado a Comparar';
                 savingsDisplay.textContent = `¡Te ahorras ${savings.toFixed(2)}€ en ${compareSupermarketName}!`;
-                savingsDisplay.classList.add('text-green-600'); // Savings message in green
+                savingsDisplay.classList.add('text-green-600'); // Mensaje de ahorro en verde
             } else {
-                if (defaultTotal > 0) { // Only show orange if there are items and prices
+                if (defaultTotal > 0) { // Solo mostrar naranja si hay ítems y precios
                     defaultSupermarketPriceValue.classList.add('text-orange-500', 'font-bold');
                     compareSupermarketPriceValue.classList.add('text-orange-500', 'font-bold');
                     savingsDisplay.textContent = `¡Ambos supermercados tienen el mismo precio total!`;
-                    savingsDisplay.classList.add('text-orange-500'); // Savings message in orange
+                    savingsDisplay.classList.add('text-orange-500'); // Mensaje de ahorro en naranja
                 }
             }
 
             defaultSupermarketPriceValue.textContent = defaultTotal.toFixed(2);
             compareSupermarketPriceValue.textContent = compareTotal.toFixed(2);
             
-            // Re-render the shopping list to update individual item prices
+            // Volver a renderizar la lista de la compra para actualizar precios individuales
             renderShoppingList(currentShoppingListItems);
         }
 
 
-        // Fetches and renders the shopping list
+        // Obtiene y renderiza la lista de la compra
         async function fetchShoppingList() {
-            // Ensure ingredients and supermarkets are loaded before loading the shopping list
+            // Asegurarse de que los ingredientes y supermercados estén cargados antes de cargar la lista
             if (allIngredients.length === 0 || allSupermarkets.length === 0) {
                 await fetchAllIngredients(); 
             }
@@ -591,41 +602,40 @@
                     }
                     throw new Error(`Failed to fetch shopping list: ${errorDetails}`);
                 }
-                currentShoppingListItems = await response.json(); // Store fetched items
+                currentShoppingListItems = await response.json(); // Almacenar ítems obtenidos
                 renderShoppingList(currentShoppingListItems);
-                updateTotalPricesDisplay(); // Update prices after rendering list
+                updateTotalPricesDisplay(); // Actualizar precios después de renderizar la lista
             } catch (error) {
                 console.error('Error al cargar la lista de la compra:', error);
                 showCustomAlert(`No se pudo cargar la lista de la compra: ${error.message}`, 'Error de Carga');
             }
         }
 
-        // Renders the shopping list items
+        // Renderiza los ítems de la lista de la compra (CAMBIOS IMPORTANTES AQUÍ)
         function renderShoppingList(items) {
             shoppingListItemsDiv.innerHTML = '';
             
             if (items.length === 0) {
                 shoppingListItemsDiv.innerHTML = '<p class="text-center text-gray-500 mt-4 p-4 bg-gray-50 rounded-lg shadow-inner">La lista de la compra está vacía. ¡Añade tus primeros ítems!</p>';
-                shoppingListHeader.classList.add('hidden'); // Hide header if list is empty
+                shoppingListHeader.classList.add('hidden'); // Ocultar encabezado si la lista está vacía
                 totalPriceDisplay.classList.add('hidden'); 
-                savingsDisplay.textContent = ''; // Clear savings message if list empty
-                savingsDisplay.classList.remove('text-green-600', 'text-orange-500'); // Also remove color classes
+                savingsDisplay.textContent = ''; // Limpiar mensaje de ahorro si la lista está vacía
+                savingsDisplay.classList.remove('text-green-600', 'text-orange-500'); // También eliminar clases de color
                 return;
             }
 
-            // Get supermarket names for display in the item price columns
+            // Obtener nombres de supermercados para mostrar en las columnas de precios de los ítems
             const defaultSupermarketId = defaultSupermarketSelect.value;
             const compareSupermarketId = compareSupermarketSelect.value;
-            // CORRECTED: Ensure compareSupermarketName is correctly assigned
             const defaultSupermarketName = allSupermarkets.find(s => s.id === defaultSupermarketId)?.name || 'Principal';
             const compareSupermarketName = allSupermarkets.find(s => s.id === compareSupermarketId)?.name || 'Comparar';
 
-            // Update header names and show it
+            // Actualizar nombres del encabezado y mostrarlo
             headerDefaultSupermarketName.textContent = defaultSupermarketName;
             headerCompareSupermarketName.textContent = compareSupermarketName;
             shoppingListHeader.classList.remove('hidden');
 
-            // Sort items: completed items go to the end
+            // Ordenar ítems: los ítems completados van al final
             items.sort((a, b) => {
                 if (a.comprada && !b.comprada) return 1; 
                 if (!a.comprada && b.comprada) return -1; 
@@ -634,7 +644,6 @@
 
             items.forEach(item => {
                 const listItemCard = document.createElement('div');
-                // Adjusted item card to stack vertically on small screens, horizontal on larger
                 listItemCard.classList.add('flex', 'flex-col', 'sm:flex-row', 'items-start', 'sm:items-center', 'justify-between', 'bg-white', 'p-4', 'rounded-lg', 'shadow-md', 'transition-all', 'duration-200', 'ease-in-out', 'border', 'border-gray-200');
                 if (item.comprada) { 
                     listItemCard.classList.add('opacity-70', 'bg-emerald-50', 'border-emerald-200');
@@ -642,65 +651,81 @@
 
                 let ingredientIconHtml = '';
                 let addIngredientButtonHtml = ''; 
-                let standardQuantityDisplay = '';
+                let standardQuantityDisplay = ''; // Cantidad estándar del ingrediente asociado
+                let itemQuantityAndUnit = '';     // Cantidad y unidad del ítem de la lista de la compra
 
-                // Get prices for the default and comparison supermarkets
-                const defaultItemPrice = getPriceForItemInSupermarket(item, defaultSupermarketId);
-                const compareItemPrice = getPriceForItemInSupermarket(item, compareSupermarketId);
+                // Obtener precios por unidad para los supermercados por defecto y de comparación
+                const defaultItemPricePerUnit = getPriceForItemInSupermarket(item, defaultSupermarketId);
+                const compareItemPricePerUnit = getPriceForItemInSupermarket(item, compareSupermarketId);
 
-                const defaultItemPriceFormatted = defaultItemPrice !== null ? `${defaultItemPrice.toFixed(2)}€` : 'N/D';
-                const compareItemPriceFormatted = compareItemPrice !== null ? `${compareItemPrice.toFixed(2)}€` : 'N/D';
+                // Calcular el precio total del ítem de la lista de la compra (precio por unidad * cantidad)
+                // Se accede a item.cantidad y item.unidad (asumiendo que el backend las devuelve así)
+                const itemCantidad = item.cantidad && typeof item.cantidad === 'number' ? item.cantidad : 1;
+                const itemUnidad = item.unidad || ''; 
 
-                // Determine price text classes
+                const defaultItemTotalPrice = defaultItemPricePerUnit !== null ? defaultItemPricePerUnit * itemCantidad : null;
+                const compareItemTotalPrice = compareItemPricePerUnit !== null ? compareItemPricePerUnit * itemCantidad : null;
+
+                const defaultItemPriceFormatted = defaultItemTotalPrice !== null ? `${defaultItemTotalPrice.toFixed(2)}€` : 'N/D';
+                const compareItemPriceFormatted = compareItemTotalPrice !== null ? `${compareItemTotalPrice.toFixed(2)}€` : 'N/D';
+
+                // Mostrar cantidad y unidad del ítem si están disponibles
+                if (itemCantidad > 0) {
+                    itemQuantityAndUnit = `${itemCantidad}`; // Solo cantidad
+                    if (itemUnidad) {
+                         itemQuantityAndUnit += ` ${itemUnidad}`; // Añadir unidad si existe
+                    }
+                }
+
+                // Determinar clases de texto de precio
                 let defaultPriceClass = 'text-gray-600';
                 let comparePriceClass = 'text-gray-600';
 
-                if (defaultItemPrice !== null && compareItemPrice !== null) {
-                    if (defaultItemPrice < compareItemPrice) {
+                if (defaultItemTotalPrice !== null && compareItemTotalPrice !== null) {
+                    if (defaultItemTotalPrice < compareItemTotalPrice) {
                         defaultPriceClass = 'text-green-600 font-bold';
-                        comparePriceClass = 'text-red-600'; // Make higher price red
-                    } else if (compareItemPrice < defaultItemPrice) {
+                        comparePriceClass = 'text-red-600'; // Hacer el precio más alto rojo
+                    } else if (compareItemTotalPrice < defaultItemTotalPrice) {
                         comparePriceClass = 'text-green-600 font-bold';
-                        defaultPriceClass = 'text-red-600'; // Make higher price red
-                    } else { // Prices are equal
+                        defaultPriceClass = 'text-red-600'; // Hacer el precio más alto rojo
+                    } else { // Los precios son iguales
                         defaultPriceClass = 'text-orange-500 font-bold';
                         comparePriceClass = 'text-orange-500 font-bold';
                     }
-                } else if (defaultItemPrice !== null) { // Only default price is available
+                } else if (defaultItemTotalPrice !== null) { // Solo el precio por defecto está disponible
                     defaultPriceClass = 'text-gray-700 font-bold';
-                } else if (compareItemPrice !== null) { // Only compare price is available
+                } else if (compareItemTotalPrice !== null) { // Solo el precio de comparación está disponible
                     comparePriceClass = 'text-gray-700 font-bold';
                 }
 
 
-                // Determine ingredient icon based on whether it's linked
+                // Determinar icono de ingrediente según si está vinculado
                 if (item.ingredient_id) {
                     const ingredient = allIngredients.find(ing => ing.id === item.ingredient_id);
                     if (ingredient) {
                         ingredientIconHtml = `<i class="fas fa-seedling text-emerald-600 mr-2" title="Asociado a ingrediente: ${ingredient.name}"></i>`;
-                        // Also get standard quantity if available from the linked ingredient's default details or a price entry
-                        const baseIngredientPriceEntry = ingredient.prices?.find(p => p.supermarket_id === defaultSupermarketId) || ingredient.prices?.[0]; // Fallback to first price if default not found
+                        // La cantidad estándar del ingrediente podría seguir siendo útil como referencia
+                        const baseIngredientPriceEntry = ingredient.prices?.find(p => p.supermarket_id === defaultSupermarketId) || ingredient.prices?.[0]; 
                         if (baseIngredientPriceEntry && baseIngredientPriceEntry.cantidad_estandar && baseIngredientPriceEntry.unidad_medida) {
-                            standardQuantityDisplay = `(${baseIngredientPriceEntry.cantidad_estandar} ${baseIngredientPriceEntry.unidad_medida})`;
-                        } else if (ingredient.cantidad_estandar && ingredient.unidad_medida) { // Fallback to base ingredient properties
-                             standardQuantityDisplay = `(${ingredient.cantidad_estandar} ${ingredient.unidad_medida})`;
+                            standardQuantityDisplay = `(Ref: ${baseIngredientPriceEntry.cantidad_estandar} ${baseIngredientPriceEntry.unidad_medida})`;
+                        } else if (ingredient.cantidad_estandar && ingredient.unidad_medida) {
+                             standardQuantityDisplay = `(Ref: ${ingredient.cantidad_estandar} ${ingredient.unidad_medida})`;
                         }
                     }
                 } else {
-                    // If not linked, check if it matches an ingredient by name for a potential icon
                     const matchingIngredientByName = allIngredients.find(ing => singularize(ing.name).toLowerCase() === singularize(item.item).toLowerCase());
                     if (matchingIngredientByName) {
                         ingredientIconHtml = `<i class="fas fa-seedling text-gray-500 mr-2" title="Posible ingrediente: ${matchingIngredientByName.name}"></i>`;
                         const baseIngredientPriceEntry = matchingIngredientByName.prices?.find(p => p.supermarket_id === defaultSupermarketId) || matchingIngredientByName.prices?.[0];
                         if (baseIngredientPriceEntry && baseIngredientPriceEntry.cantidad_estandar && baseIngredientPriceEntry.unidad_medida) {
-                            standardQuantityDisplay = `(${baseIngredientPriceEntry.cantidad_estandar} ${baseIngredientPriceEntry.unidad_medida})`;
+                            standardQuantityDisplay = `(Ref: ${baseIngredientPriceEntry.cantidad_estandar} ${baseIngredientPriceEntry.unidad_medida})`;
                         } else if (matchingIngredientByName.cantidad_estandar && matchingIngredientByName.unidad_medida) {
-                             standardQuantityDisplay = `(${matchingIngredientByName.cantidad_estandar} ${matchingIngredientByName.unidad_medida})`;
+                             standardQuantityDisplay = `(Ref: ${matchingIngredientByName.cantidad_estandar} ${matchingIngredientByName.unidad_medida})`;
                         }
                     }
                 }
                 
-                // Only render the "Add to Ingredients" button if the item name is not empty and not already linked
+                // Solo renderizar el botón "Añadir a Ingredientes" si el nombre del ítem no está vacío y no está ya vinculado
                 if (item.item && item.item.trim() !== '' && !item.ingredient_id) {
                     addIngredientButtonHtml = `
                         <button class="add-ingredient p-3 rounded-full bg-purple-200 text-purple-700 hover:bg-purple-300 btn-transition" data-item="${item.item}" data-list-item-id="${item.id}" title="Añadir a Ingredientes (Lidl)">
@@ -711,13 +736,29 @@
 
                 listItemCard.innerHTML = `
                     <div class="flex-grow flex items-center w-full sm:w-auto mb-2 sm:mb-0">
-                        <span class="text-gray-900 font-medium text-lg flex-grow ${item.comprada ? 'line-through text-gray-500' : ''}">${ingredientIconHtml}${item.item} ${standardQuantityDisplay}</span>
+                        <span class="text-gray-900 font-medium text-lg flex-grow ${item.comprada ? 'line-through text-gray-500' : ''}">
+                            ${ingredientIconHtml}${item.item} 
+                            ${itemQuantityAndUnit ? `<span class="text-sm text-gray-500 ml-1">(${itemQuantityAndUnit})</span>` : ''}
+                            ${standardQuantityDisplay ? `<span class="text-xs text-gray-400 ml-1">${standardQuantityDisplay}</span>` : ''}
+                        </span>
                     </div>
                     <div class="flex-shrink-0 flex items-center justify-end gap-x-4 sm:gap-x-8 text-sm font-bold w-full sm:w-auto">
                         <span class="whitespace-nowrap w-1/2 text-right sm:w-auto ${defaultPriceClass}">${defaultItemPriceFormatted}</span>
                         <span class="whitespace-nowrap w-1/2 text-right sm:w-auto ${comparePriceClass}">${compareItemPriceFormatted}</span>
                     </div>
                     <div class="flex items-center justify-end gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+                        <button class="quantity-button minus-button p-3 rounded-full bg-red-200 text-red-700 hover:bg-red-300 btn-transition" 
+                                data-id="${item.id}" 
+                                data-current-cantidad="${item.cantidad || 1}"
+                                title="Disminuir Cantidad">
+                            <i class="fas fa-minus text-lg"></i>
+                        </button>
+                        <button class="quantity-button plus-button p-3 rounded-full bg-green-200 text-green-700 hover:bg-green-300 btn-transition" 
+                                data-id="${item.id}" 
+                                data-current-cantidad="${item.cantidad || 1}"
+                                title="Aumentar Cantidad">
+                            <i class="fas fa-plus text-lg"></i>
+                        </button>
                         <button class="toggle-bought p-3 rounded-full ${item.comprada ? 'bg-emerald-200 text-emerald-700 hover:bg-emerald-300' : 'bg-blue-200 text-blue-700 hover:bg-blue-300'} btn-transition" data-id="${item.id}" title="${item.comprada ? 'Marcar como Pendiente' : 'Marcar como Comprado'}">
                             <i class="${item.comprada ? 'fas fa-undo text-lg' : 'fas fa-check text-lg'}"></i>
                         </button>
@@ -730,120 +771,100 @@
                 shoppingListItemsDiv.appendChild(listItemCard);
             });
 
-            // Add event listeners for new buttons
+            // Añadir escuchadores de eventos para los nuevos botones
             document.querySelectorAll('.toggle-bought').forEach(button => {
                 button.addEventListener('click', toggleItemComprada);
             });
-            // NOTE: Listeners for add-ingredient will only be added if the button exists
             document.querySelectorAll('.add-ingredient').forEach(button => {
                 button.addEventListener('click', addAsIngredient);
             });
             document.querySelectorAll('.delete-item').forEach(button => {
                 button.addEventListener('click', deleteItem);
             });
+            // Añadir escuchador para los botones de cantidad
+            document.querySelectorAll('.quantity-button').forEach(button => {
+                button.addEventListener('click', updateItemQuantity);
+            });
         }
 
-        // --- Event Handlers ---
+        // --- Manejadores de Eventos ---
 
         addItemForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const rawInput = itemInput.value.trim(); 
+            // Cantidad por defecto y unidad vacía al añadir un nuevo ítem
+            const initialQuantity = 1; 
+            const initialUnit = '';           
             
             if (!rawInput) {
                 showCustomAlert('Por favor, introduce al menos un ítem válido.', 'Entrada Vacía');
                 return;
             }
 
-            let identifiedItems = []; // Will store { item: "name", ingredient_id: "id" }
-            const words = rawInput.split(/\s+/).filter(word => word.length > 0); // Split by one or more spaces
+            let identifiedItems = []; 
+            const words = rawInput.split(/\s+/).filter(word => word.length > 0); 
 
-            // Sort ingredients by name length descending to prioritize multi-word matches
-            // We use a copy so we don't modify the original allIngredients array
             const sortedIngredients = [...allIngredients].sort((a, b) => b.name.length - a.name.length);
 
             let i = 0;
             while (i < words.length) {
                 let foundMatch = false;
 
-                // 1. Try to match longest possible ingredient name (multi-word first)
+                // 1. Intentar hacer coincidir el nombre de ingrediente más largo posible (primero multi-palabra)
                 for (const ingredient of sortedIngredients) {
                     const ingNameLower = ingredient.name.toLowerCase();
-                    // Construct a phrase from current words to match against ingredient names
                     const currentPhraseAttempt = words.slice(i, i + ingNameLower.split(/\s+/).length).join(' ').toLowerCase();
 
-                    // Check for direct match or singularized match
                     if (currentPhraseAttempt === ingNameLower || singularize(currentPhraseAttempt) === ingNameLower) {
-                        identifiedItems.push({ item: ingredient.name, ingredient_id: ingredient.id });
-                        i += ingNameLower.split(/\s+/).length; // Skip words that formed this ingredient
+                        identifiedItems.push({ item: ingredient.name, ingredient_id: ingredient.id, cantidad: initialQuantity, unidad: initialUnit }); 
+                        i += ingNameLower.split(/\s+/).length; 
                         foundMatch = true;
-                        break; // Move to the next segment of the input
+                        break; 
                     }
                 }
 
                 if (!foundMatch) {
-                    // No direct ingredient match found for this segment.
                     let currentWord = words[i];
                     
-                    // Specific handling for "de" if it's not part of a recognized multi-word ingredient
-                    // This creates a compound phrase like "pan de molde" even if "pan de molde" isn't an ingredient itself,
-                    // but it does contain known words like "pan" and "molde".
                     if (currentWord.toLowerCase() === 'de' && i > 0 && i + 1 < words.length) {
-                        // Check if the previous item was just added and combine if sensible
                         if (identifiedItems.length > 0) {
                             let lastItem = identifiedItems[identifiedItems.length - 1];
                             const nextWord = words[i + 1];
                             const combinedPhrase = `${lastItem.item} de ${nextWord}`;
                             
-                            // Try to match this new combined phrase against known ingredients
                             const combinedIngredientMatch = allIngredients.find(ing => ing.name.toLowerCase() === combinedPhrase.toLowerCase() || singularize(ing.name).toLowerCase() === singularize(combinedPhrase).toLowerCase());
                             if (combinedIngredientMatch) {
-                                // If the combined phrase matches an ingredient, update the last item
                                 lastItem.item = combinedIngredientMatch.name;
                                 lastItem.ingredient_id = combinedIngredientMatch.id;
                             } else {
-                                // Otherwise, just update the item name
                                 lastItem.item = combinedPhrase;
-                                lastItem.ingredient_id = null; // Ensure no ingredientId if it's just a general phrase
+                                lastItem.ingredient_id = null;
                             }
-                            i += 2; // Consume "de" and the next word
+                            lastItem.cantidad = initialQuantity; 
+                            lastItem.unidad = initialUnit;
+                            i += 2;
                         } else {
-                            // "de" at the beginning or without a preceding item, just treat as a word
-                            identifiedItems.push({ item: currentWord, ingredient_id: null });
+                            identifiedItems.push({ item: currentWord, ingredient_id: null, cantidad: initialQuantity, unidad: initialUnit }); 
                             i++;
                         }
                     } else {
-                        // Regular word, not part of a matched ingredient, nor a "de" connector in this specific context
-                        // Try to find a single-word ingredient match (singularized)
                         const singularizedWord = singularize(currentWord);
                         const singleWordIngredient = allIngredients.find(ing => singularize(ing.name).toLowerCase() === singularizedWord.toLowerCase());
                         
                         if (singleWordIngredient) {
-                            identifiedItems.push({ item: singleWordIngredient.name, ingredient_id: singleWordIngredient.id });
+                            identifiedItems.push({ item: singleWordIngredient.name, ingredient_id: singleWordIngredient.id, cantidad: initialQuantity, unidad: initialUnit }); 
                         } else {
-                            identifiedItems.push({ item: currentWord, ingredient_id: null });
+                            identifiedItems.push({ item: currentWord, ingredient_id: null, cantidad: initialQuantity, unidad: initialUnit }); 
                         }
                         i++;
                     }
                 }
             }
             
-            // Final cleanup: filter out empty items and ensure no pure separators
+            // Filter out empty items and pure separators
             identifiedItems = identifiedItems.filter(itemData => itemData.item.trim().length > 0);
             identifiedItems = identifiedItems.filter(itemData => !['y', 'e', 'o', 'u', 'con', 'sin', 'para', 'en', 'al', 'del', 'la', 'el', 'los', 'las', 'un', 'una', 'unos', 'unas'].includes(itemData.item.toLowerCase()));
             
-            // Remove duplicates which might arise from complex parsing, keeping the first occurrence
-            const uniqueItems = [];
-            const seenKeys = new Set();
-            for (const item of identifiedItems) {
-                // A unique key based on item name and linked ingredient ID (if any)
-                const key = `${item.item.toLowerCase()}-${item.ingredient_id || 'null'}`;
-                if (!seenKeys.has(key)) {
-                    uniqueItems.push(item);
-                    seenKeys.add(key);
-                }
-            }
-            identifiedItems = uniqueItems;
-
 
             if (identifiedItems.length === 0) {
                 showCustomAlert('Por favor, introduce al menos un ítem válido.', 'Entrada Vacía');
@@ -852,37 +873,78 @@
 
             try {
                 for (const itemData of identifiedItems) {
-                    const payload = { item: itemData.item, ingredient_id: itemData.ingredient_id };
-                    
-                    const response = await fetch('/api/lista_compra', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    if (!response.ok) {
-                        let errorDetails = `HTTP error! status: ${response.status}`;
-                        try {
-                            const errorData = await response.json();
-                            errorDetails = errorData.error || JSON.stringify(errorData);
-                        } catch (jsonError) {
-                            errorDetails = response.statusText || `HTTP error! status: ${response.status} (non-JSON response)`;
+                    // Check if the item already exists in the current shopping list and is not bought
+                    const existingItemInList = currentShoppingListItems.find(item => 
+                        !item.comprada && 
+                        item.item.toLowerCase() === itemData.item.toLowerCase() &&
+                        (item.unidad === itemData.unidad || (!item.unidad && !itemData.unidad)) // Match by unit if both exist, otherwise consider match
+                    );
+
+                    if (existingItemInList) {
+                        // If item exists, update its quantity
+                        const newQuantity = (existingItemInList.cantidad || 0) + itemData.cantidad;
+                        const response = await fetch(`/api/lista_compra/${existingItemInList.id}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ cantidad: newQuantity }) 
+                        });
+                        if (!response.ok) {
+                            let errorDetails = `HTTP error! status: ${response.status}`;
+                            try {
+                                const errorData = await response.json();
+                                errorDetails = errorData.error || JSON.stringify(errorData);
+                            } catch (jsonError) {
+                                errorDetails = response.statusText || `HTTP error! status: ${response.status} (non-JSON response)`;
+                            }
+                            throw new Error(`Failed to update item quantity: ${errorDetails}`);
                         }
-                        throw new Error(`Failed to add item: ${errorDetails}`);
+                        showCustomAlert(`Cantidad de "${itemData.item}" actualizada a ${newQuantity}.`, 'Cantidad Actualizada');
+                    } else {
+                        // If item does not exist, add it as a new item
+                        const payload = { 
+                            item: itemData.item, 
+                            ingredient_id: itemData.ingredient_id,
+                            cantidad: itemData.cantidad, 
+                            unidad: itemData.unidad      
+                        };
+                        
+                        const response = await fetch('/api/lista_compra', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        if (!response.ok) {
+                            let errorDetails = `HTTP error! status: ${response.status}`;
+                            try {
+                                const errorData = await response.json();
+                                errorDetails = errorData.error || JSON.stringify(errorData);
+                            } catch (jsonError) {
+                                errorDetails = response.statusText || `HTTP error! status: ${response.status} (non-JSON response)`;
+                            }
+                            throw new Error(`Failed to add item: ${errorDetails}`);
+                        }
+                        showCustomAlert(`"${itemData.item}" añadido con éxito.`, 'Éxito');
                     }
                 }
-                itemInput.value = '';
-                showCustomAlert('Ítem(s) añadido(s) con éxito.', 'Éxito');
-                fetchShoppingList(); 
+                itemInput.value = ''; // Clear input after processing all items
+                fetchShoppingList(); // Re-fetch and re-render the list after all operations
             }
             catch (error) {
-                console.error('Error al añadir ítem a la lista:', error);
-                showCustomAlert(`No se pudo añadir el ítem: ${error.message}`, 'Error');
+                console.error('Error al añadir/actualizar ítem a la lista:', error);
+                showCustomAlert(`No se pudo añadir/actualizar el ítem: ${error.message}`, 'Error');
             }
         });
 
-        // Toggles the "comprada" status of a list item
+        // Alterna el estado "comprada" de un ítem de la lista y lo mueve a la despensa
         async function toggleItemComprada(e) {
             const itemId = e.currentTarget.dataset.id;
+            const itemToToggle = currentShoppingListItems.find(item => item.id === itemId);
+
+            if (!itemToToggle) {
+                console.error('Ítem no encontrado en la lista de la compra para alternar estado.');
+                return;
+            }
+
             try {
                 const response = await fetch(`/api/lista_compra/${itemId}/toggle_comprada`, { 
                     method: 'PATCH'
@@ -897,15 +959,48 @@
                     }
                     throw new Error(`Failed to toggle bought status: ${errorDetails}`);
                 }
+                
+                // Si el ítem fue marcado como COMPRADO, moverlo a la despensa y eliminarlo de la lista de la compra
+                const updatedItem = await response.json(); // Obtener el ítem actualizado del backend
+                if (updatedItem.comprada) {
+                    await addOrUpdatePantryItem(itemToToggle.item, itemToToggle.cantidad, itemToToggle.unidad, itemToToggle.ingredient_id);
+                    await deleteItemFromShoppingListDirectly(itemId); // Eliminar de la lista de la compra sin confirmación
+                }
+                
+                fetchShoppingList(); // Volver a obtener y renderizar para actualizar todos los precios
+                fetchPantryList(); // Volver a obtener y renderizar la despensa
                 showCustomAlert('Estado del ítem actualizado.', 'Actualización Exitosa');
-                fetchShoppingList(); // Re-fetch and re-render to update all prices
+
             } catch (error) {
                 console.error('Error al cambiar estado del ítem:', error);
                 showCustomAlert(`No se pudo actualizar el estado: ${error.message}`, 'Error');
             }
         }
 
-        // Deletes a list item
+        // Función para eliminar un ítem directamente de la lista de la compra (sin confirmación)
+        async function deleteItemFromShoppingListDirectly(itemId) {
+            try {
+                const response = await fetch(`/api/lista_compra/${itemId}`, {
+                    method: 'DELETE'
+                });
+                if (!response.ok) {
+                    let errorDetails = `HTTP error! status: ${response.status}`;
+                    try {
+                        const errorData = await response.json();
+                        errorDetails = errorData.error || JSON.stringify(errorData);
+                    } catch (jsonError) {
+                        errorDetails = response.statusText || `HTTP error! status: ${response.status} (non-JSON response)`;
+                    }
+                    throw new Error(`Failed to delete item from shopping list: ${errorDetails}`);
+                }
+            } catch (error) {
+                console.error('Error al eliminar ítem de la lista de la compra directamente:', error);
+                // No mostrar alerta al usuario para no interferir con el flujo de "comprado"
+            }
+        }
+
+
+        // Elimina un ítem de la lista
         async function deleteItem(e) {
             const itemId = e.currentTarget.dataset.id;
             const confirmDelete = await showCustomConfirm('¿Estás seguro de que quieres eliminar este ítem?', 'Confirmar Eliminación');
@@ -925,7 +1020,7 @@
                         throw new Error(`Failed to delete item: ${errorDetails}`);
                     }
                     showCustomAlert('Ítem eliminado con éxito.', 'Eliminación Exitosa');
-                    fetchShoppingList(); // Re-fetch and re-render to update all prices
+                    fetchShoppingList(); // Volver a obtener y renderizar para actualizar todos los precios
                 } catch (error) {
                     console.error('Error al eliminar ítem:', error);
                     showCustomAlert(`No se pudo eliminar el ítem: ${error.message}`, 'Error');
@@ -933,7 +1028,7 @@
             }
         }
 
-        // New function to clear all items from the list
+        // Nueva función para borrar todos los ítems de la lista
         async function clearAllItems() {
             const confirmClear = await showCustomConfirm('¿Estás seguro de que quieres borrar TODA la lista de la compra? Esta acción no se puede deshacer.', 'Confirmar Borrado Total');
             if (confirmClear) {
@@ -952,7 +1047,7 @@
                         throw new Error(`Failed to clear list: ${errorDetails}`);
                     }
                     showCustomAlert('Lista de la compra borrada con éxito.', 'Lista Borrada');
-                    fetchShoppingList(); // Re-fetch and re-render to update all prices
+                    fetchShoppingList(); // Volver a obtener y renderizar para actualizar todos los precios
                 } catch (error) {
                     console.error('Error al borrar la lista completa:', error);
                     showCustomAlert(`No se pudo borrar la lista completa: ${error.message}`, 'Error al Borrar');
@@ -960,9 +1055,8 @@
             }
         }
 
-        // Adds an item as an ingredient
+        // Añade un ítem como ingrediente
         async function addAsIngredient(e) {
-            // Ensure e.currentTarget is not null before accessing its properties
             if (!e || !e.currentTarget) {
                 console.error("Error: Event or target element null/undefined in addAsIngredient.");
                 showCustomAlert("Error interno: No se pudo identificar el ítem para añadir como ingrediente.", "Error");
@@ -970,9 +1064,8 @@
             }
 
             const itemName = e.currentTarget.dataset.item;
-            const listItemId = e.currentTarget.dataset.listItemId; // Get the list item ID
+            const listItemId = e.currentTarget.dataset.listItemId; 
 
-            // Validate if the ingredient name is empty (this was already there and is correct)
             if (!itemName || itemName.trim() === '') {
                 showCustomAlert("El nombre del ingrediente no puede estar vacío. Por favor, edita el ítem en la lista o elimínalo si es un error.", "Error: Nombre Obligatorio");
                 return; 
@@ -981,7 +1074,6 @@
             const confirmAdd = await showCustomConfirm(`¿Quieres añadir "${itemName}" a tus ingredientes con Lidl como supermercado por defecto?`, 'Añadir Ingrediente');
             
             if (confirmAdd) {
-                // Find Lidl supermarket ID
                 const lidlSupermarket = allSupermarkets.find(s => s.name === 'Lidl');
                 const defaultSupermarketId = lidlSupermarket ? lidlSupermarket.id : null;
 
@@ -990,7 +1082,6 @@
                     return;
                 }
 
-                // Payload for adding a new ingredient (or updating existing base details)
                 const ingredientPayload = {
                     name: itemName,
                     calories_per_100g: 0, 
@@ -1002,14 +1093,12 @@
                 let newIngredientId = null;
 
                 try {
-                    // Try to find if an ingredient with this name already exists (singularized)
                     const existingIngredient = allIngredients.find(ing => singularize(ing.name).toLowerCase() === singularize(itemName).toLowerCase());
 
                     if (existingIngredient) {
                         newIngredientId = existingIngredient.id;
                         showCustomAlert(`"${itemName}" ya existía como ingrediente.`, 'Ingrediente Existente');
                     } else {
-                        // If not existing, add the new base ingredient
                         const response = await fetch('/api/ingredients', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -1030,11 +1119,9 @@
                         showCustomAlert(`"${itemName}" añadido a tus ingredientes.`, 'Ingrediente Añadido');
                     }
 
-                    // Now, add the price for the default supermarket to this ingredient
                     const pricePayload = {
                         supermarket_id: defaultSupermarketId,
-                        price: 0.00, // Default price 0.00, user can change later in Alimentacion
-                        // Copy base nutritional values for the price entry, if not existing
+                        price: 0.00, 
                         calories_per_100g: existingIngredient ? existingIngredient.calories_per_100g : 0,
                         proteins_per_100g: existingIngredient ? existingIngredient.proteins_per_100g : 0,
                         cantidad_estandar: existingIngredient ? existingIngredient.cantidad_estandar : 0.0,
@@ -1047,7 +1134,6 @@
                         body: JSON.stringify(pricePayload)
                     });
                     if (!priceResponse.ok) {
-                        // If price for this supermarket already exists, it's a 409 conflict
                         if (priceResponse.status === 409) {
                              showCustomAlert(`El precio de "${itemName}" para Lidl ya está registrado.`, 'Precio Existente');
                         } else {
@@ -1056,17 +1142,15 @@
                                 const errorData = await priceResponse.json();
                                 errorDetails = errorData.error || JSON.stringify(errorData);
                             } catch (jsonError) {
-                                errorDetails = priceResponse.statusText || `HTTP error! status: ${priceResponse.status} (non-JSON response)`;
+                                errorDetails = priceResponse.statusText || `HTTP error! status: ${jsonError.status} (non-JSON response)`;
                             }
                             throw new Error(`Failed to add supermarket price: ${errorDetails}`);
                         }
                     } else {
-                        // If a new price was successfully added
                         showCustomAlert('Precio de Lidl añadido/actualizado para el ingrediente.', 'Precio de Supermercado Actualizado');
                     }
 
-
-                    // Finally, update the shopping list item with the ingredient_id
+                    // Finalmente, actualizar el ítem de la lista de la compra con el ingredient_id
                     if (newIngredientId && listItemId) { 
                         const updateResponse = await fetch(`/api/lista_compra/${listItemId}`, { 
                             method: 'PATCH', 
@@ -1080,7 +1164,7 @@
                                 const errorData = await updateResponse.json();
                                 errorDetails = errorData.error || JSON.stringify(errorData);
                             } catch (jsonError) {
-                                errorDetails = updateResponse.statusText || `HTTP error! status: ${updateResponse.status} (non-JSON response)`;
+                                errorDetails = response.statusText || `HTTP error! status: ${jsonError.status} (non-JSON response)`;
                             }
                             throw new Error(`Failed to link ingredient with list item: ${errorDetails}`);
                         }
@@ -1098,17 +1182,413 @@
             }
         }
 
+        // Función para actualizar la cantidad de un ítem
+        async function updateItemQuantity(e) {
+            const itemId = e.currentTarget.dataset.id;
+            let currentCantidad = parseFloat(e.currentTarget.dataset.currentCantidad);
+            
+            if (isNaN(currentCantidad)) {
+                currentCantidad = 1; // Por defecto a 1 si no es un número válido
+            }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            displayCurrentDate();
-            // Load all ingredients initially (which also triggers supermarket fetching and selector population),
-            // then load and render the shopping list.
-            fetchAllIngredients().then(() => {
-                fetchShoppingList();
+            let newCantidad;
+            if (e.currentTarget.classList.contains('plus-button')) {
+                newCantidad = currentCantidad + 1;
+            } else if (e.currentTarget.classList.contains('minus-button')) {
+                newCantidad = currentCantidad - 1;
+            } else {
+                return; // No debería ocurrir
+            }
+
+            if (newCantidad <= 0) {
+                // Si la cantidad es 0 o menos, elimina directamente el ítem sin confirmación
+                deleteItem({ currentTarget: { dataset: { id: itemId } } }); // Llama a la función de eliminar
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/lista_compra/${itemId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cantidad: newCantidad }) 
+                });
+
+                if (!response.ok) {
+                    let errorDetails = `HTTP error! status: ${response.status}`;
+                    try {
+                        const errorData = await response.json();
+                        errorDetails = errorData.error || JSON.stringify(errorData);
+                    } catch (jsonError) {
+                        errorDetails = response.statusText || `HTTP error! status: ${jsonError.status} (non-JSON response)`;
+                    }
+                    throw new Error(`Failed to update item quantity: ${errorDetails}`);
+                }
+                fetchShoppingList(); // Volver a obtener y renderizar
+            } catch (error) {
+                console.error('Error al actualizar cantidad:', error);
+                showCustomAlert(`No se pudo actualizar la cantidad: ${error.message}`, 'Error');
+            }
+        }
+
+
+        // --- Funciones de la Despensa ---
+
+        // Obtiene y renderiza la lista de la despensa
+        async function fetchPantryList() {
+            try {
+                const response = await fetch('/api/despensa');
+                if (!response.ok) {
+                    let errorDetails = `HTTP error! status: ${response.status}`;
+                    try {
+                        const errorData = await response.json();
+                        errorDetails = errorData.error || JSON.stringify(errorData);
+                    } catch (jsonError) {
+                        errorDetails = response.statusText || `HTTP error! status: ${jsonError.status} (non-JSON response)`;
+                    }
+                    throw new Error(`Failed to fetch pantry list: ${errorDetails}`);
+                }
+                currentPantryItems = await response.json();
+                renderPantryList(currentPantryItems);
+                // NOTA: checkPantryStockAndAddToShoppingList() ya no se llama aquí,
+                // se llama después de que ambas listas (compra y despensa) se carguen.
+            } catch (error) {
+                console.error('Error al cargar la despensa. Asegúrate de que el backend para /api/despensa esté funcionando correctamente:', error);
+                showCustomAlert('No se pudo cargar la despensa. Por favor, verifica que tu servidor backend esté corriendo y que el endpoint /api/despensa exista y sea accesible.', 'Error de Carga de Despensa');
+            }
+        }
+
+        // Renderiza los ítems de la despensa
+        function renderPantryList(items) {
+            pantryItemsDiv.innerHTML = '';
+            if (items.length === 0) {
+                pantryItemsDiv.innerHTML = '<p class="text-center text-gray-500 mt-4 p-4 bg-gray-50 rounded-lg shadow-inner">Tu despensa está vacía. ¡Añade ítems desde la lista de la compra!</p>';
+                return;
+            }
+
+            items.forEach(item => {
+                const pantryItemCard = document.createElement('div');
+                pantryItemCard.classList.add('flex', 'flex-col', 'sm:flex-row', 'items-start', 'sm:items-center', 'justify-between', 'bg-white', 'p-4', 'rounded-lg', 'shadow-md', 'transition-all', 'duration-200', 'ease-in-out', 'border', 'border-gray-200');
+
+                let ingredientIconHtml = '';
+                if (item.ingredient_id) {
+                    const ingredient = allIngredients.find(ing => ing.id === item.ingredient_id);
+                    if (ingredient) {
+                        ingredientIconHtml = `<i class="fas fa-seedling text-emerald-600 mr-2" title="Asociado a ingrediente: ${ingredient.name}"></i>`;
+                    }
+                } else {
+                    const matchingIngredientByName = allIngredients.find(ing => singularize(ing.name).toLowerCase() === singularize(item.item).toLowerCase());
+                    if (matchingIngredientByName) {
+                        ingredientIconHtml = `<i class="fas fa-seedling text-gray-500 mr-2" title="Posible ingrediente: ${matchingIngredientByName.name}"></i>`;
+                    }
+                }
+
+                pantryItemCard.innerHTML = `
+                    <div class="flex-grow flex items-center w-full sm:w-auto mb-2 sm:mb-0">
+                        <span class="text-gray-900 font-medium text-lg flex-grow">
+                            ${ingredientIconHtml}${item.item} 
+                        </span>
+                        <span class="text-gray-900 font-bold text-lg mr-2">${item.cantidad || 0}</span>
+                        <span class="text-sm text-gray-500">${item.unidad || ''}</span>
+                    </div>
+                    <div class="flex items-center justify-end gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+                        <button class="pantry-quantity-button minus-button p-3 rounded-full bg-red-200 text-red-700 hover:bg-red-300 btn-transition" 
+                                data-id="${item.id}" 
+                                data-current-cantidad="${item.cantidad || 0}"
+                                title="Disminuir Cantidad en despensa">
+                            <i class="fas fa-minus text-lg"></i>
+                        </button>
+                        <button class="pantry-quantity-button plus-button p-3 rounded-full bg-green-200 text-green-700 hover:bg-green-300 btn-transition" 
+                                data-id="${item.id}" 
+                                data-current-cantidad="${item.cantidad || 0}"
+                                title="Aumentar Cantidad en despensa">
+                            <i class="fas fa-plus text-lg"></i>
+                        </button>
+                        <button class="restock-item p-3 rounded-full bg-blue-200 text-blue-700 hover:bg-blue-300 btn-transition" data-id="${item.id}" title="Volver a Añadir a la Lista de la Compra">
+                            <i class="fas fa-cart-plus text-lg"></i>
+                        </button>
+                        <button class="delete-pantry-item p-3 rounded-full bg-red-200 text-red-700 hover:bg-red-300 btn-transition" data-id="${item.id}" title="Eliminar de la Despensa">
+                            <i class="fas fa-trash-alt text-lg"></i>
+                        </button>
+                    </div>
+                `;
+                pantryItemsDiv.appendChild(pantryItemCard);
             });
+
+            document.querySelectorAll('.pantry-quantity-button').forEach(button => {
+                button.addEventListener('click', updatePantryItemQuantity);
+            });
+            document.querySelectorAll('.restock-item').forEach(button => {
+                button.addEventListener('click', restockPantryItem);
+            });
+            document.querySelectorAll('.delete-pantry-item').forEach(button => {
+                button.addEventListener('click', deletePantryItem);
+            });
+        }
+
+        // Añade o actualiza un ítem en la despensa
+        async function addOrUpdatePantryItem(itemName, quantity, unit, ingredientId = null) {
+            try {
+                const existingPantryItem = currentPantryItems.find(pantryItem => 
+                    pantryItem.item.toLowerCase() === itemName.toLowerCase() && 
+                    pantryItem.unidad === unit
+                );
+
+                let response;
+                if (existingPantryItem) {
+                    const newQuantity = (existingPantryItem.cantidad || 0) + quantity;
+                    response = await fetch(`/api/despensa/${existingPantryItem.id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ cantidad: newQuantity, unidad: unit })
+                    });
+                } else {
+                    const payload = {
+                        item: itemName,
+                        cantidad: quantity,
+                        unidad: unit,
+                        ingredient_id: ingredientId
+                    };
+                    response = await fetch('/api/despensa', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                }
+
+                if (!response.ok) {
+                    let errorDetails = `HTTP error! status: ${response.status}`;
+                    try {
+                        const errorData = await response.json();
+                        errorDetails = errorData.error || JSON.stringify(errorData);
+                    } catch (jsonError) {
+                        errorDetails = response.statusText || `HTTP error! status: ${jsonError.status} (non-JSON response)`;
+                    }
+                    throw new Error(`Failed to add/update pantry item: ${errorDetails}`);
+                }
+                console.log('Ítem de despensa añadido/actualizado.');
+                fetchPantryList(); // Refrescar la despensa
+            } catch (error) {
+                console.error('Error al añadir/actualizar ítem en la despensa:', error);
+                showCustomAlert(`No se pudo añadir/actualizar el ítem en la despensa: ${error.message}`, 'Error de Despensa');
+            }
+        }
+
+        // Actualiza la cantidad de un ítem en la despensa
+        async function updatePantryItemQuantity(e) {
+            const itemId = e.currentTarget.dataset.id;
+            let currentCantidad = parseFloat(e.currentTarget.dataset.currentCantidad);
+            
+            if (isNaN(currentCantidad)) {
+                currentCantidad = 0; 
+            }
+
+            let newCantidad;
+            if (e.currentTarget.classList.contains('plus-button')) {
+                newCantidad = currentCantidad + 1;
+            } else if (e.currentTarget.classList.contains('minus-button')) {
+                newCantidad = currentCantidad - 1;
+            } else {
+                return; 
+            }
+
+            if (newCantidad < 0) {
+                newCantidad = 0; // No permitir cantidades negativas
+            }
+
+            const pantryItem = currentPantryItems.find(item => item.id === itemId);
+            const unitToSave = pantryItem ? pantryItem.unidad : ''; // Mantener la unidad existente
+
+            try {
+                const response = await fetch(`/api/despensa/${itemId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cantidad: newCantidad, unidad: unitToSave }) 
+                });
+
+                if (!response.ok) {
+                    let errorDetails = `HTTP error! status: ${response.status}`;
+                    try {
+                        const errorData = await response.json();
+                        errorDetails = errorData.error || JSON.stringify(errorData);
+                    } catch (jsonError) {
+                        errorDetails = response.statusText || `HTTP error! status: ${jsonError.status} (non-JSON response)`;
+                    }
+                    throw new Error(`Failed to update pantry item quantity: ${errorDetails}`);
+                }
+                fetchPantryList(); // Re-fetch and re-render pantry
+            } catch (error) {
+                console.error('Error al actualizar cantidad de la despensa:', error);
+                showCustomAlert(`No se pudo actualizar la cantidad en la despensa: ${error.message}`, 'Error');
+            }
+        }
+
+        // Vuelve a añadir un ítem de la despensa a la lista de la compra (Restock)
+        // Esta función se usa tanto para el botón de reabastecimiento manual como para el automático
+        async function restockPantryItem(e) {
+            const itemId = e.currentTarget.dataset.id;
+            const pantryItem = currentPantryItems.find(item => item.id === itemId);
+
+            if (!pantryItem) {
+                showCustomAlert('Ítem de despensa no encontrado.', 'Error');
+                return;
+            }
+
+            try {
+                // Verificar si el ítem ya está en la lista de la compra y no está "comprado"
+                const existingItemInShoppingList = currentShoppingListItems.find(item => 
+                    !item.comprada && 
+                    item.item.toLowerCase() === pantryItem.item.toLowerCase() &&
+                    (item.unidad === pantryItem.unidad || (!item.unidad && !pantryItem.unidad)) 
+                );
+
+                let response;
+                if (existingItemInShoppingList) {
+                    // Si el ítem ya existe en la lista y no está comprado, incrementa su cantidad
+                    const newQuantity = (existingItemInShoppingList.cantidad || 0) + 1;
+                    response = await fetch(`/api/lista_compra/${existingItemInShoppingList.id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ cantidad: newQuantity }) 
+                    });
+                    showCustomAlert(`Cantidad de "${pantryItem.item}" en la lista de la compra actualizada a ${newQuantity}.`, 'Cantidad Actualizada');
+                } else {
+                    // Si el ítem no existe en la lista (o está marcado como comprado), añadirlo como un nuevo ítem
+                    const payload = { 
+                        item: pantryItem.item, 
+                        ingredient_id: pantryItem.ingredient_id,
+                        cantidad: 1, 
+                        unidad: pantryItem.unidad      
+                    };
+                    
+                    response = await fetch('/api/lista_compra', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    showCustomAlert(`"${pantryItem.item}" añadido a la lista de la compra.`, 'Restock Exitoso');
+                }
+
+                if (!response.ok) {
+                    let errorDetails = `HTTP error! status: ${response.status}`;
+                    try {
+                        const errorData = await response.json();
+                        errorDetails = errorData.error || JSON.stringify(errorData);
+                    } catch (jsonError) {
+                        errorDetails = response.statusText || `HTTP error! status: ${jsonError.status} (non-JSON response)`;
+                    }
+                    throw new Error(`Failed to add/update item in shopping list from pantry: ${errorDetails}`);
+                }
+                fetchShoppingList(); // Refresh shopping list
+            } catch (error) {
+                console.error('Error al añadir ítem de la despensa a la lista:', error);
+                showCustomAlert(`No se pudo añadir el ítem a la lista: ${error.message}`, 'Error');
+            }
+        }
+
+        // Elimina un ítem de la despensa
+        async function deletePantryItem(e) {
+            const itemId = e.currentTarget.dataset.id;
+            const confirmDelete = await showCustomConfirm('¿Estás seguro de que quieres eliminar este ítem de tu despensa?', 'Confirmar Eliminación');
+            if (confirmDelete) {
+                try {
+                    const response = await fetch(`/api/despensa/${itemId}`, {
+                        method: 'DELETE'
+                    });
+                    if (!response.ok) {
+                        let errorDetails = `HTTP error! status: ${response.status}`;
+                        try {
+                            const errorData = await response.json();
+                            errorDetails = errorData.error || JSON.stringify(errorData);
+                        } catch (jsonError) {
+                            errorDetails = response.statusText || `HTTP error! status: ${jsonError.status} (non-JSON response)`;
+                        }
+                        throw new Error(`Failed to delete pantry item: ${errorDetails}`);
+                    }
+                    showCustomAlert('Ítem eliminado de la despensa.', 'Eliminación Exitosa');
+                    fetchPantryList(); // Refrescar la despensa
+                } catch (error) {
+                    console.error('Error al eliminar ítem de la despensa:', error);
+                    showCustomAlert(`No se pudo eliminar el ítem de la despensa: ${error.message}`, 'Error');
+                }
+            }
+        }
+
+        // Comprueba el stock de la despensa y añade ítems a la lista de la compra si es necesario
+        async function checkPantryStockAndAddToShoppingList() {
+            const lowStockThreshold = 0; // Define aquí tu umbral de stock bajo (por ejemplo, 0 para agotado, 1 para casi agotado)
+            let itemsAddedOrUpdated = false; // Bandera para saber si hubo cambios
+
+            for (const item of currentPantryItems) {
+                if (item.cantidad <= lowStockThreshold) {
+                    // Verificar si el ítem (por nombre y unidad) ya está en la lista de la compra y NO está comprado
+                    const existsInShoppingListAndNotBought = currentShoppingListItems.some(
+                        (shopItem) => shopItem.item.toLowerCase() === item.item.toLowerCase() && 
+                                      (shopItem.unidad === item.unidad || (!shopItem.unidad && !item.unidad)) &&
+                                      !shopItem.comprada
+                    );
+
+                    if (!existsInShoppingListAndNotBought) {
+                        // Si no existe en la lista de la compra (o está comprado), añadirlo como un nuevo ítem con cantidad 1.
+                        // No incrementamos aquí para evitar el problema de duplicación en cada recarga.
+                        console.log(`Reabasteciendo "${item.item}" desde la despensa a la lista de la compra (automático).`);
+                        
+                        const payload = { 
+                            item: item.item, 
+                            ingredient_id: item.ingredient_id,
+                            cantidad: 1, // Siempre añadir 1 unidad si es por bajo stock
+                            unidad: item.unidad      
+                        };
+                        
+                        try {
+                            const response = await fetch('/api/lista_compra', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payload)
+                            });
+                            if (!response.ok) {
+                                let errorDetails = `HTTP error! status: ${response.status}`;
+                                try {
+                                    const errorData = await response.json();
+                                    errorDetails = errorData.error || JSON.stringify(errorData);
+                                } catch (jsonError) {
+                                    errorDetails = response.statusText || `HTTP error! status: ${jsonError.status} (non-JSON response)`;
+                                }
+                                throw new Error(`Failed to add item to shopping list from pantry (automatic check): ${errorDetails}`);
+                            }
+                            console.log(`"${item.item}" añadido a la lista de la compra automáticamente.`);
+                            itemsAddedOrUpdated = true; // Se realizó un cambio
+                        } catch (error) {
+                            console.error('Error al añadir ítem de la despensa a la lista (automático):', error);
+                        }
+                    } else {
+                        console.log(`"${item.item}" ya está en la lista de la compra (no comprado), no se añadirá automáticamente.`);
+                    }
+                }
+            }
+            // Después de procesar todos los ítems de la despensa, si hubo algún cambio, actualizar la lista de la compra.
+            if (itemsAddedOrUpdated) {
+                fetchShoppingList();
+            }
+        }
+
+
+        document.addEventListener('DOMContentLoaded', async () => { 
+            displayCurrentDate();
+            await fetchAllIngredients(); // Esperar a que ingredientes y supermercados carguen
+
+            // Usar Promise.all para cargar ambas listas en paralelo y esperar a que ambas se completen
+            await Promise.all([
+                fetchShoppingList(),
+                fetchPantryList()
+            ]);
+
+            // Después de que ambas listas se hayan cargado y currentShoppingListItems/currentPantryItems estén poblados,
+            // entonces verificar el stock de la despensa y añadir a la lista de la compra si es necesario.
+            checkPantryStockAndAddToShoppingList(); 
+
             clearListButton.addEventListener('click', clearAllItems);
 
-            // Add event listeners for supermarket selectors
+            // Añadir escuchadores de eventos para los selectores de supermercados
             defaultSupermarketSelect.addEventListener('change', updateTotalPricesDisplay);
             compareSupermarketSelect.addEventListener('change', updateTotalPricesDisplay);
         });
